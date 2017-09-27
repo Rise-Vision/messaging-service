@@ -1,0 +1,27 @@
+{
+  "name": "messaging-service",
+  "version": "1.0.0",
+  "description": "Rise Vision Messaging Service",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Rise-Vision/messaging-service.git"
+  },
+  "keywords": [
+    "MS"
+  ],
+  "author": "Rise Vision",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Rise-Vision/messaging-service/issues"
+  },
+  "homepage": "https://github.com/Rise-Vision/messaging-service#readme",
+  "dependencies": {
+    "primus": "^7.1.0",
+    "uws": "^8.14.1"
+  }
+}
