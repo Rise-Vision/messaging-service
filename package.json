@@ -1,6 +1,6 @@
 {
   "name": "messaging-service",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Rise Vision Messaging Service",
   "main": "index.js",
   "scripts": {
