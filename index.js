@@ -12,7 +12,7 @@ primus.on('connection', (spark) => {
   spark.write(`Messaging Service WebSocket Connected: ${podname}`);
 });
 
-app.get('/', function(req, res) {
+app.get('/messaging', function(req, res) {
   res.send(`Messaging Service: ${podname}`);
 });
 
