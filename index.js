@@ -4,7 +4,7 @@ const Primus = require('primus'),
 const server = http.createServer();
 const podname = process.env.podname;
 
-const primus = new Primus(server, {transformer: 'uws', pathname: '/messaging/primus'});
+const primus = new Primus(server, {transformer: 'uws', pathname: '/messaging'});
 
 primus.on('connection', (spark) => {
   spark.write(`Messaging Service WebSocket Connected: ${podname}`);
