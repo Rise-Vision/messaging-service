@@ -1,13 +1,19 @@
 const Primus = require('primus'),
+      express = require('express');
       http = require('http');
       port = 80;
+const app = express();
+const server = http.createServer(app);
+const podname = process.env.podname;
 
-const server = http.createServer(()=>{}),
-
-primus = new Primus(server, {transformer: 'uws'});
+const primus = new Primus(server, {transformer: 'uws'});
 
 primus.on('connection', (spark) => {
-  spark.write(server.address());
+  spark.write(`Messaging Service WebSocket Connected: ${podname}`);
+});
+
+app.get('/', function(req, res) {
+  res.send(`Messaging Service: ${podname}`);
 });
 
 server.listen(port, (err) => {

@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/Rise-Vision/messaging-service#readme",
   "dependencies": {
+    "express": "^4.15.5",
     "primus": "^7.1.0",
     "uws": "^8.14.1"
   }
