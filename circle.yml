@@ -1,0 +1,42 @@
+machine:
+  node:
+    version: 7.10.0
+  environment:
+    PROJECT_ID: messaging-service-180514
+    CLOUDSDK_COMPUTE_ZONE: us-central1-a
+    DOCKER_IMAGE_NAME: gcr.io/messaging-service-180514/messaging-service
+    DEBIAN_FRONTEND: noninteractive
+  services:
+    - docker
+
+dependencies:
+  pre:
+    - if [ -z $(grep version package.json |grep -o '[0-9.]*') ]; then echo Version must be specified in package.json; exit 1; fi
+    - echo "Setting up google cloud sdk..."
+    - echo ${ACCT_AUTH} | base64 --decode -i > ${HOME}//gcloud-service-key.json
+    - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update
+    - sudo /opt/google-cloud-sdk/bin/gcloud --quiet components update kubectl
+    - sudo /opt/google-cloud-sdk/bin/gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+    - sudo /opt/google-cloud-sdk/bin/gcloud config set project $PROJECT_ID
+    - docker build -t $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') .
+    - docker tag $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') $DOCKER_IMAGE_NAME:latest
+
+test:
+  override:
+    - echo "No test coverage yet"
+  post:
+    - docker run -d -p 8080:80 $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*'); sleep 10
+    - curl --retry 10 --retry-delay 5 -v http://localhost:8080
+
+deployment:
+  staging:
+    branch: /(feature|fix|chore).*/
+    commands:
+      - ./deploy-stage.sh
+
+  production:
+    branch: master
+    commands:
+      - ./deploy-prod.sh
+
+
