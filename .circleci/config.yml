@@ -1,0 +1,91 @@
+version: 2
+
+jobs:
+  "build_image":
+    docker: &DOCKERIMAGE
+      - image: google/cloud-sdk:latest
+    steps:
+      - checkout
+      - run: ./confirm-version.sh
+      - run: "echo ${ACCT_AUTH} | base64 --decode -i > ${HOME}//gcloud-service-key.json"
+      - run: gcloud --quiet components update
+      - run: gcloud --quiet components update kubectl
+      - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+      - run: gcloud config set project $PROJECT_ID
+      - run: setup_remote_docker
+      - run: docker build -t $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') .
+      - run: "docker tag $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') $DOCKER_IMAGE_NAME:latest"
+      - run: docker save $DOCKER_IMAGE_NAME > $DOCKER_IMAGE_NAME
+      - persist_to_workspace:
+          root: $HOME
+          path:
+            - $DOCKER_IMAGE_NAME
+
+  "confirm_listener":
+    docker: *DOCKERIMAGE
+    steps:
+      - attach_workspace:
+          at: $HOME
+      - setup_remote_docker
+      - run: docker load < $HOME/$DOCKER_IMAGE_NAME
+      - run: "docker run -d -p 8080:80 $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*'); sleep 10"
+      - run: "docker exec $DOCKER_IMAGE_NAME curl --retry 10 --retry-delay 5 -v http://localhost:8080"
+
+  "stage":
+    docker: *DOCKERIMAGE
+    steps:
+      - checkout
+      - attach_workspace:
+          at: $HOME
+      - run: gcloud --quiet components update
+      - run: gcloud --quiet components update kubectl
+      - run: "echo ${ACCT_AUTH} | base64 --decode -i > ${HOME}//gcloud-service-key.json"
+      - run: gcloud --quiet config set container/cluster messaging-service-stage
+      - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+      - run: gcloud config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
+      - run: gcloud config set container/use_client_certificate True
+      - run: gcloud --quiet container clusters get-credentials messaging-service-stage
+      - run: "export TAG=$(grep version package.json |grep -o '[0-9.]*')"
+      - run: echo "Tag value is $TAG"
+      - run: echo "Pushing image $DOCKER_IMAGE_NAME to registry..."
+      - setup_remote_docker
+      - run: docker load < $HOME/$DOCKER_IMAGE_NAME
+      - run: gcloud docker -- push ${DOCKER_IMAGE_NAME}
+      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
+
+  "prod":
+    docker: *DOCKERIMAGE
+    steps:
+      - checkout
+      - run: gcloud --quiet components update
+      - run: gcloud --quiet components update kubectl
+      - run: "echo ${ACCT_AUTH} | base64 --decode -i > ${HOME}//gcloud-service-key.json"
+      - run: gcloud --quiet config set container/cluster messaging-service-prod
+      - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+      - run: gcloud config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
+      - run: gcloud config set container/use_client_certificate True
+      - run: gcloud --quiet container clusters get-credentials messaging-service-prod
+      - run: "export TAG=$(grep version package.json |grep -o '[0-9.]*')"
+      - run: echo "Tag value is $TAG"
+      - setup_remote_docker
+      - run: docker load < $HOME/$DOCKER_IMAGE_NAME
+      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
+
+workflows:
+  version: 2
+  workflow1:
+    jobs:
+      - "build_image"
+      - "confirm_listener":
+          requires:
+            - build_image
+      - "stage":
+          requires:
+            - confirm_listener
+      - "prod":
+          requires:
+            - stage
+          filters:
+            branches:
+              only:
+                - master
