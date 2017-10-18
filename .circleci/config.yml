@@ -6,19 +6,22 @@ jobs:
       - image: jenkinsrise/cci-v2-docker-gcloud:0.0.2
     steps:
       - checkout
-      - run: ./confirm-version.sh
+      - run: if [ -z $(grep version package.json |grep -o '[0-9.]*') ]; then echo Version must be specified in package.json; exit 1; fi
+      - run: "echo Building version $(cat package-version)"
+      - run: echo $(grep version package.json |grep -o '[0-9.]*') >package-version
       - run: "echo ${ACCT_AUTH} | base64 -d  > ${HOME}//gcloud-service-key.json"
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run: gcloud config set project $PROJECT_ID
       - setup_remote_docker
-      - run: docker build -t $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') .
-      - run: "docker tag $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') $DOCKER_IMAGE_NAME:latest"
+      - run: docker build -t $DOCKER_IMAGE_NAME:v$(cat package-version) .
+      - run: "docker tag $DOCKER_IMAGE_NAME:v$(cat package-version) $DOCKER_IMAGE_NAME:latest"
       - run: docker images
       - run: docker save $DOCKER_IMAGE_NAME > dockerImage.tar
       - persist_to_workspace:
           root: .
           paths:
             - dockerImage.tar
+            - package-version
 
   "confirm_listener":
     docker: *DOCKERIMAGE
@@ -27,7 +30,7 @@ jobs:
           at: .
       - setup_remote_docker
       - run: docker load < ./dockerImage.tar
-      - run: "docker run -d -p 8080:80 $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*'); sleep 10"
+      - run: "docker run -d -p 8080:80 $DOCKER_IMAGE_NAME:v$(cat package-version); sleep 10"
       - run: "docker exec $DOCKER_IMAGE_NAME curl --retry 10 --retry-delay 5 -v http://localhost:8080"
 
   "stage":
@@ -60,7 +63,7 @@ jobs:
       - run: gcloud config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
       - run: gcloud config set container/use_client_certificate True
       - run: gcloud --quiet container clusters get-credentials messaging-service-prod
-      - run: "export TAG=$(grep version package.json |grep -o '[0-9.]*')"
+      - run: "export TAG=$(cat package-version)"
       - run: echo "Tag value is $TAG"
       - setup_remote_docker
       - run: docker load < $HOME/$dockerImage.tar
