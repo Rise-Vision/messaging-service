@@ -3,12 +3,11 @@ version: 2
 jobs:
   "build_image":
     docker: &DOCKERIMAGE
-      - image: google/cloud-sdk:latest
-      - image: docker
+      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.2
     steps:
       - checkout
       - run: ./confirm-version.sh
-      - run: "echo ${ACCT_AUTH} | base64 --decode -i > ${HOME}//gcloud-service-key.json"
+      - run: "echo ${ACCT_AUTH} | base64 -d  > ${HOME}//gcloud-service-key.json"
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run: gcloud config set project $PROJECT_ID
       - setup_remote_docker
@@ -36,7 +35,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: $HOME
-      - run: "echo ${ACCT_AUTH} | base64 --decode -i > ${HOME}//gcloud-service-key.json"
+      - run: "echo ${ACCT_AUTH} | base64 -d -i > ${HOME}//gcloud-service-key.json"
       - run: gcloud --quiet config set container/cluster messaging-service-stage
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run: gcloud config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
@@ -54,7 +53,7 @@ jobs:
     docker: *DOCKERIMAGE
     steps:
       - checkout
-      - run: "echo ${ACCT_AUTH} | base64 --decode -i > ${HOME}//gcloud-service-key.json"
+      - run: "echo ${ACCT_AUTH} | base64 -d -i > ${HOME}//gcloud-service-key.json"
       - run: gcloud --quiet config set container/cluster messaging-service-prod
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run: gcloud config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
