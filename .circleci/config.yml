@@ -13,19 +13,20 @@ jobs:
       - setup_remote_docker
       - run: docker build -t $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') .
       - run: "docker tag $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') $DOCKER_IMAGE_NAME:latest"
-      - run: docker save $DOCKER_IMAGE_NAME > $DOCKER_IMAGE_NAME
+      - run: docker images
+      - run: docker save $DOCKER_IMAGE_NAME > dockerImage.tar
       - persist_to_workspace:
-          root: $HOME
-          path:
-            - $DOCKER_IMAGE_NAME
+          root: .
+          paths:
+            - dockerImage.tar
 
   "confirm_listener":
     docker: *DOCKERIMAGE
     steps:
       - attach_workspace:
-          at: $HOME
+          at: .
       - setup_remote_docker
-      - run: docker load < $HOME/$DOCKER_IMAGE_NAME
+      - run: docker load < ./dockerImage.tar
       - run: "docker run -d -p 8080:80 $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*'); sleep 10"
       - run: "docker exec $DOCKER_IMAGE_NAME curl --retry 10 --retry-delay 5 -v http://localhost:8080"
 
@@ -34,7 +35,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: $HOME
+          at: .
       - run: "echo ${ACCT_AUTH} | base64 -d -i > ${HOME}//gcloud-service-key.json"
       - run: gcloud --quiet config set container/cluster messaging-service-stage
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
@@ -45,7 +46,7 @@ jobs:
       - run: echo "Tag value is $TAG"
       - run: echo "Pushing image $DOCKER_IMAGE_NAME to registry..."
       - setup_remote_docker
-      - run: docker load < $HOME/$DOCKER_IMAGE_NAME
+      - run: docker load < $HOME/dockerImage.tar
       - run: gcloud docker -- push ${DOCKER_IMAGE_NAME}
       - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
 
@@ -62,7 +63,7 @@ jobs:
       - run: "export TAG=$(grep version package.json |grep -o '[0-9.]*')"
       - run: echo "Tag value is $TAG"
       - setup_remote_docker
-      - run: docker load < $HOME/$DOCKER_IMAGE_NAME
+      - run: docker load < $HOME/$dockerImage.tar
       - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
 
 workflows:
