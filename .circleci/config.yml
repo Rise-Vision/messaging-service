@@ -4,13 +4,14 @@ jobs:
   "build_image":
     docker: &DOCKERIMAGE
       - image: google/cloud-sdk:latest
+      - image: docker
     steps:
       - checkout
       - run: ./confirm-version.sh
       - run: "echo ${ACCT_AUTH} | base64 --decode -i > ${HOME}//gcloud-service-key.json"
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run: gcloud config set project $PROJECT_ID
-      - run: setup_remote_docker
+      - setup_remote_docker
       - run: docker build -t $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') .
       - run: "docker tag $DOCKER_IMAGE_NAME:v$(grep version package.json |grep -o '[0-9.]*') $DOCKER_IMAGE_NAME:latest"
       - run: docker save $DOCKER_IMAGE_NAME > $DOCKER_IMAGE_NAME
