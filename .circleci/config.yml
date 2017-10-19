@@ -3,7 +3,7 @@ version: 2
 jobs:
   "build_image":
     docker: &DOCKERIMAGE
-      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.2
+      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
     steps:
       - checkout
       - run: if [ -z $(grep version package.json |grep -o '[0-9.]*') ]; then echo Version must be specified in package.json; exit 1; fi
@@ -47,6 +47,8 @@ jobs:
   "confirm_service":
     docker: *DOCKERIMAGE
     steps:
+      - attach_workspace:
+          at: .
       - run: curl "https://services-stage.risevision.com/messaging/" |grep $(cat package-version)
 
   "prod":
