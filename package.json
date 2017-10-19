@@ -4,7 +4,7 @@
   "description": "Rise Vision Messaging Service",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha test",
     "start": "node index.js"
   },
   "repository": {
@@ -24,5 +24,9 @@
     "express": "^4.15.5",
     "primus": "^7.1.0",
     "uws": "^8.14.1"
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1",
+    "simple-mock": "^0.8.0"
   }
 }
