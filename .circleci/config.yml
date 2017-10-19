@@ -36,13 +36,12 @@ jobs:
       - run: gcloud config set container/use_client_certificate True
       - run: gcloud config set project $PROJECT_ID
       - run: gcloud --quiet container clusters get-credentials messaging-service-stage
-      - run: "export TAG=$(cat package-version)"
-      - run: echo "Tag value is $TAG"
+      - run: echo "Staging $(cat package-version)"
       - run: echo "Pushing image $DOCKER_IMAGE_NAME to registry..."
       - setup_remote_docker
       - run: docker load < ./dockerImage.tar
       - run: gcloud docker -- push ${DOCKER_IMAGE_NAME}
-      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
+      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$(cat package-version)"'"}]}}}}'
 
   "confirm_service":
     docker: *DOCKERIMAGE
