@@ -4,14 +4,18 @@ const watchListEntry = require("../watchlist/entry.js");
 module.exports = {
   watch(newEntry, needsToken = false) {
     if (!watchListEntry.validate(newEntry)) {
-      throw Error("invalid watchlist entry");
+      throw Error(`invalid watchlist entry ${newEntry}`);
     }
 
     const {filePath, displayId} = newEntry;
 
-    db.fileMetadata.addDisplayTo(filePath, displayId);
-    db.watchList.put(newEntry);
-
-    return true;
+    return needsToken || Promise.all([
+      db.fileMetadata.addDisplayTo(filePath, displayId),
+      db.watchList.put(newEntry)
+    ])
+    .catch((err)=>{
+      console.error(err);
+      return {error: 500, msg: "There was an error processing WATCH."};
+    });
   }
 };

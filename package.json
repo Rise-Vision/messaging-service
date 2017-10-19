@@ -4,7 +4,7 @@
   "description": "Rise Vision Messaging Service",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test",
+    "test": "eslint . && mocha test/**",
     "start": "node index.js"
   },
   "repository": {
@@ -23,9 +23,16 @@
   "dependencies": {
     "express": "^4.15.5",
     "primus": "^7.1.0",
+    "redis": "^2.8.0",
     "uws": "^8.14.1"
   },
   "devDependencies": {
+    "eslint": "^4.9.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-node": "^5.2.0",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-standard": "^3.0.1",
     "mocha": "^4.0.1",
     "simple-mock": "^0.8.0"
   }

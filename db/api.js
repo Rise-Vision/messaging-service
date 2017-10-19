@@ -1,14 +1,20 @@
 const redis = require("./redis/datastore.js");
+const hash = require("./hasher.js");
 
 module.exports = {
   fileMetadata: {
     addDisplayTo(filePath, displayId) {
-      return true;
+      if (!filePath || !displayId) {throw Error("missing params");}
+      return redis.setAdd(`meta:displays:${hash(filePath)}`, [displayId]);
     }
   },
   watchList: {
     put(entry) {
-      return true;
+      if (!entry) {throw Error("missing params");}
+
+      return redis.patchHash(`watch:${entry.displayId}`, {
+        [entry.filePath]: entry.version
+      });
     }
   }
 };
