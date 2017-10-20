@@ -1,0 +1,16 @@
+FROM docker:17.10.0-ce-rc1
+
+# gcloud
+RUN apk add --update openssl
+RUN apk add --update python
+RUN wget "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-171.0.0-linux-x86_64.tar.gz"
+RUN tar xzf ./google-cloud-sdk-171.0.0-linux-x86_64.tar.gz
+RUN mv google-cloud-sdk /usr/local/share
+RUN rm google-cloud-sdk-171.0.0-linux-x86_64.tar.gz
+RUN chmod -R a+r /usr/local/share/google-cloud-sdk
+RUN chmod -R a+x /usr/local/share/google-cloud-sdk/bin
+RUN /usr/local/share/google-cloud-sdk/bin/gcloud components install --quiet kubectl
+RUN ln -s /usr/local/share/google-cloud-sdk/bin/* /usr/bin
+
+# curl
+RUN apk add -U curl

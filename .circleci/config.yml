@@ -1,0 +1,87 @@
+version: 2
+
+jobs:
+  "build_image":
+    docker: &DOCKERIMAGE
+      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
+    steps:
+      - checkout
+      - run: if [ -z $(grep version package.json |grep -o '[0-9.]*') ]; then echo Version must be specified in package.json; exit 1; fi
+      - run: echo $(grep version package.json |grep -o '[0-9.]*') >package-version
+      - run: "echo Building version $(cat package-version)"
+      - run: "echo ${ACCT_AUTH} | base64 -d > ${HOME}//gcloud-service-key.json"
+      - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+      - run: gcloud config set project $PROJECT_ID
+      - setup_remote_docker
+      - run: docker build -t $DOCKER_IMAGE_NAME:v$(cat package-version) .
+      - run: "docker tag $DOCKER_IMAGE_NAME:v$(cat package-version) $DOCKER_IMAGE_NAME:latest"
+      - run: docker images
+      - run: docker save $DOCKER_IMAGE_NAME > dockerImage.tar
+      - persist_to_workspace:
+          root: .
+          paths:
+            - dockerImage.tar
+            - package-version
+
+  "stage":
+    docker: *DOCKERIMAGE
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - run: "echo ${ACCT_AUTH} | base64 -d > ${HOME}//gcloud-service-key.json"
+      - run: gcloud --quiet config set container/cluster messaging-service-stage
+      - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+      - run: gcloud config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
+      - run: gcloud config set container/use_client_certificate True
+      - run: gcloud config set project $PROJECT_ID
+      - run: gcloud --quiet container clusters get-credentials messaging-service-stage
+      - run: echo "Staging $(cat package-version)"
+      - run: echo "Pushing image $DOCKER_IMAGE_NAME to registry..."
+      - setup_remote_docker
+      - run: docker load < ./dockerImage.tar
+      - run: gcloud docker -- push ${DOCKER_IMAGE_NAME}
+      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$(cat package-version)"'"}]}}}}'
+
+  "confirm_service":
+    docker: *DOCKERIMAGE
+    steps:
+      - attach_workspace:
+          at: .
+      - run: curl "https://services-stage.risevision.com/messaging/" |grep $(cat package-version)
+
+  "prod":
+    docker: *DOCKERIMAGE
+    steps:
+      - checkout
+      - run: "echo ${ACCT_AUTH} | base64 -d -i > ${HOME}//gcloud-service-key.json"
+      - run: gcloud --quiet config set container/cluster messaging-service-prod
+      - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+      - run: gcloud config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
+      - run: gcloud config set container/use_client_certificate True
+      - run: gcloud config set project $PROJECT_ID
+      - run: gcloud --quiet container clusters get-credentials messaging-service-prod
+      - run: "export TAG=$(cat package-version)"
+      - run: echo "Tag value is $TAG"
+      - setup_remote_docker
+      - run: docker load < $HOME/$dockerImage.tar
+      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
+
+workflows:
+  version: 2
+  workflow1:
+    jobs:
+      - "build_image"
+      - "stage":
+          requires:
+            - build_image
+      - "confirm_service":
+          requires:
+            - stage
+      - "prod":
+          requires:
+            - confirm_service
+          filters:
+            branches:
+              only:
+                - master
