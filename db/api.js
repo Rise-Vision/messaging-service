@@ -5,7 +5,7 @@ module.exports = {
   fileMetadata: {
     addDisplayTo(filePath, displayId) {
       if (!filePath || !displayId) {throw Error("missing params");}
-      return redis.setAdd(`meta:displays:${hash(filePath)}`, [displayId]);
+      return redis.setAdd(`meta:${hash(filePath)}:displays`, [displayId]);
     }
   },
   watchList: {

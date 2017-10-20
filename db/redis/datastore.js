@@ -22,5 +22,32 @@ module.exports = {
         res(reply);
       });
     });
+  },
+  ungracefulQuit() {
+    client.end(true);
+  },
+  getHash(key) {
+    return new Promise((res, rej)=>{
+      client.hgetall(key, (err, reply)=>{
+        if (err) {return rej(err);}
+        res(reply);
+      });
+    });
+  },
+  getSet(key) {
+    return new Promise((res, rej)=>{
+      client.smembers(key, (err, reply)=>{
+        if (err) {return rej(err);}
+        res(reply);
+      });
+    });
+  },
+  eraseEntireDb() {
+    return new Promise((res, rej)=>{
+      client.flushall((err, reply)=>{
+        if (err) {return rej(err);}
+        res(reply);
+      });
+    });
   }
 };
