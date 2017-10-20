@@ -12,9 +12,7 @@ module.exports = function watch(newEntry, needsToken = false) {
     db.fileMetadata.addDisplayTo(filePath, displayId),
     db.watchList.put(newEntry)
   ])
-  .then(()=>{
-    return {};
-  })
+  .then(()=>{})
   .catch((err)=>{
     console.error(err);
 

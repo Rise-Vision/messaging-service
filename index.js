@@ -1,7 +1,8 @@
 const Primus = require('primus');
 const express = require('express');
 const http = require('http');
-const port = process.env.MS_PORT || 80;
+const defaultPort = 80;
+const port = process.env.MS_PORT || defaultPort;
 const app = express();
 const server = http.createServer(app);
 const datastore = require("./db/redis/datastore.js");

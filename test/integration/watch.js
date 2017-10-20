@@ -2,9 +2,9 @@
 const assert = require("assert");
 const watch = require("../../messages/watch.js");
 const redis = require("../../db/redis/datastore.js");
-const sha1 = {
-  "testDownloadFilePath": "21651c84690890030f63bb655171985f84da8d43"
-};
+const filePath = "testBucket/testObject";
+const displayId = "fakeId";
+const version = "fakeVersion";
 
 describe("REDIS : Integration", ()=>{
   before(()=>{
@@ -17,30 +17,22 @@ describe("REDIS : Integration", ()=>{
   });
 
   it("adds a watchlist entry", ()=>{
-    watch({
-      displayId: "fakeId",
-      filePath: sha1.testDownloadFilePath,
-      version: "fakeVer"
-    });
+    watch({displayId, filePath, version});
 
-    return redis.getHash("watch:fakeId")
+    return redis.getHash(`watch:${displayId}`)
     .then((reply)=>{
       assert.deepEqual(reply, {
-        [sha1.testDownloadFilePath]: "fakeVer"
+        [filePath]: version
       });
     });
   });
 
   it("adds display to file metadata", ()=>{
-    watch({
-      displayId: "fakeId",
-      filePath: "testDownloadFilePath",
-      version: "fakeVer"
-    });
+    watch({displayId, filePath, version});
 
-    return redis.getSet(`meta:${sha1.testDownloadFilePath}:displays`)
+    return redis.getSet(`meta:${filePath}:displays`)
     .then((reply)=>{
-      assert.equal(reply, "fakeId");
+      assert.equal(reply, displayId);
     });
   });
 });
