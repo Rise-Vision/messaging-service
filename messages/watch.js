@@ -12,8 +12,15 @@ module.exports = function watch(newEntry, needsToken = false) {
     db.fileMetadata.addDisplayTo(filePath, displayId),
     db.watchList.put(newEntry)
   ])
+  .then(()=>{
+    return {};
+  })
   .catch((err)=>{
     console.error(err);
-    return {error: 500, msg: "There was an error processing WATCH."};
+
+    return {
+      error: 500,
+      msg: `There was an error processing WATCH:${JSON.stringify(newEntry)}`
+    };
   });
 };
