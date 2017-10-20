@@ -2,7 +2,7 @@
 const assert = require("assert");
 const watch = require("../../messages/watch.js");
 const redis = require("../../db/redis/datastore.js");
-const filePath = "testBucket/testObject";
+const filePath = "test-bucket/testObject";
 const displayId = "fakeId";
 const version = "fakeVersion";
 
