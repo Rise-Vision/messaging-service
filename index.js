@@ -1,9 +1,12 @@
 const Primus = require('primus');
 const express = require('express');
 const http = require('http');
-const port = 80;
+const defaultPort = 80;
+const port = process.env.MS_PORT || defaultPort;
 const app = express();
 const server = http.createServer(app);
+const datastore = require("./db/redis/datastore.js");
+const watch = require("./messages/watch.js");
 const pkg = require("./package.json");
 const podname = process.env.podname;
 
@@ -11,6 +14,14 @@ const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/prim
 
 primus.on('connection', (spark) => {
   spark.write(`Messaging Service WebSocket Connected: ${podname} ${pkg.version}`);
+  spark.on("data", (data)=>{
+    if (!data) {return;}
+    if (!data.msg) {return;}
+
+    if (data.msg.toUpperCase() === "WATCH") {
+      return watch(data.data).then(spark.write.bind(spark));
+    }
+  });
 });
 
 app.get('/messaging', function(req, res) {
@@ -20,7 +31,8 @@ app.get('/messaging', function(req, res) {
 server.listen(port, (err) => {
   if (err) {
     return console.log('something bad happened', err);
-  };
+  }
 
+  datastore.initdb();
   console.log(`server is listening on ${port}`);
 })

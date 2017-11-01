@@ -1,15 +1,10 @@
 FROM node:latest
 
-# Create app directory
 WORKDIR /app
 
-# Install app dependencies
-COPY package.json package-lock.json ./
+COPY index.js db messages package*.json watchlist ./
 
-RUN npm install
-
-# Bundle app source
-COPY . .
+RUN npm install --production
 
 EXPOSE 80
 ENTRYPOINT [ "node", "index.js" ]
