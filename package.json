@@ -4,8 +4,8 @@
   "description": "Rise Vision Messaging Service",
   "main": "index.js",
   "scripts": {
-    "test": "eslint . && mocha test/unit/**",
-    "fulltest": "eslint . && mocha test/**",
+    "test": "eslint . && mocha -r test/mocha-env.js test/unit/**",
+    "fulltest": "eslint . && mocha -r test/mocha-env.js test/**",
     "start": "node index.js"
   },
   "repository": {

@@ -1,9 +1,12 @@
 const redis = require("redis");
+const gkeHostname = "display-ms-redis-master";
+const redisHost = process.env.NODE_ENV === "test" ? null : gkeHostname;
+
 let client = null;
 
 module.exports = {
   initdb(dbclient = null) {
-    client = dbclient || redis.createClient();
+    client = dbclient || redis.createClient(redisHost);
   },
   setAdd(key, vals) {
     if (!Array.isArray(vals)) {throw Error("expected array");}
