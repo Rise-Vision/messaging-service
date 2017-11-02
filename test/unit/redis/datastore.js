@@ -5,14 +5,10 @@ const simple = require("simple-mock");
 
 describe("REDIS", ()=>{
   before("mock", ()=>{
-    redis.initdb({
-      hmset: simple.stub().callbackWith(null, "ok"),
-      sadd: simple.stub().callbackWith(null, "ok")
-    });
-  });
-
-  after("reset", ()=>{
-    redis.initdb({});
+    redis.initdb(["sadd", "hmset", "hgetall", "smembers", "flushall"]
+    .reduce((obj, el)=>{
+      return Object.assign(obj, {[el]: simple.stub().callbackWith(null, "ok")});
+    }, {}));
   });
 
   it("adds a watchlist entry", ()=>{
