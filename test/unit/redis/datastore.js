@@ -5,7 +5,7 @@ const simple = require("simple-mock");
 
 describe("REDIS", ()=>{
   before("mock", ()=>{
-    redis.initdb(["sadd", "hmset", "hgetall", "smembers", "flushall"]
+    redis.initdb(["get", "set", "sadd", "hmset", "hgetall", "smembers", "flushall"]
     .reduce((obj, el)=>{
       return Object.assign(obj, {[el]: simple.stub().callbackWith(null, "ok")});
     }, {}));
