@@ -1,14 +1,14 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const watch = require("../../messages/watch.js");
-const redis = require("../../db/redis/datastore.js");
+const watch = require("../../src/messages/watch.js");
+const redis = require("../../src/db/redis/datastore.js");
 const filePath = "messaging-service-test-bucket/non-existent-test-file.txt";
 const validFilePath = filePath.replace("non-existent-", "");
 const displayId = "fakeId";
 const version = "fakeVersion";
 const simple = require("simple-mock");
-const gcs = require("../../version-compare/gcs.js");
-const {fileMetadata: md} = require("../../db/api.js");
+const gcs = require("../../src/version-compare/gcs.js");
+const {fileMetadata: md} = require("../../src/db/api.js");
 
 describe("WATCH : Integration", ()=>{
   before(()=>{

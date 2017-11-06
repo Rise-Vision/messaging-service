@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-const makeToken = require("../../token/make-token.js");
+const makeToken = require("../../src/token/make-token.js");
 const assert = require("assert");
 const sha1hexLength = 40;
 
@@ -25,4 +25,3 @@ describe("Make Token", ()=>{
     assert.equal(resp.token.hash.length, sha1hexLength);
   });
 });
-

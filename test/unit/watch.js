@@ -1,9 +1,9 @@
 /* eslint-env mocha */
 const assert = require("assert");
 const simple = require("simple-mock");
-const watch = require("../../messages/watch.js");
-const versionCompare = require("../../version-compare/api.js");
-const db = require("../../db/api.js");
+const watch = require("../../src/messages/watch.js");
+const versionCompare = require("../../src/version-compare/api.js");
+const db = require("../../src/db/api.js");
 
 describe("WATCH", ()=>{
   beforeEach(()=>{
