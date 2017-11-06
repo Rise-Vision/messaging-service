@@ -75,6 +75,7 @@ jobs:
       - run: gcloud --quiet container clusters get-credentials messaging-service-prod
       - run: "export TAG=$(cat package-version)"
       - run: echo "Tag value is $TAG"
+      - setup_remote_docker
       - run: docker load < ./dockerImage.tar
       - run: "docker tag $DOCKER_IMAGE_NAME:v$(cat package-version) $DOCKER_IMAGE_NAME:latest"
       - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
