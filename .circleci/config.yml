@@ -79,6 +79,7 @@ workflows:
   version: 2
   workflow1:
     jobs:
+      - "setup_package_version"
       - "build_image":
           requires:
             - setup_package_version
