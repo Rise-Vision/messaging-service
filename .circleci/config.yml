@@ -14,8 +14,7 @@ jobs:
             - package-version
 
   "build_image":
-    docker: &DOCKERIMAGE
-      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
+    docker: *DOCKERIMAGE
     steps:
       - checkout
       - attach_workspace:
@@ -73,12 +72,11 @@ jobs:
       - run: gcloud config set container/use_client_certificate True
       - run: gcloud config set project $PROJECT_ID
       - run: gcloud --quiet container clusters get-credentials messaging-service-prod
-      - run: "export TAG=$(cat package-version)"
-      - run: echo "Tag value is $TAG"
+      - run: echo "Releasing $(cat package-version)"
       - setup_remote_docker
       - run: docker load < ./dockerImage.tar
       - run: "docker tag $DOCKER_IMAGE_NAME:v$(cat package-version) $DOCKER_IMAGE_NAME:latest"
-      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
+      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$(cat package-version)"'"}]}}}}'
 
 workflows:
   version: 2
