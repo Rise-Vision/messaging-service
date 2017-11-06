@@ -2,34 +2,30 @@
 const assert = require("assert");
 const simple = require("simple-mock");
 const watch = require("../../messages/watch.js");
+const versionCompare = require("../../version-compare/api.js");
 const db = require("../../db/api.js");
 
 describe("WATCH", ()=>{
   beforeEach(()=>{
     simple.mock(db.fileMetadata, "addDisplayTo").returnWith(true);
     simple.mock(db.watchList, "put").returnWith(true);
+    simple.mock(versionCompare, "compare").resolveWith({matched: true});
   });
 
   afterEach(()=>{
     simple.restore();
   });
 
-  it("throws on invalid watch entry", ()=>{
+  it("returns error msg on invalid watch entry", ()=>{
     const [displayId, filePath, version] = Array.from({length: 3}, ()=>"test");
-    const errmsg = /invalid watchlist entry/;
+    const errmsg = resp=>assert(resp.msg.startsWith(`invalid watchlist entry`));
 
-    assert.throws(watch, errmsg);
-    assert.throws(watch.bind(null, {displayId}), errmsg);
-    assert.throws(watch.bind(null, {displayId, filePath}), errmsg);
-    assert.throws(watch.bind(null, {displayId, filePath, version}), errmsg);
-  });
-
-  it("accepts valid watch entry", ()=>{
-    const displayId = "test";
-    const filePath = "bucket/object";
-    const version = "test";
-
-    assert(watch({displayId, filePath, version}));
+    return Promise.all([
+      watch().then(errmsg),
+      watch({displayId}).then(errmsg),
+      watch({displayId, filePath}).then(errmsg),
+      watch({displayId, filePath, version}).then(errmsg)
+    ]);
   });
 
   it("saves file metadata", ()=>{
@@ -37,8 +33,8 @@ describe("WATCH", ()=>{
     const filePath = "bucket/object";
     const version = "test";
 
-    watch({displayId, filePath, version});
-    assert(db.fileMetadata.addDisplayTo.called);
+    return watch({displayId, filePath, version})
+    .then(()=>assert(db.fileMetadata.addDisplayTo.called))
   });
 
   it("saves watchlist entries", ()=>{
@@ -46,7 +42,7 @@ describe("WATCH", ()=>{
     const filePath = "bucket/object";
     const version = "test";
 
-    watch({displayId, filePath, version});
-    assert(db.watchList.put.called);
+    return watch({displayId, filePath, version})
+    .then(()=>assert(db.watchList.put.called));
   });
 });

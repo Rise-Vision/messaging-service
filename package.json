@@ -4,8 +4,8 @@
   "description": "Rise Vision Messaging Service",
   "main": "index.js",
   "scripts": {
-    "test": "eslint . && mocha -r test/mocha-env.js test/unit/**",
-    "fulltest": "eslint . && mocha -r test/mocha-env.js test/**",
+    "test": "eslint . && mocha -t 20000 -r test/mocha-env.js test/unit/**",
+    "fulltest": "eslint . && mocha -t 20000 -r test/mocha-env.js test/**",
     "start": "node index.js"
   },
   "repository": {
@@ -22,6 +22,7 @@
   },
   "homepage": "https://github.com/Rise-Vision/messaging-service#readme",
   "dependencies": {
+    "@google-cloud/storage": "^1.4.0",
     "express": "^4.15.5",
     "primus": "^7.1.0",
     "redis": "^2.8.0",

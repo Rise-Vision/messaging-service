@@ -9,6 +9,7 @@ const datastore = require("./db/redis/datastore.js");
 const watch = require("./messages/watch.js");
 const pkg = require("./package.json");
 const podname = process.env.podname;
+const gcs = require("version-compare/gcs.js");
 
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
 
@@ -34,5 +35,6 @@ server.listen(port, (err) => {
   }
 
   datastore.initdb();
+  gcs.init();
   console.log(`server is listening on ${port}`);
 })

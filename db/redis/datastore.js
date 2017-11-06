@@ -1,56 +1,42 @@
+const util = require("util");
 const redis = require("redis");
 const gkeHostname = "display-ms-redis-master";
 const redisHost = process.env.NODE_ENV === "test" ? null : gkeHostname;
 
 let client = null;
+let promisified = ["get", "set", "sadd", "hmset", "hgetall", "smembers", "flushall"];
 
 module.exports = {
   initdb(dbclient = null) {
     client = dbclient || redis.createClient(redisHost);
+
+    promisified = promisified.reduce((obj, el)=>{
+      return Object.assign(obj, {[el]: util.promisify(client[el].bind(client))});
+    }, {});
   },
   setAdd(key, vals) {
     if (!Array.isArray(vals)) {throw Error("expected array");}
-
-    return new Promise((res, rej)=>{
-      client.sadd(key, ...vals, (err, reply)=>{
-        if (err) {return rej(err);}
-        res(reply);
-      });
-    });
+    return promisified.sadd(key, ...vals);
   },
   patchHash(key, patchObj) {
-    return new Promise((res, rej)=>{
-      client.hmset(key, patchObj, (err, reply)=>{
-        if (err) {return rej(err);}
-        res(reply);
-      });
-    });
+    return promisified.hmset(key, patchObj);
   },
   ungracefulQuit() {
     client.end(true);
   },
   getHash(key) {
-    return new Promise((res, rej)=>{
-      client.hgetall(key, (err, reply)=>{
-        if (err) {return rej(err);}
-        res(reply);
-      });
-    });
+    return promisified.hgetall(key);
   },
   getSet(key) {
-    return new Promise((res, rej)=>{
-      client.smembers(key, (err, reply)=>{
-        if (err) {return rej(err);}
-        res(reply);
-      });
-    });
+    return promisified.smembers(key);
+  },
+  getString(key) {
+    return promisified.get(key);
+  },
+  setString(key, str) {
+    return promisified.set(key, str);
   },
   eraseEntireDb() {
-    return new Promise((res, rej)=>{
-      client.flushall((err, reply)=>{
-        if (err) {return rej(err);}
-        res(reply);
-      });
-    });
+    return promisified.flushall();
   }
 };
