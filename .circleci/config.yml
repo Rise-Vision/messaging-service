@@ -91,11 +91,3 @@ workflows:
             branches:
               only:
                 - master
-      - "confirm_service_pord":
-          requires:
-            - setup_package_version
-            - prod
-          filters:
-            branches:
-              only:
-                - master
