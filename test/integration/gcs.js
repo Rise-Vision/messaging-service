@@ -2,7 +2,7 @@
 const assert = require("assert");
 const {version, init} = require("../../src/version-compare/gcs.js");
 
-describe("GCS", ()=>{
+describe("GCS : Integration", ()=>{
   before(()=>{
     init();
   });

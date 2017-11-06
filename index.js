@@ -14,7 +14,6 @@ const gcs = require("./src/version-compare/gcs.js");
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
 
 primus.on('connection', (spark) => {
-  spark.write(`Messaging Service WebSocket Connected: ${podname} ${pkg.version}`);
   spark.on("data", (data)=>{
     if (!data) {return;}
     if (!data.msg) {return;}
