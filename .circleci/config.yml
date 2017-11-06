@@ -1,36 +1,32 @@
 version: 2
 
 jobs:
-  "check-image":
-    docker: &DOCKERIMAGE
-      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
-    steps:
-      - checkout
-      - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
-      - run: gcloud config set project $PROJECT_ID
-
-  "build_image":
+  "setup-package-version":
     docker: &DOCKERIMAGE
       - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
     steps:
       - checkout
       - run: if [ -z $(grep version package.json |grep -o '[0-9.]*') ]; then echo Version must be specified in package.json; exit 1; fi
       - run: echo $(grep version package.json |grep -o '[0-9.]*') >package-version
+      - persist_to_workspace:
+          root: .
+          paths:
+            - package-version
+  "build_image":
+    docker: &DOCKERIMAGE
+      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
       - run: "echo Building version $(cat package-version)"
       - run: "echo ${ACCT_AUTH} | base64 -d > ${HOME}//gcloud-service-key.json"
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run: gcloud config set project $PROJECT_ID
       - setup_remote_docker
       - run: docker build -t $DOCKER_IMAGE_NAME:v$(cat package-version) .
-      - run: "docker tag $DOCKER_IMAGE_NAME:v$(cat package-version) $DOCKER_IMAGE_NAME:latest"
       - run: docker images
       - run: docker save $DOCKER_IMAGE_NAME > dockerImage.tar
-      - persist_to_workspace:
-          root: .
-          paths:
-            - dockerImage.tar
-            - package-version
-
   "stage":
     docker: *DOCKERIMAGE
     steps:
@@ -54,7 +50,6 @@ jobs:
   "confirm_service":
     docker: *DOCKERIMAGE
     steps:
-      - checkout
       - attach_workspace:
           at: .
       - run: curl "https://services-stage.risevision.com/messaging/" |grep $(cat package-version)
@@ -63,6 +58,8 @@ jobs:
     docker: *DOCKERIMAGE
     steps:
       - checkout
+      - attach_workspace:
+          at: .
       - run: "echo ${ACCT_AUTH} | base64 -d > ${HOME}//gcloud-service-key.json"
       - run: gcloud --quiet config set container/cluster messaging-service-prod
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
@@ -72,6 +69,8 @@ jobs:
       - run: gcloud --quiet container clusters get-credentials messaging-service-prod
       - run: "export TAG=$(cat package-version)"
       - run: echo "Tag value is $TAG"
+      - run: docker load < ./dockerImage.tar
+      - run: "docker tag $DOCKER_IMAGE_NAME:v$(cat package-version) $DOCKER_IMAGE_NAME:latest"
       - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
 
 workflows:
@@ -79,14 +78,19 @@ workflows:
   workflow1:
     jobs:
       - "build_image"
+          requires:
+            - setup-package-version
       - "stage":
           requires:
+            - setup-package-version
             - build_image
       - "confirm_service":
           requires:
+            - setup-package-version
             - stage
       - "prod":
           requires:
+            - setup-package-version
             - confirm_service
           filters:
             branches:
