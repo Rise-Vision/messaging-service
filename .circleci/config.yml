@@ -1,7 +1,7 @@
 version: 2
 
 jobs:
-  "setup-package-version":
+  "setup_package_version":
     docker: &DOCKERIMAGE
       - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
     steps:
@@ -81,18 +81,18 @@ workflows:
     jobs:
       - "build_image"
           requires:
-            - setup-package-version
+            - setup_package_version
       - "stage":
           requires:
-            - setup-package-version
+            - setup_package_version
             - build_image
       - "confirm_service":
           requires:
-            - setup-package-version
+            - setup_package_version
             - stage
       - "prod":
           requires:
-            - setup-package-version
+            - setup_package_version
             - confirm_service
           filters:
             branches:
