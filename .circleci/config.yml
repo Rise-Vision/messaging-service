@@ -52,20 +52,6 @@ jobs:
       - run: gcloud docker -- push ${DOCKER_IMAGE_NAME}
       - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$(cat package-version)"'"}]}}}}'
 
-  "confirm_service_stage":
-    docker: *DOCKERIMAGE
-    steps:
-      - attach_workspace:
-          at: .
-      - run: curl "https://services-stage.risevision.com/messaging/" |grep $(cat package-version)
-
-  "confirm_service_pord":
-    docker: *DOCKERIMAGE
-    steps:
-      - attach_workspace:
-          at: .
-      - run: curl "https://services.risevision.com/messaging/" |grep $(cat package-version)
-
   "prod":
     docker: *DOCKERIMAGE
     steps:
@@ -97,14 +83,10 @@ workflows:
           requires:
             - setup_package_version
             - build_image
-      - "confirm_service_stage":
-          requires:
-            - setup_package_version
-            - stage
       - "prod":
           requires:
             - setup_package_version
-            - confirm_service_stage
+            - stage
           filters:
             branches:
               only:
