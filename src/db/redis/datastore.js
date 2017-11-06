@@ -8,7 +8,7 @@ let promisified = ["get", "set", "sadd", "hmset", "hgetall", "smembers", "flusha
 
 module.exports = {
   initdb(dbclient = null) {
-    client = dbclient || redis.createClient(redisHost);
+    client = dbclient || redis.createClient({host: redisHost});
 
     promisified = promisified.reduce((obj, el)=>{
       return Object.assign(obj, {[el]: util.promisify(client[el].bind(client))});
