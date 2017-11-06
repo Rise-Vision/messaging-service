@@ -1,6 +1,14 @@
 version: 2
 
 jobs:
+  "check-image":
+    docker: &DOCKERIMAGE
+      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
+    steps:
+      - checkout
+      - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
+      - run: gcloud config set project $PROJECT_ID
+
   "build_image":
     docker: &DOCKERIMAGE
       - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
@@ -46,6 +54,7 @@ jobs:
   "confirm_service":
     docker: *DOCKERIMAGE
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - run: curl "https://services-stage.risevision.com/messaging/" |grep $(cat package-version)
@@ -63,7 +72,6 @@ jobs:
       - run: gcloud --quiet container clusters get-credentials messaging-service-prod
       - run: "export TAG=$(cat package-version)"
       - run: echo "Tag value is $TAG"
-      - setup_remote_docker
       - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
 
 workflows:
