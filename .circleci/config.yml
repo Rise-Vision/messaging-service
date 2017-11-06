@@ -28,6 +28,7 @@ jobs:
       - run: docker build -t $DOCKER_IMAGE_NAME:v$(cat package-version) .
       - run: docker images
       - run: docker save $DOCKER_IMAGE_NAME > dockerImage.tar
+
   "stage":
     docker: *DOCKERIMAGE
     steps:
