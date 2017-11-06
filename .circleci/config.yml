@@ -64,7 +64,7 @@ jobs:
       - run: "export TAG=$(cat package-version)"
       - run: echo "Tag value is $TAG"
       - setup_remote_docker
-      - run: docker load < $HOME/$dockerImage.tar
+      - run: docker load < ./$dockerImage.tar
       - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$TAG"'"}]}}}}'
 
 workflows:
