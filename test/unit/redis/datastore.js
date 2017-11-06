@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const redis = require("../../../db/redis/datastore.js");
+const redis = require("../../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 
 describe("REDIS", ()=>{

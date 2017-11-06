@@ -1,14 +1,14 @@
 const util = require("util");
 const redis = require("redis");
 const gkeHostname = "display-ms-redis-master";
-const redisHost = process.env.NODE_ENV === "test" ? null : gkeHostname;
+const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 
 let client = null;
 let promisified = ["get", "set", "sadd", "hmset", "hgetall", "smembers", "flushall"];
 
 module.exports = {
   initdb(dbclient = null) {
-    client = dbclient || redis.createClient(redisHost);
+    client = dbclient || redis.createClient({host: redisHost});
 
     promisified = promisified.reduce((obj, el)=>{
       return Object.assign(obj, {[el]: util.promisify(client[el].bind(client))});

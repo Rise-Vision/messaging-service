@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const {version, init} = require("../../version-compare/gcs.js");
+const {version, init} = require("../../src/version-compare/gcs.js");
 
 describe("GCS", ()=>{
   before(()=>{

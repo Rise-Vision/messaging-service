@@ -2,7 +2,9 @@ FROM node:latest
 
 WORKDIR /app
 
-COPY index.js db messages package*.json watchlist ./
+COPY index.js ./
+COPY src ./src
+COPY package*.json ./
 
 RUN npm install --production
 

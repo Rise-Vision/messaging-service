@@ -5,11 +5,11 @@ const defaultPort = 80;
 const port = process.env.MS_PORT || defaultPort;
 const app = express();
 const server = http.createServer(app);
-const datastore = require("./db/redis/datastore.js");
-const watch = require("./messages/watch.js");
+const datastore = require("./src/db/redis/datastore.js");
+const watch = require("./src/messages/watch.js");
 const pkg = require("./package.json");
 const podname = process.env.podname;
-const gcs = require("version-compare/gcs.js");
+const gcs = require("./src/version-compare/gcs.js");
 
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
 

@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-const crypto = require("../../token/crypto.js");
+const crypto = require("../../src/token/crypto.js");
 const assert = require("assert");
 const sha1len = 40
 
