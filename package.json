@@ -24,6 +24,7 @@
   "dependencies": {
     "@google-cloud/storage": "^1.4.0",
     "express": "^4.15.5",
+    "gcs-filepath-validator": "^1.0.0",
     "primus": "^7.1.0",
     "redis": "^2.8.0",
     "uws": "^8.14.1"
