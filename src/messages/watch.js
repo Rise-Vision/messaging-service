@@ -25,6 +25,7 @@ module.exports = function watch(newEntry) {
     const finalResult = all[asyncTasks.length - 1];
     return {
       msg: "ok",
+      topic: "watch-result",
       version: finalResult.version,
       token: finalResult.token
     };
