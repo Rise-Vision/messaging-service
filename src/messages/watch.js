@@ -4,12 +4,16 @@ const versionCompare = require("../version-compare/api.js");
 const watchListEntry = require("../watchlist/entry.js");
 
 module.exports = function watch(newEntry) {
+  console.log(`WATCH processing for ${JSON.stringify(newEntry)}`);
   if (!watchListEntry.validate(newEntry)) {
+    console.error(Error("entry invalid"));
     return Promise.resolve({
       error: 400,
       msg: `invalid watchlist entry ${JSON.stringify(newEntry)}`
     });
   }
+
+  console.log(`WATCH processing continued`);
 
   const {filePath, displayId} = newEntry;
   const asyncTasks = [
