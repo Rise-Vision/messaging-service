@@ -3,10 +3,17 @@ version: 2
 jobs:
   "test":
     docker: &DOCKERIMAGE
-      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.3
+      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.4
     steps:
       - checkout
-      - run: npm install && npm test
+      - restore_cache:
+          key: node-cache-{{ checksum "package.json" }}
+      - run: npm install
+      - save_cache:
+          key: node-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run: npm test
 
   "build_image":
     docker: *DOCKERIMAGE
