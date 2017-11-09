@@ -14,9 +14,7 @@ const gcs = require("./src/version-compare/gcs.js");
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
 
 primus.on('connection', (spark) => {
-  console.log("connection received");
   spark.on("data", (data)=>{
-    console.log(`data received: ${JSON.stringify(data)}`);
     if (!data) {return;}
     if (!data.topic) {return;}
 
