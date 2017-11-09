@@ -26,6 +26,7 @@ module.exports = function watch(newEntry) {
     return {
       msg: "ok",
       topic: "watch-result",
+      filePath,
       version: finalResult.version,
       token: finalResult.token
     };

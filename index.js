@@ -16,9 +16,9 @@ const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/prim
 primus.on('connection', (spark) => {
   spark.on("data", (data)=>{
     if (!data) {return;}
-    if (!data.msg) {return;}
+    if (!data.topic) {return;}
 
-    if (data.msg.toUpperCase() === "WATCH") {
+    if (data.topic.toUpperCase() === "WATCH") {
       return watch(data.data).then(spark.write.bind(spark));
     }
   });
