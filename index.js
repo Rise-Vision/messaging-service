@@ -19,7 +19,8 @@ primus.on('connection', (spark) => {
     if (!data.topic) {return;}
 
     if (data.topic.toUpperCase() === "WATCH") {
-      return watch(data.data).then(spark.write.bind(spark));
+      return watch(Object.assign({}, data, spark.query)
+      .then(spark.write.bind(spark));
     }
   });
 });
