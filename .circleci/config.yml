@@ -24,9 +24,9 @@ jobs:
       - run: gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
       - run: gcloud config set project $PROJECT_ID
       - setup_remote_docker
-      - run: docker build -t $DOCKER_IMAGE_NAME:v$(cat package-version) .
+      - run: docker build -t $DOCKER_IMAGE_NAME:${CIRCLE_SHA1} .
       - run: docker images
-      - run: docker save $DOCKER_IMAGE_NAME > dockerImage.tar
+      - run: docker save $DOCKER_IMAGE_NAME:${CIRCLE_SHA1} > dockerImage.tar
       - persist_to_workspace:
           root: .
           paths:
@@ -50,7 +50,7 @@ jobs:
       - setup_remote_docker
       - run: docker load < ./dockerImage.tar
       - run: gcloud docker -- push ${DOCKER_IMAGE_NAME}
-      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$(cat package-version)"'"}]}}}}'
+      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"${CIRCLE_SHA1}"'"}]}}}}'
 
   "prod":
     docker: *DOCKERIMAGE
@@ -68,8 +68,7 @@ jobs:
       - run: echo "Releasing $(cat package-version)"
       - setup_remote_docker
       - run: docker load < ./dockerImage.tar
-      - run: "docker tag $DOCKER_IMAGE_NAME:v$(cat package-version) $DOCKER_IMAGE_NAME:latest"
-      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':v'"$(cat package-version)"'"}]}}}}'
+      - run: kubectl patch deployment messaging-service -p '{"spec":{"template":{"spec":{"containers":[{"name":"messaging-service","image":"'"$DOCKER_IMAGE_NAME"':'"${CIRCLE_SHA1}"'"}]}}}}'
 
 workflows:
   version: 2
