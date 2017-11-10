@@ -19,3 +19,6 @@ RUN apk add -U curl
 RUN sed -i -e 's/v3\.6/edge/g' /etc/apk/repositories
 RUN apk update
 RUN apk add nodejs-npm
+
+# redis
+RUN apk add redis
