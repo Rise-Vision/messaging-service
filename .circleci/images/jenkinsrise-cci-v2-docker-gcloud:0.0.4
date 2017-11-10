@@ -14,3 +14,8 @@ RUN ln -s /usr/local/share/google-cloud-sdk/bin/* /usr/bin
 
 # curl
 RUN apk add -U curl
+
+# node
+RUN sed -i -e 's/v3\.6/edge/g' /etc/apk/repositories
+RUN apk update
+RUN apk add nodejs-npm
