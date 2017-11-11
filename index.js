@@ -12,9 +12,12 @@ const datastore = require("./src/db/redis/datastore.js");
 const watch = require("./src/messages/watch.js");
 const pkg = require("./package.json");
 const podname = process.env.podname;
+const logger = require("./src/logger.js");
 const gcs = require("./src/version-compare/gcs.js");
 
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
+
+process.on("SIGUSR2", logger.debugToggle);
 
 primus.on('connection', (spark) => {
   spark.on("data", (data)=>{
@@ -44,7 +47,7 @@ server.listen(port, (err) => {
   console.log(`server is listening on ${port}`);
 });
 
-server.on("close", ()=>{console.log("closed");});
+server.on("close", ()=>{logger.log("closed");});
 
 module.exports = {
   dropSocketsAfterTimeMS(ms) {
