@@ -3,7 +3,7 @@ version: 2
 jobs:
   "test":
     docker: &DOCKERIMAGE
-      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.4
+      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.8
     steps:
       - checkout
       - restore_cache:
@@ -13,7 +13,8 @@ jobs:
           key: node-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
-      - run: npm test
+      - run: "echo ${ACCT_AUTH} | base64 -d > /${HOME}/gcloud-service-key.json"
+      - run: GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcloud-service-key.json npm test
 
   "build_image":
     docker: *DOCKERIMAGE

@@ -5,10 +5,25 @@ const redis = require("../../src/db/redis/datastore.js");
 const filePath = "messaging-service-test-bucket/non-existent-test-file.txt";
 const validFilePath = filePath.replace("non-existent-", "");
 const displayId = "fakeId";
+const cp = require("child_process");
 const version = "fakeVersion";
 const simple = require("simple-mock");
 const gcs = require("../../src/version-compare/gcs.js");
 const {fileMetadata: md} = require("../../src/db/api.js");
+
+let redisServer = null;
+
+before(()=>{
+  redisServer = cp.spawn("redis-server");
+
+  return new Promise(res=>redisServer.stdout.on("data", data=>{
+    if (data.includes("Ready to accept connections")) {res();}
+  }));
+});
+
+after(()=>{
+  redisServer.kill();
+});
 
 describe("WATCH : Integration", ()=>{
   before(()=>{

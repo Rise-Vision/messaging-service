@@ -4,8 +4,9 @@
   "description": "Rise Vision Messaging Service",
   "main": "index.js",
   "scripts": {
-    "test": "eslint . && mocha -t 20000 -r test/mocha-env.js test/unit/**",
-    "fulltest": "eslint . && mocha -t 20000 -r test/mocha-env.js test/**",
+    "test": "eslint . && mocha -t 15000 -r test/mocha-env.js test/**",
+    "test-unit": "eslint . && mocha -t 15000 -r test/mocha-env.js test/unit/**",
+    "test-integration": "eslint . && mocha -t 15000 -r test/mocha-env.js test/integration/**",
     "start": "node index.js"
   },
   "repository": {
@@ -23,6 +24,7 @@
   "homepage": "https://github.com/Rise-Vision/messaging-service#readme",
   "dependencies": {
     "@google-cloud/storage": "^1.4.0",
+    "body-parser": "^1.18.2",
     "express": "^4.15.5",
     "gcs-filepath-validator": "^1.0.0",
     "primus": "^7.1.0",
@@ -37,6 +39,7 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
     "mocha": "^4.0.1",
+    "request-promise-native": "^1.0.5",
     "simple-mock": "^0.8.0"
   }
 }
