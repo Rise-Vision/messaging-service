@@ -8,6 +8,7 @@ const pubsub = require("./src/pubsub");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const server = http.createServer(app);
+const displayConnections = require("./src/messages/display-connections.js");
 const datastore = require("./src/db/redis/datastore.js");
 const watch = require("./src/messages/watch.js");
 const pkg = require("./package.json");
@@ -20,6 +21,12 @@ const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/prim
 process.on("SIGUSR2", logger.debugToggle);
 
 primus.on('connection', (spark) => {
+  displayConnections.put(spark);
+
+  spark.on("end", ()=>{
+    displayConnections.remove(spark);
+  });
+
   spark.on("data", (data)=>{
     if (!data) {return;}
     if (!data.topic) {return;}

@@ -6,6 +6,10 @@ module.exports = {
       if (!filePath || !displayId) {throw Error("missing params");}
       return redis.setAdd(`meta:${filePath}:displays`, [displayId]);
     },
+    getWatchersFor(filePath) {
+      if (!filePath) {throw Error("missing params");}
+      return redis.getSet(`meta:${filePath}:displays`);
+    },
     getFileVersion(filePath) {
       if (!filePath) {throw Error("missing params");}
       return redis.getString(`meta:${filePath}:version`);
@@ -14,6 +18,9 @@ module.exports = {
       if (!filePath) {throw Error("missing params");}
       return redis.setString(`meta:${filePath}:version`, version)
       .then(()=>version);
+    },
+    deleteMetadata(filePath) {
+      return redis.deleteKey([`meta:${filePath}:displays`, `meta:${filePath}:version`]);
     }
   },
   watchList: {
@@ -22,6 +29,18 @@ module.exports = {
 
       return redis.patchHash(`watch:${entry.displayId}`, {
         [entry.filePath]: entry.version
+      });
+    },
+    removeEntry(filePath, displays) {
+      displays.forEach(display=>{
+        redis.removeHashField(`watch:${display}`, filePath);
+      });
+    },
+    updateVersion(filePath, version, displays) {
+      displays.forEach(display=>{
+        redis.patchHash(`watch:${display}`, {
+          [filePath]: version
+        });
       });
     }
   }
