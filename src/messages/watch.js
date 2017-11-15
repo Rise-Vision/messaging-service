@@ -36,6 +36,7 @@ module.exports = function watch(newEntry) {
 
     return {
       error: err.code,
+      topic: "watch-result",
       msg: `There was an error processing WATCH:${JSON.stringify(newEntry)}`,
       detail: err.message
     };
