@@ -2,7 +2,6 @@
 const assert = require("assert");
 const rp = require("request-promise-native");
 const gcs = require("../../src/version-compare/gcs.js");
-const datastore = require("../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 const podname = "test-pod";
 const testPort = 9229;
@@ -16,7 +15,6 @@ describe("Pubsub : Integration", ()=>{
   let msServer = null;
 
   before(()=>{
-    simple.mock(datastore, "initdb").returnWith();
     simple.mock(gcs, "init").returnWith();
 
     process.env.MS_PORT = testPort;
