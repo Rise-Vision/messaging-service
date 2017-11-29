@@ -33,10 +33,13 @@ function addToIPFS(req) {
       path, content: Buffer.from(content)
     }
 
-    node.files.add(file)
+    return node.files.add(file)
     .then(filesAdded =>
     {
-      console.log('Added file:', filesAdded[0].path, filesAdded[0].hash)
+      const hash = filesAdded[0].hash
+      console.log('Added file:', filesAdded[0].path, hash)
+
+      return hash
     })
 }
 
@@ -44,10 +47,12 @@ module.exports = function postHandler(req, resp) {
   logger.log(`Received from PSC: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
 
   addToIPFS(req)
+  .then(hash =>
+  {
+    const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
 
-  const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
-
-  pubsubUpdate.processUpdate(updateMessage);
-  pub.publish(channel, updateMessage);
-  resp.send(updateMessage);
+    pubsubUpdate.processUpdate(updateMessage, hash);
+    pub.publish(channel, updateMessage);
+    resp.send(updateMessage);
+  })
 }

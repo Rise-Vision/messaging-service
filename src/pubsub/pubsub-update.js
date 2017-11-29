@@ -5,10 +5,10 @@ const displayConnections = require("../messages/display-connections.js");
 const logger = require("../logger.js");
 
 module.exports = {
-  processUpdate(msg) {
+  processUpdate(msg, hash) {
     const data = JSON.parse(msg);
 
-    return distribute(metadataUpdateOnPrimaryPod(watchers(data)));
+    return distribute(metadataUpdateOnPrimaryPod(watchers(data)), hash);
   }
 }
 
@@ -47,9 +47,9 @@ function updateEntry(data) {
   .then(()=>data);
 }
 
-function distribute(watchersPromise) {
+function distribute(watchersPromise, hash) {
   return watchersPromise.then(data=>{
-    let msg = {...data, topic: "MSFILEUPDATE"};
+    let msg = {...data, topic: "MSFILEUPDATE", hash};
 
     data.watchers.forEach(watcher=>{
       msg = msg.type === "DELETE" ?
