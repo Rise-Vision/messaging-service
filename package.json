@@ -27,6 +27,7 @@
     "body-parser": "^1.18.2",
     "express": "^4.15.5",
     "gcs-filepath-validator": "^1.0.0",
+    "ipfs": "^0.26.0",
     "primus": "^7.1.0",
     "redis": "^2.8.0",
     "uws": "^8.14.1"
