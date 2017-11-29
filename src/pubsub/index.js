@@ -11,7 +11,7 @@ const sub = redis.createClient({host: redisHost});
 // In an stable implementation, this should be created in its own module
 const IPFS = require('ipfs')
 const node = new IPFS()
-node.on('ready', () => console.log("IPFS connection is ready") )
+node.on('ready', () => console.log("IPFS connection is ready"))
 
 sub.subscribe(channel);
 sub.on("message", (ch, msg)=>{
@@ -25,15 +25,18 @@ sub.on("message", (ch, msg)=>{
 
 function addToIPFS(req) {
     const path = req.body.filePath
-    const content = "sample hello world content" // load from GCS
-    console.log(`Adding: ${ filePath }: ${ content }`)
+    // later load from GCS
+    const content = "sample hello world content"
+    console.log(`Adding: ${path}: ${content}`)
 
-    const file = { path, content: Buffer.from(content) }
+    const file = {
+      path, content: Buffer.from(content)
+    }
 
-    node.files.add( file )
-    .then( filesAdded =>
+    node.files.add(file)
+    .then(filesAdded =>
     {
-      console.log( 'Added file:', filesAdded[0].path, filesAdded[0].hash )
+      console.log('Added file:', filesAdded[0].path, filesAdded[0].hash)
     })
 }
 
