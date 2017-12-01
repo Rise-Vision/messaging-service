@@ -4,8 +4,6 @@ const gcs = require("./gcs.js");
 
 module.exports = {
   compare(newEntry) {
-    if (!watchListEntry.validate(newEntry)) {throw Error("invalid entry");}
-
     const {displayId, filePath, version: checkVersion} = newEntry;
 
     return md.getFileVersion(filePath)
