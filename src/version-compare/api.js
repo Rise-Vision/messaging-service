@@ -1,4 +1,3 @@
-const watchListEntry = require("../watchlist/entry.js");
 const {fileMetadata: md} = require("../db/api.js");
 const gcs = require("./gcs.js");
 
