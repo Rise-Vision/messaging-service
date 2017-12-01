@@ -8,6 +8,7 @@ module.exports = {
     logger.log(`Added spark for ${spark.query.displayId}`);
   },
   remove(spark) {
+    logger.log(`Removed spark for ${spark.query.displayId}`);
     if (!spark || !spark.query) {return;}
     Reflect.deleteProperty(sparks, spark.query.displayId);
   },

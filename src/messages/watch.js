@@ -2,9 +2,12 @@ const db = require("../db/api.js");
 const makeToken = require("../token/make-token.js");
 const versionCompare = require("../version-compare/api.js");
 const watchListEntry = require("../watchlist/entry.js");
+const logger = require("../logger.js");
 
 module.exports = function watch(newEntry) {
   if (!watchListEntry.validate(newEntry)) {
+
+    logger.log(`Invalid entry`);
     return Promise.resolve({
       error: 400,
       msg: `invalid watchlist entry ${JSON.stringify(newEntry)}`
