@@ -1,2 +1,2 @@
 process.env.NODE_ENV = "test";
-process.env.podname = "unit-test-pod"
+process.env.podname = "test-pod"

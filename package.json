@@ -40,6 +40,8 @@
     "eslint-plugin-standard": "^3.0.1",
     "mocha": "^4.0.1",
     "request-promise-native": "^1.0.5",
-    "simple-mock": "^0.8.0"
+    "simple-mock": "^0.8.0",
+    "websocket": "^1.0.25",
+    "ws": "^3.3.2"
   }
 }

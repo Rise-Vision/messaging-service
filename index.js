@@ -84,7 +84,13 @@ server.on("close", ()=>{logger.log("closed");});
 
 module.exports = {
   dropSocketsAfterTimeMS(ms) {
-    server.on("connection", socket=>setTimeout(socket.destroy, ms));
+    server.on("connection", socket=>{
+      setTimeout(()=>{
+        try {
+          socket.destroy();
+        } catch(e) {} // eslint-disable-line
+      }, ms);
+    });
   },
   kill() {
     server.close();
