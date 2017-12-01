@@ -47,8 +47,15 @@ primus.on('connection', (spark) => {
   });
 
   spark.on("data", (data)=>{
+    const displayIdError =
+    "DisplayId should not be included in messages. It is included as a connection parameter.";
+
     if (!data) {return;}
     if (!data.topic) {return;}
+    if (data.displayId) {
+      logger.log(displayIdError);
+      return spark.write({error: 400, msg: displayIdError});
+    }
 
     if (data.topic.toUpperCase() === "WATCH") {
       return watch(Object.assign({}, data, spark.query))
