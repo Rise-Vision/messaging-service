@@ -11,7 +11,7 @@ describe("Pub/sub Update", ()=>{
     filePath: "my-bucket/my-file",
     version: "12345",
     type: "ADD",
-    podname: "unit-test-pod"
+    podname: "test-pod"
   });
 
   const watchers = ["d1", "d2"];
@@ -48,7 +48,7 @@ describe("Pub/sub Update", ()=>{
   });
 
   it("notifies displays but doesn't change db if the data was shared from a different pod", ()=>{
-    const otherPodMsg = testIncomingADDMessage.replace("unit-test-pod", "other");
+    const otherPodMsg = testIncomingADDMessage.replace("test-pod", "other");
 
     return psUpdate.processUpdate(otherPodMsg)
     .then(()=>{

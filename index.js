@@ -15,12 +15,31 @@ const pkg = require("./package.json");
 const podname = process.env.podname;
 const logger = require("./src/logger.js");
 const gcs = require("./src/version-compare/gcs.js");
+const querystring = require("querystring");
+const url = require("url");
 
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
 
 process.on("SIGUSR2", logger.debugToggle);
 
+primus.authorize((req, done)=>{
+  const {displayId, machineId} = querystring.parse(url.parse(req.url).query);
+  const invalidIds = ["undefined", "null"];
+
+  if (!displayId || !machineId || [displayId, machineId].some(id=>invalidIds.includes(id))) {
+    logger.log(`Missing connection parameters (displayId: ${displayId}, machineId: ${machineId})`);
+    return done({
+      statusCode: 400,
+      message: "displayId/machineId required"
+    });
+  }
+
+  done();
+});
+
 primus.on('connection', (spark) => {
+  logger.log(`Spark connection from ${spark.address}`);
+
   displayConnections.put(spark);
 
   spark.on("end", ()=>{
@@ -28,8 +47,15 @@ primus.on('connection', (spark) => {
   });
 
   spark.on("data", (data)=>{
+    const displayIdError =
+    "DisplayId should not be included in messages. It is included as a connection parameter.";
+
     if (!data) {return;}
     if (!data.topic) {return;}
+    if (data.displayId) {
+      logger.log(displayIdError);
+      return spark.write({error: 400, msg: displayIdError});
+    }
 
     if (data.topic.toUpperCase() === "WATCH") {
       return watch(Object.assign({}, data, spark.query))
@@ -58,7 +84,13 @@ server.on("close", ()=>{logger.log("closed");});
 
 module.exports = {
   dropSocketsAfterTimeMS(ms) {
-    server.on("connection", socket=>setTimeout(socket.destroy, ms));
+    server.on("connection", socket=>{
+      setTimeout(()=>{
+        try {
+          socket.destroy();
+        } catch(e) {} // eslint-disable-line
+      }, ms);
+    });
   },
   kill() {
     server.close();
