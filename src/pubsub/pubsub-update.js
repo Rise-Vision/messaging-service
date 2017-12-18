@@ -49,7 +49,8 @@ function updateEntry(data) {
 
 function distribute(watchersPromise) {
   return watchersPromise.then(data=>{
-    let msg = {...data, topic: "MSFILEUPDATE"};
+    const {filePath, version, type} = data;
+    let msg = {filePath, version, type, topic: "MSFILEUPDATE"};
 
     data.watchers.forEach(watcher=>{
       msg = msg.type === "DELETE" ?
