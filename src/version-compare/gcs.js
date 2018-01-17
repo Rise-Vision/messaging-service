@@ -9,9 +9,7 @@ module.exports = {
     });
   },
   version(filePath) {
-    if (!filePath) {throw Error("invalid params");}
-    if (!filePath.includes("/")) {throw Error("invalid params");}
-    if (!filePath.split("/")[1]) {throw Error("invalid params");}
+    validate(filePath);
 
     const bucket = filePath.split("/")[0]
     const object = filePath.split("/").slice(1).join("/");
@@ -21,5 +19,24 @@ module.exports = {
     .file(object)
     .getMetadata({fields: "generation"})
     .then(result=>result[0].generation);
+  },
+  getFiles(folder) {
+    validate(folder);
+
+    return storage.bucket(folder.split("/")[0])
+    .getFiles({
+      prefix: folder.split("/").slice(1).join("/"),
+      delimiter: "/",
+      fields: "kind, items(bucket,name,generation)"
+    })
+    .then(files=>files[0]
+    .filter(file=>!file.name.endsWith("/"))
+    .map(fileObject=>fileObject.metadata));
   }
 };
+
+function validate(path) {
+  if (!path) {throw Error("invalid params");}
+  if (!path.includes("/")) {throw Error("invalid params");}
+  if (!path.split("/")[1]) {throw Error("invalid params");}
+}
