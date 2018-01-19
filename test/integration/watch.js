@@ -8,8 +8,8 @@ const validFilePath = filePath.replace("non-existent-", "");
 const displayId = "fakeId";
 const version = "fakeVersion";
 const simple = require("simple-mock");
-const gcs = require("../../src/version-compare/gcs.js");
-const {fileMetadata: md} = require("../../src/db/api.js");
+const gcs = require("../../src/gcs.js");
+const {fileMetadata: md, watchList} = require("../../src/db/api.js");
 
 describe("WATCH : Integration", ()=>{
   before(()=>{
@@ -93,6 +93,52 @@ describe("WATCH : Integration", ()=>{
         assert.equal(reply.version, knownGCSversion);
         assert(!gcs.version.called);
       });
+    });
+  });
+
+  describe("Folders", ()=>{
+    it("saves a new folder, on subsequent call returns existing data without gcs fetch", ()=>{ // eslint-disable-line max-statements
+      const folderPath = "messaging-service-test-bucket/test-folder/"
+      const filePath1 = "messaging-service-test-bucket/test-folder/test-file-for-update.txt";
+      const filePath2 = "messaging-service-test-bucket/test-folder/test-file.txt";
+      const fileVersion = "1509655894026319";
+
+      simple.mock(gcs, "getFiles");
+      simple.mock(md, "addDisplayToMany");
+      simple.mock(md, "setMultipleFileVersions");
+      simple.mock(watchList, "putFolderData");
+
+      return watch({displayId, filePath: folderPath})
+      .then((reply)=>{
+        assert(gcs.getFiles.called);
+        assert(md.setMultipleFileVersions.called);
+        assert(md.addDisplayToMany.called);
+        assert(watchList.putFolderData.called);
+        verifyReply(reply);
+      })
+      .then(()=>{
+        return watch({displayId: "someOtherDisplay", filePath: folderPath})
+      })
+      .then((reply)=>{
+        assert.equal(gcs.getFiles.callCount, 1);
+        assert.equal(md.setMultipleFileVersions.callCount, 1);
+        assert.equal(md.addDisplayToMany.callCount, 2); // eslint-disable-line no-magic-numbers
+        assert.equal(watchList.putFolderData.callCount, 2); // eslint-disable-line no-magic-numbers
+        verifyReply(reply);
+      });
+
+      function verifyReply(reply) {
+        console.log(reply);
+        assert.equal(reply.msg, "ok");
+        assert.equal(reply.topic, "watch-result");
+        assert.equal(reply.folderData.length, 2); // eslint-disable-line no-magic-numbers
+        assert(reply.folderData.some(entry=>entry.filePath.includes(filePath1)));
+        assert(reply.folderData.some(entry=>entry.filePath.includes(filePath2)));
+        assert(reply.folderData.some(entry=>entry.version.includes(fileVersion)));
+        assert(reply.folderData.some(entry=>!entry.version.includes(fileVersion)));
+        assert(reply.folderData.some(entry=>entry.token.data.filePath.includes(filePath1)));
+        assert(reply.folderData.some(entry=>entry.token.data.filePath.includes(filePath2)));
+      }
     });
   });
 });
