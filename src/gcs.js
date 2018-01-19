@@ -27,7 +27,7 @@ module.exports = {
     .getFiles({
       prefix: folder.split("/").slice(1).join("/"),
       delimiter: "/",
-      fields: "kind, items(bucket,name,generation)"
+      fields: "items(name,generation)"
     })
     .then(files=>files[0]
     .filter(file=>!file.name.endsWith("/"))

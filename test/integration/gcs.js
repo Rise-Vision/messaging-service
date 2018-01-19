@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const {version, init, getFiles} = require("../../src/version-compare/gcs.js");
+const {version, init, getFiles} = require("../../src/gcs.js");
 
 describe("GCS : Integration", ()=>{
   before(()=>{
@@ -37,7 +37,7 @@ describe("GCS : Integration", ()=>{
     });
   });
 
-  describe.only("Folder fetch", ()=>{
+  describe("Folder fetch", ()=>{
     it("retrieves a list of files from a folder", ()=>{
       return getFiles("messaging-service-test-bucket/test-folder/")
       .then(console.dir);
@@ -45,11 +45,7 @@ describe("GCS : Integration", ()=>{
     it("expects subfolders to be each individually requested", ()=>{
       return getFiles("messaging-service-test-bucket/test-folder/")
       .then(files=>{
-        const subFolderFiles = files.filter(file=>{
-          return file.name.includes("test-sub-folder")
-        });
-
-        assert.equal(subFolderFiles.length, 0)
+        assert(files.every(file=>!file.name.includes("test-sub-folder")));
       });
     });
   });
