@@ -21,6 +21,7 @@ const url = require("url");
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
 
 process.on("SIGUSR2", logger.debugToggle);
+Error.stackTraceLimit = 50;
 
 primus.authorize((req, done)=>{
   const {displayId, machineId} = querystring.parse(url.parse(req.url).query);
@@ -38,7 +39,7 @@ primus.authorize((req, done)=>{
 });
 
 primus.on('connection', (spark) => {
-  logger.log(`Spark connection from ${spark.address}`);
+  logger.log(`Spark connection from ${JSON.stringify(spark.address)}`);
 
   displayConnections.put(spark);
 
