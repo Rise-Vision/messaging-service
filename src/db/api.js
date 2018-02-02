@@ -43,5 +43,17 @@ module.exports = {
         });
       });
     }
+  },
+  connections: {
+    setConnected(displayId) {
+      if (!displayId) {return Promise.reject(Error("missing displayId"));}
+
+      return redis.setAdd("connections:id", [displayId]);
+    },
+    setDisconnected(displayId) {
+      if (!displayId) {return Promise.reject(Error("missing displayId"));}
+
+      return redis.setRemove("connections:id", [displayId]);
+    }
   }
 };

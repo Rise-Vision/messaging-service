@@ -1,16 +1,25 @@
 const sparks = new Map();
+const db = require("../db/api.js");
 const logger = require("../logger.js");
 
 module.exports = {
   put(spark) {
     if (!spark || !spark.query) {return;}
-    sparks.set(spark.query.displayId, spark);
-    logger.log(`Added spark for ${spark.query.displayId}`);
+    const displayId = spark.query.displayId;
+
+    sparks.set(displayId, spark);
+    db.connections.setConnected(displayId).catch(console.error);
+
+    logger.log(`Added spark for ${displayId}`);
   },
   remove(spark) {
     if (!spark || !spark.query) {return;}
-    sparks.delete(spark.query.displayId);
-    logger.log(`Removed spark for ${spark.query.displayId}`);
+    const displayId = spark.query.displayId;
+
+    sparks.delete(displayId);
+    db.connections.setDisconnected(displayId).catch(console.error);
+
+    logger.log(`Removed spark for ${displayId}`);
   },
   sendMessage(displayId, msg) {
     const spark = sparks.get(displayId);
