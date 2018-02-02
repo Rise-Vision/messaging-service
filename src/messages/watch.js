@@ -35,7 +35,7 @@ module.exports = function watch(newEntry) {
     };
   })
   .catch((err)=>{
-    console.error(err);
+    console.error(newEntry, err);
 
     return {
       error: err.code,
