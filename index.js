@@ -11,6 +11,7 @@ const server = http.createServer(app);
 const displayConnections = require("./src/messages/display-connections.js");
 const datastore = require("./src/db/redis/datastore.js");
 const watch = require("./src/messages/watch.js");
+const presence = require("./src/presence/presence.js");
 const pkg = require("./package.json");
 const podname = process.env.podname;
 const logger = require("./src/logger.js");
@@ -70,6 +71,8 @@ app.get('/messaging', function(req, res) {
 });
 
 app.post('/messaging/pubsub', jsonParser, pubsub);
+
+app.post('/messaging/presence', jsonParser, presence);
 
 server.listen(port, (err) => {
   if (err) {

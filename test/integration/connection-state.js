@@ -1,13 +1,14 @@
 /* eslint-env mocha */
 const assert = require("assert");
 const gcs = require("../../src/version-compare/gcs.js");
+const request = require("request-promise-native");
 const datastore = require("../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 const testPort = 9228;
 const Primus = require("primus");
 const msEndpoint = `http://localhost:${testPort}/messaging/`;
 
-let testMSConnection = null;
+let testMSConnections = null;
 
 describe("MS Connection State : Integration", ()=>{
   before(()=>{
@@ -22,18 +23,34 @@ describe("MS Connection State : Integration", ()=>{
   describe("With the messaging server under test running it...", ()=>{
     it("saves connection state to redis on spark connection / disconnection", ()=>{
       const displayId = "testId";
-      const machineId = "testMachineId";
-      const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
-      console.log(`Connecting to websocket with ${msUrl}`);
 
       return Promise.resolve()
       .then(confirmIdNotInDB(displayId))
-      .then(connectToMS(msUrl))
+      .then(()=>connectToMS([displayId]))
       .then(waitRedisUpdate)
       .then(confirmIdInDB(displayId))
       .then(disconnectFromMS)
       .then(waitRedisUpdate)
       .then(confirmIdNotInDB(displayId));
+    });
+
+    it("[incomplete] accepts https requests for presence", ()=>{
+      const testIds = ["ABCD", "EFGH"];
+      const presenceCheck = {
+        method: "POST",
+        uri: `${msEndpoint}presence`,
+        body: testIds,
+        json: true
+      };
+      console.log(`Connecting to http with ${JSON.stringify(presenceCheck, null, 2)}`); // eslint-disable-line
+
+      return connectToMS(testIds)
+      .then(waitRedisUpdate)
+      .then(()=>request(presenceCheck))
+      .then(resp=>{
+        console.log("presence response:");
+        console.dir(resp); // should contain {ABCD: {connected: true, lastConnection: integer}, EFGH: ...}
+      });
     });
   });
 });
@@ -46,13 +63,15 @@ function confirmIdNotInDB(displayId) {
   }
 }
 
-function connectToMS(msUrl) {
-  return function() {
-    testMSConnection = new (Primus.createSocket({
-      transformer: "websockets",
-      pathname: "messaging/primus/"
-    }))(msUrl);
-  }
+function connectToMS(ids) {
+  console.log(`Connecting to websocket for ${ids}`);
+
+  testMSConnections = ids.map(id=>new (Primus.createSocket({
+    transformer: "websockets",
+    pathname: "messaging/primus/"
+  }))(`${msEndpoint}?displayId=${id}&machineId=${Math.random()}`));
+
+  return Promise.resolve();
 }
 
 function waitRedisUpdate() {
@@ -68,5 +87,5 @@ function confirmIdInDB(displayId) {
 }
 
 function disconnectFromMS() {
-  testMSConnection.end();
+  testMSConnections.forEach(cnxn=>cnxn.end());
 }
