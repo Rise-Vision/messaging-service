@@ -54,6 +54,9 @@ module.exports = {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.setRemove("connections:id", [displayId]);
+    },
+    getPresence(ids) {
+      return Promise.resolve(ids);
     }
   }
 };

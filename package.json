@@ -39,6 +39,7 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
     "mocha": "^4.0.1",
+    "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
     "simple-mock": "^0.8.0",
     "websocket": "^1.0.25",
