@@ -6,6 +6,10 @@ const datastore = require("../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 const testPort = 9228;
 const Primus = require("primus");
+const Socket = Primus.createSocket({
+  transformer: "websockets",
+  pathname: "messaging/primus/"
+});
 const msEndpoint = `http://localhost:${testPort}/messaging/`;
 
 let testMSConnections = null;
@@ -66,10 +70,10 @@ function confirmIdNotInDB(displayId) {
 function connectToMS(ids) {
   console.log(`Connecting to websocket for ${ids}`);
 
-  testMSConnections = ids.map(id=>new (Primus.createSocket({
-    transformer: "websockets",
-    pathname: "messaging/primus/"
-  }))(`${msEndpoint}?displayId=${id}&machineId=${Math.random()}`));
+  testMSConnections = ids.map(id=>{
+    const uri = `${msEndpoint}?displayId=${id}&machineId=${Math.random()}`;
+    return new Socket(uri);
+  });
 
   return Promise.resolve();
 }
