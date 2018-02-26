@@ -50,5 +50,23 @@ module.exports = {
   },
   eraseEntireDb() {
     return promisified.flushall();
+  },
+  multi(cmds) {
+    const apiMap = {
+      setRemove: "srem",
+      setAdd: "sadd",
+      setString: "set",
+      getString: "get",
+      setIsMember: "sismember"
+    };
+
+    return new Promise((res, rej)=>{
+      client.multi(cmds.map(cmdArr=>{
+        cmdArr[0] = apiMap[cmdArr[0]];
+        return cmdArr;
+      })).exec((err, resp)=>{
+        return err ? rej(err) : res(resp);
+      });
+    });
   }
 };

@@ -48,15 +48,42 @@ module.exports = {
     setConnected(displayId) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
-      return redis.setAdd("connections:id", [displayId]);
+      return redis.multi([
+        ["setAdd", "connections:id", displayId],
+        ["setString", `lastConnection:${displayId}`, Date.now()]
+      ]);
     },
     setDisconnected(displayId) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
-      return redis.setRemove("connections:id", [displayId]);
+      return redis.multi([
+        ["setRemove", "connections:id", displayId],
+        ["setString", `lastConnection:${displayId}`, Date.now()]
+      ]);
     },
     getPresence(ids) {
-      return Promise.resolve(ids);
+      return redis.multi(ids.map(id=>["setIsMember", "connections:id", id]))
+      .then(resp=>resp.reduce((obj, bool, idx)=>{
+        return {
+          ...obj,
+          [ids[idx]]: {
+            connected: Boolean(bool)
+          }
+        };
+      }, {}))
+      .then(presenceObj=>{
+        const disconnectedDisplays = Object.keys(presenceObj).filter(id=>{
+          return presenceObj[id].connected === false;
+        });
+
+        return redis.multi(disconnectedDisplays.map(id=>["getString", `lastConnection:${id}`]))
+        .then(lastConnections=>{
+          disconnectedDisplays.forEach((id, idx)=>{
+            presenceObj[id].lastConnection = lastConnections[idx];
+          });
+          return presenceObj;
+        });
+      });
     }
   }
 };

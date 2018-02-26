@@ -38,8 +38,9 @@ describe("MS Connection State : Integration", ()=>{
       .then(confirmIdNotInDB(displayId));
     });
 
-    it("[incomplete] accepts https requests for presence", ()=>{
+    it("accepts https requests for presence", ()=>{
       const testIds = ["ABCD", "EFGH"];
+
       const presenceCheck = {
         method: "POST",
         uri: `${msEndpoint}presence`,
@@ -53,7 +54,19 @@ describe("MS Connection State : Integration", ()=>{
       .then(()=>request(presenceCheck))
       .then(resp=>{
         console.log("presence response:");
-        console.dir(resp); // should contain {ABCD: {connected: true, lastConnection: integer}, EFGH: ...}
+        console.dir(resp);
+        assert(testIds.every(id=>resp[id].connected));
+      })
+      .then(()=>disconnectFromMS(1))
+      .then(waitRedisUpdate)
+      .then(()=>request(presenceCheck))
+      .then(resp=>{
+        console.log("presence response:");
+        console.dir(resp);
+        assert(resp[testIds[0]].connected);
+        assert(!resp[testIds[0]].lastConnection);
+        assert(!resp[testIds[1]].connected);
+        assert(resp[testIds[1]].lastConnection);
       });
     });
   });
@@ -90,6 +103,7 @@ function confirmIdInDB(displayId) {
   }
 }
 
-function disconnectFromMS() {
+function disconnectFromMS(connection) {
+  if (connection) {return testMSConnections[connection].end();}
   testMSConnections.forEach(cnxn=>cnxn.end());
 }
