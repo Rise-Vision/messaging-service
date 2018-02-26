@@ -38,9 +38,10 @@ module.exports = {
     resp.send(updateMessage);
   },
   forwardMessage(message) {
-    const stringified = JSON.stringify(Object.assign({}, message, {podname}));
+    const messageAsString = JSON.stringify(Object.assign({}, message, {podname}));
+    logger.log(`Forwarding message to display: ${messageAsString}`);
 
     displayConnections.sendMessage(message.displayId, message);
-    pub.publish(channel, stringified);
+    pub.publish(channel, messageAsString);
   }
 }
