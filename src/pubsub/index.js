@@ -18,12 +18,14 @@ sub.on("message", (ch, msg)=>{
   pubsubUpdate.processUpdate(msg);
 });
 
-module.exports = function postHandler(req, resp) {
-  logger.log(`Received from PSC: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
+module.exports = {
+  postHandler(req, resp) {
+    logger.log(`Received from PSC: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
 
-  const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
+    const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
 
-  pubsubUpdate.processUpdate(updateMessage);
-  pub.publish(channel, updateMessage);
-  resp.send(updateMessage);
+    pubsubUpdate.processUpdate(updateMessage);
+    pub.publish(channel, updateMessage);
+    resp.send(updateMessage);
+  }
 }
