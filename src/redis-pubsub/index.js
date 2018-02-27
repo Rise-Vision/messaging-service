@@ -8,7 +8,8 @@ const gkeHostname = "display-ms-redis-master";
 const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 const pub = redis.createClient({host: redisHost});
 const sub = redis.createClient({host: redisHost});
-const forwardedMessageTypes = ["restart-request", "reboot-request"];
+const messageTypesFromCore =
+  ["content-update", "restart-request", "reboot-request", "screenshot-request"];
 
 sub.subscribe(channel);
 sub.on("message", (ch, msg)=>{
@@ -19,7 +20,7 @@ sub.on("message", (ch, msg)=>{
 
   const data = JSON.parse(msg);
 
-  if (forwardedMessageTypes.includes(data.msg)) {
+  if (messageTypesFromCore.includes(data.msg)) {
     displayConnections.sendMessage(data.displayId, data);
   }
   else {
