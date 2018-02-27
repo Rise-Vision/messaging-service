@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const psUpdate = require("../../src/redis-pubsub/pubsub-update");
+const fileStatusUpdate = require("../../src/redis-pubsub/file-status-update");
 const simple = require("simple-mock");
 const db = require("../../src/db/api");
 const displayConnections = require("../../src/messages/display-connections");
@@ -34,7 +34,7 @@ describe("Pub/sub Update", ()=>{
     simple.restore(db.fileMetadata, "getWatchersFor");
     simple.mock(db.fileMetadata, "getWatchersFor").resolveWith([]);
 
-    return psUpdate.processUpdate(testIncomingADDMessage)
+    return fileStatusUpdate.processUpdate(testIncomingADDMessage)
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
       assert([
@@ -50,7 +50,7 @@ describe("Pub/sub Update", ()=>{
   it("notifies displays but doesn't change db if the data was shared from a different pod", ()=>{
     const otherPodMsg = testIncomingADDMessage.replace("test-pod", "other");
 
-    return psUpdate.processUpdate(otherPodMsg)
+    return fileStatusUpdate.processUpdate(otherPodMsg)
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
       assert.equal(displayConnections.sendMessage.callCount, watchers.length);
@@ -68,7 +68,7 @@ describe("Pub/sub Update", ()=>{
   it("updates db on DELETE", ()=>{
     const delPodMsg = testIncomingADDMessage.replace("ADD", "DELETE");
 
-    return psUpdate.processUpdate(delPodMsg)
+    return fileStatusUpdate.processUpdate(delPodMsg)
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
       assert.equal(db.fileMetadata.deleteMetadata.callCount, 1);
@@ -85,7 +85,7 @@ describe("Pub/sub Update", ()=>{
   it("updates db on UPDATE", ()=>{
     const updMsg = testIncomingADDMessage.replace("ADD", "UPDATE");
 
-    return psUpdate.processUpdate(updMsg)
+    return fileStatusUpdate.processUpdate(updMsg)
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
       assert.equal(db.fileMetadata.setFileVersion.callCount, 1);
@@ -100,7 +100,7 @@ describe("Pub/sub Update", ()=>{
   });
 
   it("updates db on ADD", ()=>{
-    return psUpdate.processUpdate(testIncomingADDMessage)
+    return fileStatusUpdate.processUpdate(testIncomingADDMessage)
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
       assert.equal(db.fileMetadata.setFileVersion.callCount, 1);
@@ -116,7 +116,7 @@ describe("Pub/sub Update", ()=>{
 
   it("doesn't update db or send messages if the type is invalid", ()=>{
     const invalidMsg = testIncomingADDMessage.replace("ADD", "INVALID");
-    return psUpdate.processUpdate(invalidMsg)
+    return fileStatusUpdate.processUpdate(invalidMsg)
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
       assert(logger.log.lastCall.arg, "Invalid notification type received");

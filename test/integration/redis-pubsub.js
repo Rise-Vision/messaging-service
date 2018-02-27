@@ -10,7 +10,7 @@ const redis = require("redis");
 const redisHost = "127.0.0.1";
 const channel = "pubsub-update";
 const displayConnections = require("../../src/messages/display-connections");
-const pubsubUpdate = require("../../src/redis-pubsub/pubsub-update");
+const fileStatusUpdate = require("../../src/redis-pubsub/file-status-update");
 
 describe("Pubsub : Integration", ()=>{
   let msServer = null;
@@ -36,7 +36,7 @@ describe("Pubsub : Integration", ()=>{
       });
 
       it("receives POST update from pubsub connector, processes update, and shares to other pods", ()=>{
-        simple.mock(pubsubUpdate, "processUpdate");
+        simple.mock(fileStatusUpdate, "processUpdate");
 
         const updateFromPubsubConnector = {
           filePath: "test-file-path/test-object",
@@ -66,8 +66,8 @@ describe("Pubsub : Integration", ()=>{
           const expectedResponse = Object.assign(updateFromPubsubConnector, {podname});
 
           assert.deepEqual(responseToPubsubConnector, expectedResponse);
-          assert.equal(pubsubUpdate.processUpdate.callCount, 1)
-          simple.restore(pubsubUpdate, "processUpdate");
+          assert.equal(fileStatusUpdate.processUpdate.callCount, 1)
+          simple.restore(fileStatusUpdate, "processUpdate");
           return otherPodSubscriberPromise.then(otherPodSubscriber.quit());
         });
       });
@@ -76,16 +76,16 @@ describe("Pubsub : Integration", ()=>{
         const testMessage = JSON.stringify({test: "test"});
 
         const mainSubscriberPodPromise = new Promise(res=>{
-          simple.mock(pubsubUpdate, "processUpdate").callFn(res);
+          simple.mock(fileStatusUpdate, "processUpdate").callFn(res);
         });
 
         const otherPodPublisher = redis.createClient({host: redisHost});
         otherPodPublisher.publish(channel, testMessage);
 
         return mainSubscriberPodPromise.then(()=>{
-          assert.equal(pubsubUpdate.processUpdate.callCount, 1);
-          assert.deepEqual(pubsubUpdate.processUpdate.lastCall.arg, testMessage);
-          simple.restore(pubsubUpdate, "processUpdate");
+          assert.equal(fileStatusUpdate.processUpdate.callCount, 1);
+          assert.deepEqual(fileStatusUpdate.processUpdate.lastCall.arg, testMessage);
+          simple.restore(fileStatusUpdate, "processUpdate");
         });
       });
 

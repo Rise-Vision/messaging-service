@@ -1,6 +1,6 @@
 const podname = process.env.podname;
 const displayConnections = require("../messages/display-connections");
-const pubsubUpdate = require("./pubsub-update");
+const fileStatusUpdate = require("./file-status-update");
 const logger = require("../logger");
 const channel = "pubsub-update";
 const redis = require("redis");
@@ -24,7 +24,7 @@ sub.on("message", (ch, msg)=>{
     displayConnections.sendMessage(data.displayId, data);
   }
   else {
-    pubsubUpdate.processUpdate(msg);
+    fileStatusUpdate.processUpdate(msg);
   }
 });
 
