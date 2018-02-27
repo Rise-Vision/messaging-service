@@ -1,6 +1,7 @@
 const logger = require("../logger.js");
 const db = require("../db/api.js");
 const SERVER_ERROR = 500;
+const BAD_REQUEST = 400;
 const defaultOrigin = process.env.NODE_ENV === "test" ?
 "*" :
 "https://www.risevision.com";
@@ -8,6 +9,10 @@ const defaultOrigin = process.env.NODE_ENV === "test" ?
 module.exports = {
   postHandler(req, resp) {
     handleCors(req, resp);
+    if (!req.body || !Array.isArray(req.body)) {
+      const errMsg = "expected application/json, POST, [ids]";
+      return resp.status(BAD_REQUEST).send({error: errMsg});
+    }
 
     logger.log(`Received presence request: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
 
