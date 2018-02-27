@@ -1,10 +1,10 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const psUpdate = require("../../src/pubsub/pubsub-update.js");
+const psUpdate = require("../../src/redis-pubsub/pubsub-update");
 const simple = require("simple-mock");
-const db = require("../../src/db/api.js");
-const displayConnections = require("../../src/messages/display-connections.js");
-const logger = require("../../src/logger.js");
+const db = require("../../src/db/api");
+const displayConnections = require("../../src/messages/display-connections");
+const logger = require("../../src/logger");
 
 describe("Pub/sub Update", ()=>{
   const testIncomingADDMessage = JSON.stringify({
@@ -131,4 +131,3 @@ describe("Pub/sub Update", ()=>{
     });
   });
 });
-

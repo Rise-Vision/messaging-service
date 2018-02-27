@@ -1,8 +1,8 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const dbApi = require("../../src/db/api.js");
-const datastore = require("../../src/db/redis/datastore.js");
-const pubsubUpdate = require("../../src/pubsub/pubsub-update");
+const dbApi = require("../../src/db/api");
+const datastore = require("../../src/db/redis/datastore");
+const pubsubUpdate = require("../../src/redis-pubsub/pubsub-update");
 
 describe("Pubsub Update : Integration", ()=>{
   before(()=>{

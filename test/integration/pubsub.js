@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 const assert = require("assert");
 const rp = require("request-promise-native");
-const gcs = require("../../src/version-compare/gcs.js");
+const gcs = require("../../src/version-compare/gcs");
 const simple = require("simple-mock");
 const podname = "test-pod";
 const testPort = 9228;
@@ -10,7 +10,7 @@ const redis = require("redis");
 const redisHost = "127.0.0.1";
 const channel = "pubsub-update";
 const displayConnections = require("../../src/messages/display-connections");
-const pubsubUpdate = require("../../src/pubsub/pubsub-update");
+const pubsubUpdate = require("../../src/redis-pubsub/pubsub-update");
 
 describe("Pubsub : Integration", ()=>{
   let msServer = null;
