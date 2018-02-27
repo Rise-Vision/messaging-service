@@ -28,20 +28,14 @@ sub.on("message", (ch, msg)=>{
 });
 
 module.exports = {
-  postHandler(req, resp) {
-    logger.log(`Received from PSC: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
-
-    const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
-
-    pubsubUpdate.processUpdate(updateMessage);
-    pub.publish(channel, updateMessage);
-    resp.send(updateMessage);
-  },
   forwardMessage(message) {
     const messageAsString = JSON.stringify(Object.assign({}, message, {podname}));
     logger.log(`Forwarding message to display: ${messageAsString}`);
 
     displayConnections.sendMessage(message.displayId, message);
-    pub.publish(channel, messageAsString);
+    module.exports.publish(messageAsString);
+  },
+  publish(message) {
+    pub.publish(channel, message);
   }
 }

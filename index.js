@@ -4,7 +4,7 @@ const http = require('http');
 const defaultPort = 80;
 const port = process.env.MS_PORT || defaultPort;
 const app = express();
-const pubsub = require("./src/redis-pubsub").postHandler;
+const pubsubConnector = require("./src/pubsub-connector");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const server = http.createServer(app);
@@ -70,7 +70,7 @@ app.get('/messaging', function(req, res) {
   res.send(`Messaging Service: ${podname} ${pkg.version}`);
 });
 
-app.post('/messaging/pubsub', jsonParser, pubsub);
+app.post('/messaging/pubsub', jsonParser, pubsubConnector);
 
 app.post('/messaging/presence', jsonParser, presence.postHandler);
 app.options('/messaging/presence', jsonParser, presence.optionsHandler);
