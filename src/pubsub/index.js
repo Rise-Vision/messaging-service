@@ -1,12 +1,14 @@
 const podname = process.env.podname;
+const displayConnections = require("../messages/display-connections");
 const pubsubUpdate = require("./pubsub-update");
-const logger = require("../logger.js");
+const logger = require("../logger");
 const channel = "pubsub-update";
 const redis = require("redis");
 const gkeHostname = "display-ms-redis-master";
 const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 const pub = redis.createClient({host: redisHost});
 const sub = redis.createClient({host: redisHost});
+const forwardedMessageTypes = ["restart-request", "reboot-request"];
 
 sub.subscribe(channel);
 sub.on("message", (ch, msg)=>{
@@ -15,15 +17,31 @@ sub.on("message", (ch, msg)=>{
   if (ch !== channel) {return;}
   if (msg.includes(podname)) {return;}
 
-  pubsubUpdate.processUpdate(msg);
+  const data = JSON.parse(msg);
+
+  if (forwardedMessageTypes.includes(data.msg)) {
+    displayConnections.sendMessage(data.displayId, data);
+  }
+  else {
+    pubsubUpdate.processUpdate(msg);
+  }
 });
 
-module.exports = function postHandler(req, resp) {
-  logger.log(`Received from PSC: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
+module.exports = {
+  postHandler(req, resp) {
+    logger.log(`Received from PSC: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
 
-  const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
+    const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
 
-  pubsubUpdate.processUpdate(updateMessage);
-  pub.publish(channel, updateMessage);
-  resp.send(updateMessage);
+    pubsubUpdate.processUpdate(updateMessage);
+    pub.publish(channel, updateMessage);
+    resp.send(updateMessage);
+  },
+  forwardMessage(message) {
+    const messageAsString = JSON.stringify(Object.assign({}, message, {podname}));
+    logger.log(`Forwarding message to display: ${messageAsString}`);
+
+    displayConnections.sendMessage(message.displayId, message);
+    pub.publish(channel, messageAsString);
+  }
 }

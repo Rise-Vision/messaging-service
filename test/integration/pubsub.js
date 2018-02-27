@@ -9,6 +9,7 @@ const reasonableResponseTime = 1000;
 const redis = require("redis");
 const redisHost = "127.0.0.1";
 const channel = "pubsub-update";
+const displayConnections = require("../../src/messages/display-connections");
 const pubsubUpdate = require("../../src/pubsub/pubsub-update");
 
 describe("Pubsub : Integration", ()=>{
@@ -85,6 +86,48 @@ describe("Pubsub : Integration", ()=>{
           assert.equal(pubsubUpdate.processUpdate.callCount, 1);
           assert.deepEqual(pubsubUpdate.processUpdate.lastCall.arg, testMessage);
           simple.restore(pubsubUpdate, "processUpdate");
+        });
+      });
+
+      it("receives PUBSUB update through REDIS for restart-request", ()=>{
+        const testMessage =
+          JSON.stringify({displayId: 'ABCDEF', msg: "restart-request"});
+
+        const mainSubscriberPodPromise = new Promise(res=>{
+          simple.mock(displayConnections, "sendMessage").callFn(res);
+        });
+
+        const otherPodPublisher = redis.createClient({host: redisHost});
+        otherPodPublisher.publish(channel, testMessage);
+
+        return mainSubscriberPodPromise.then(()=>{
+          assert.equal(displayConnections.sendMessage.callCount, 1);
+          assert.equal(displayConnections.sendMessage.lastCall.args[0], 'ABCDEF');
+          assert.deepEqual(displayConnections.sendMessage.lastCall.args[1], {
+            displayId: 'ABCDEF', msg: "restart-request"
+          });
+          simple.restore(displayConnections, "sendMessage");
+        });
+      });
+
+      it("receives PUBSUB update through REDIS for reboot-request", ()=>{
+        const testMessage =
+          JSON.stringify({displayId: 'ABCDEF', msg: "reboot-request"});
+
+        const mainSubscriberPodPromise = new Promise(res=>{
+          simple.mock(displayConnections, "sendMessage").callFn(res);
+        });
+
+        const otherPodPublisher = redis.createClient({host: redisHost});
+        otherPodPublisher.publish(channel, testMessage);
+
+        return mainSubscriberPodPromise.then(()=>{
+          assert.equal(displayConnections.sendMessage.callCount, 1);
+          assert.equal(displayConnections.sendMessage.lastCall.args[0], 'ABCDEF');
+          assert.deepEqual(displayConnections.sendMessage.lastCall.args[1], {
+            displayId: 'ABCDEF', msg: "reboot-request"
+          });
+          simple.restore(displayConnections, "sendMessage");
         });
       });
     });
