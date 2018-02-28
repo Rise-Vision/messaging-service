@@ -7,9 +7,10 @@ module.exports = {
   postHandler(req, resp) {
     logger.log(`Received from PSC: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
 
-    const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
+    const messageWithPodname = Object.assign({}, req.body, {podname});
+    const updateMessage = JSON.stringify(messageWithPodname);
 
-    fileStatusUpdate.processUpdate(updateMessage);
+    fileStatusUpdate.processUpdate(messageWithPodname);
     redisPubsub.publish(updateMessage);
     resp.send(updateMessage);
   }

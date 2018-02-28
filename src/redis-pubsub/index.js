@@ -29,7 +29,7 @@ function init() {
       displayConnections.sendMessage(data.displayId, data);
     }
     else {
-      fileStatusUpdate.processUpdate(msg);
+      fileStatusUpdate.processUpdate(data);
     }
   });
 }

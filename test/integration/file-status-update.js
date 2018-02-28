@@ -30,12 +30,12 @@ describe("Pubsub Update : Integration", ()=>{
     .then(datastore.getString.bind(null, `meta:${filePath}:version`))
     .then(dbVersion=>assert.equal(dbVersion, version))
     .then(()=>{
-      return fileStatusUpdate.processUpdate(JSON.stringify({
+      return fileStatusUpdate.processUpdate({
         filePath,
         version,
         type: "DELETE",
         podname: process.env.podname
-      }))
+      })
     })
     .then(()=>{
       return datastore.getHash(`watch:${displayId}`)
@@ -64,12 +64,12 @@ describe("Pubsub Update : Integration", ()=>{
       .then(dbApi.fileMetadata.addDisplayTo.bind(null, filePath, displayId))
     })
     .then(()=>{
-      return fileStatusUpdate.processUpdate(JSON.stringify({
+      return fileStatusUpdate.processUpdate({
         filePath,
         version: updatedVersion,
         type: "ADD",
         podname: process.env.podname
-      }))
+      })
     })
     .then(()=>{
       return datastore.getHash(`watch:${displayId}`)

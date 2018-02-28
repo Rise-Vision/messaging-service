@@ -7,12 +7,12 @@ const displayConnections = require("../../src/messages/display-connections");
 const logger = require("../../src/logger");
 
 describe("Pub/sub Update", ()=>{
-  const testIncomingADDMessage = JSON.stringify({
+  const testIncomingADDMessage = {
     filePath: "my-bucket/my-file",
     version: "12345",
     type: "ADD",
     podname: "test-pod"
-  });
+  };
 
   const watchers = ["d1", "d2"];
 
@@ -48,7 +48,7 @@ describe("Pub/sub Update", ()=>{
   });
 
   it("notifies displays but doesn't change db if the data was shared from a different pod", ()=>{
-    const otherPodMsg = testIncomingADDMessage.replace("test-pod", "other");
+    const otherPodMsg = Object.assign({}, testIncomingADDMessage, {podname: "other"});
 
     return fileStatusUpdate.processUpdate(otherPodMsg)
     .then(()=>{
@@ -66,7 +66,7 @@ describe("Pub/sub Update", ()=>{
   });
 
   it("updates db on DELETE", ()=>{
-    const delPodMsg = testIncomingADDMessage.replace("ADD", "DELETE");
+    const delPodMsg = Object.assign({}, testIncomingADDMessage, {type: "DELETE"});
 
     return fileStatusUpdate.processUpdate(delPodMsg)
     .then(()=>{
@@ -83,7 +83,7 @@ describe("Pub/sub Update", ()=>{
   });
 
   it("updates db on UPDATE", ()=>{
-    const updMsg = testIncomingADDMessage.replace("ADD", "UPDATE");
+    const updMsg = Object.assign({}, testIncomingADDMessage, {type: "UPDATE"});
 
     return fileStatusUpdate.processUpdate(updMsg)
     .then(()=>{
@@ -115,7 +115,7 @@ describe("Pub/sub Update", ()=>{
   });
 
   it("doesn't update db or send messages if the type is invalid", ()=>{
-    const invalidMsg = testIncomingADDMessage.replace("ADD", "INVALID");
+    const invalidMsg = Object.assign({}, testIncomingADDMessage, {type: "INVALID"});
     return fileStatusUpdate.processUpdate(invalidMsg)
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);

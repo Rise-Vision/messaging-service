@@ -5,10 +5,8 @@ const displayConnections = require("./messages/display-connections");
 const logger = require("./logger");
 
 module.exports = {
-  processUpdate(msg) {
-    const data = JSON.parse(msg);
-
-    return distribute(metadataUpdateOnPrimaryPod(watchers(data)));
+  processUpdate(message) {
+    return distribute(metadataUpdateOnPrimaryPod(watchers(message)));
   }
 }
 

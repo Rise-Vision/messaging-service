@@ -88,7 +88,7 @@ describe("Pubsub : Integration", ()=>{
 
         return mainSubscriberPodPromise.then(()=>{
           assert.equal(fileStatusUpdate.processUpdate.callCount, 1);
-          assert.deepEqual(fileStatusUpdate.processUpdate.lastCall.arg, testMessage);
+          assert.deepEqual(fileStatusUpdate.processUpdate.lastCall.arg, {test: "test"});
           simple.restore(fileStatusUpdate, "processUpdate");
         });
       });
