@@ -18,4 +18,17 @@ function forwardMessage(messageType, displayId) {
   pubsub.publishToPods(message);
 }
 
-module.exports = {forwardRebootMessage, forwardRestartMessage};
+function canHandleMessage(message) {
+  return ["restart-request", "reboot-request"].includes(message.msg);
+}
+
+function handleMessage(message) {
+  displayConnections.sendMessage(message.displayId, message);
+}
+
+module.exports = {
+  forwardRebootMessage,
+  forwardRestartMessage,
+  canHandleMessage,
+  handleMessage
+};

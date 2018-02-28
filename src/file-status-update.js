@@ -5,6 +5,12 @@ const displayConnections = require("./messages/display-connections");
 const logger = require("./logger");
 
 module.exports = {
+  canHandleMessage(message) {
+    return message.filePath;
+  },
+  handleMessage(message) {
+    return module.exports.processUpdate(message);
+  },
   processUpdate(message) {
     return distribute(metadataUpdateOnPrimaryPod(watchers(message)));
   }

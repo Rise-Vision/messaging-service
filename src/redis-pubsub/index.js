@@ -1,6 +1,4 @@
 const podname = process.env.podname;
-const displayConnections = require("../messages/display-connections");
-const fileStatusUpdate = require("../file-status-update");
 const logger = require("../logger");
 const channel = "pubsub-update";
 const redis = require("redis");
@@ -9,10 +7,8 @@ const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 
 let pub = null;
 let sub = null;
-const messageTypesFromCore =
-  ["content-update", "restart-request", "reboot-request", "screenshot-request"];
 
-function init() {
+function init(handlers) {
   pub = redis.createClient({host: redisHost});
   sub = redis.createClient({host: redisHost});
 
@@ -25,12 +21,9 @@ function init() {
 
     const data = JSON.parse(msg);
 
-    if (messageTypesFromCore.includes(data.msg)) {
-      displayConnections.sendMessage(data.displayId, data);
-    }
-    else {
-      fileStatusUpdate.processUpdate(data);
-    }
+    const handler = handlers.find(current => current.canHandleMessage(data));
+
+    return handler && handler.handleMessage(data);
   });
 }
 
