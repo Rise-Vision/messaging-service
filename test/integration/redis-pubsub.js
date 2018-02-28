@@ -77,7 +77,7 @@ describe("Pubsub : Integration", ()=>{
       });
 
       it("receives PUBSUB update through REDIS from another MS pod and processes the update", ()=>{
-        const testMessage = JSON.stringify({test: "test"});
+        const testMessage = JSON.stringify({filePath: "test"});
 
         const mainSubscriberPodPromise = new Promise(res=>{
           simple.mock(fileStatusUpdate, "processUpdate").callFn(res);
@@ -88,7 +88,7 @@ describe("Pubsub : Integration", ()=>{
 
         return mainSubscriberPodPromise.then(()=>{
           assert.equal(fileStatusUpdate.processUpdate.callCount, 1);
-          assert.deepEqual(fileStatusUpdate.processUpdate.lastCall.arg, {test: "test"});
+          assert.deepEqual(fileStatusUpdate.processUpdate.lastCall.arg, {filePath: "test"});
           simple.restore(fileStatusUpdate, "processUpdate");
         });
       });
