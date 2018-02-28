@@ -4,7 +4,10 @@ const http = require('http');
 const defaultPort = 80;
 const port = process.env.MS_PORT || defaultPort;
 const app = express();
+const fileStatusUpdate = require("./src/file-status-update");
 const pubsubConnector = require("./src/pubsub-connector");
+const redisPubsub = require("./src/redis-pubsub");
+const restartReboot = require("./src/messages/restart-reboot");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const server = http.createServer(app);
@@ -18,6 +21,8 @@ const logger = require("./src/logger");
 const gcs = require("./src/version-compare/gcs");
 const querystring = require("querystring");
 const url = require("url");
+
+redisPubsub.init([restartReboot, fileStatusUpdate]);
 
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
 
@@ -70,7 +75,7 @@ app.get('/messaging', function(req, res) {
   res.send(`Messaging Service: ${podname} ${pkg.version}`);
 });
 
-app.post('/messaging/pubsub', jsonParser, pubsubConnector);
+app.post('/messaging/pubsub', jsonParser, pubsubConnector.postHandler);
 
 app.post('/messaging/presence', jsonParser, presence.postHandler);
 app.options('/messaging/presence', jsonParser, presence.optionsHandler);

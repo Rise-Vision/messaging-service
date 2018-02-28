@@ -11,6 +11,8 @@ const redisHost = "127.0.0.1";
 const channel = "pubsub-update";
 const displayConnections = require("../../src/messages/display-connections");
 const fileStatusUpdate = require("../../src/file-status-update");
+const restartReboot = require("../../src/messages/restart-reboot");
+const redisPubsub = require("../../src/redis-pubsub");
 
 describe("Pubsub : Integration", ()=>{
   let msServer = null;
@@ -21,6 +23,8 @@ describe("Pubsub : Integration", ()=>{
     process.env.MS_PORT = testPort;
     process.env.podname = podname;
     process.env.NODE_ENV = "test";
+
+    redisPubsub.init([restartReboot, fileStatusUpdate]);
   });
 
   after(()=>{
@@ -30,15 +34,9 @@ describe("Pubsub : Integration", ()=>{
 
   describe("With a local running redis server", ()=>{
     describe("and the messaging service under test running, it...", ()=>{
-      let restartReboot = null;
-      let pubsub = null;
-
       before(()=>{
         msServer = require("../../index.js");
         msServer.dropSocketsAfterTimeMS(reasonableResponseTime);
-
-        restartReboot = require("../../src/messages/restart-reboot");
-        pubsub = require("../../src/redis-pubsub");
       });
 
       it("receives POST update from pubsub connector, processes update, and shares to other pods", ()=>{
@@ -139,7 +137,7 @@ describe("Pubsub : Integration", ()=>{
 
       it("forwards reboot messages", () => {
         simple.mock(displayConnections, "sendMessage").returnWith();
-        simple.mock(pubsub, "publishToPods").returnWith();
+        simple.mock(redisPubsub, "publishToPods").returnWith();
 
         restartReboot.forwardRebootMessage('ABC124');
 
@@ -150,18 +148,18 @@ describe("Pubsub : Integration", ()=>{
           }
         ]);
 
-        assert(pubsub.publishToPods.callCount, 1);
-        assert.deepEqual(pubsub.publishToPods.lastCall.args[0], {
+        assert(redisPubsub.publishToPods.callCount, 1);
+        assert.deepEqual(redisPubsub.publishToPods.lastCall.args[0], {
             msg: 'reboot-request', displayId: 'ABC124'
         });
 
         simple.restore(displayConnections, "sendMessage");
-        simple.restore(pubsub, "publishToPods");
+        simple.restore(redisPubsub, "publishToPods");
       });
 
       it("forwards restart messages", () => {
         simple.mock(displayConnections, "sendMessage").returnWith();
-        simple.mock(pubsub, "publishToPods").returnWith();
+        simple.mock(redisPubsub, "publishToPods").returnWith();
 
         restartReboot.forwardRestartMessage('ABC124');
 
@@ -172,13 +170,13 @@ describe("Pubsub : Integration", ()=>{
           }
         ]);
 
-        assert(pubsub.publishToPods.callCount, 1);
-        assert.deepEqual(pubsub.publishToPods.lastCall.args[0], {
+        assert(redisPubsub.publishToPods.callCount, 1);
+        assert.deepEqual(redisPubsub.publishToPods.lastCall.args[0], {
             msg: 'restart-request', displayId: 'ABC124'
         });
 
         simple.restore(displayConnections, "sendMessage");
-        simple.restore(pubsub, "publishToPods");
+        simple.restore(redisPubsub, "publishToPods");
       });
 
     });
