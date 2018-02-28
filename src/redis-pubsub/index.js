@@ -29,7 +29,7 @@ sub.on("message", (ch, msg)=>{
 });
 
 module.exports = {
-  forwardMessage(message) {
+  publishToPods(message) {
     const messageAsString = JSON.stringify(Object.assign({}, message, {podname}));
     logger.log(`Forwarding message to display: ${messageAsString}`);
 
