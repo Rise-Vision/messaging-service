@@ -31,9 +31,8 @@ sub.on("message", (ch, msg)=>{
 module.exports = {
   publishToPods(message) {
     const messageAsString = JSON.stringify(Object.assign({}, message, {podname}));
-    logger.log(`Forwarding message to display: ${messageAsString}`);
+    logger.log(`Publishing message to pods: ${messageAsString}`);
 
-    displayConnections.sendMessage(message.displayId, message);
     module.exports.publish(messageAsString);
   },
   publish(message) {

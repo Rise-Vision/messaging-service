@@ -1,11 +1,21 @@
 const pubsub = require("../redis-pubsub");
 
+const displayConnections = require("./display-connections");
+
 function forwardRebootMessage(displayId) {
-  pubsub.publishToPods({msg: 'reboot-request', displayId});
+  forwardMessage('reboot-request', displayId);
 }
 
 function forwardRestartMessage(displayId) {
-  pubsub.publishToPods({msg: 'restart-request', displayId});
+  forwardMessage('restart-request', displayId);
+}
+
+function forwardMessage(messageType, displayId) {
+  const message = {msg: messageType, displayId};
+
+  displayConnections.sendMessage(message.displayId, message);
+
+  pubsub.publishToPods(message);
 }
 
 module.exports = {forwardRebootMessage, forwardRestartMessage};
