@@ -10,7 +10,7 @@ const redis = require("redis");
 const redisHost = "127.0.0.1";
 const channel = "pubsub-update";
 const displayConnections = require("../../src/messages/display-connections");
-const fileStatusUpdate = require("../../src/redis-pubsub/file-status-update");
+const fileStatusUpdate = require("../../src/file-status-update");
 const logger = require("../../src/logger");
 
 describe("Pubsub : Integration", ()=>{

@@ -2,7 +2,7 @@
 const assert = require("assert");
 const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore");
-const fileStatusUpdate = require("../../src/redis-pubsub/file-status-update");
+const fileStatusUpdate = require("../../src/file-status-update");
 
 describe("Pubsub Update : Integration", ()=>{
   before(()=>{

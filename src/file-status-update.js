@@ -1,8 +1,8 @@
 const podname = process.env.podname;
-const makeToken = require("../token/make-token.js");
-const db = require("../db/api.js");
-const displayConnections = require("../messages/display-connections.js");
-const logger = require("../logger.js");
+const makeToken = require("./token/make-token");
+const db = require("./db/api");
+const displayConnections = require("./messages/display-connections");
+const logger = require("./logger");
 
 module.exports = {
   processUpdate(msg) {

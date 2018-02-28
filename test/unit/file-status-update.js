@@ -1,6 +1,6 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const fileStatusUpdate = require("../../src/redis-pubsub/file-status-update");
+const fileStatusUpdate = require("../../src/file-status-update");
 const simple = require("simple-mock");
 const db = require("../../src/db/api");
 const displayConnections = require("../../src/messages/display-connections");

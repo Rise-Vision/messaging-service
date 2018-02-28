@@ -1,6 +1,6 @@
 const podname = process.env.podname;
 const displayConnections = require("../messages/display-connections");
-const fileStatusUpdate = require("./file-status-update");
+const fileStatusUpdate = require("../file-status-update");
 const logger = require("../logger");
 const channel = "pubsub-update";
 const redis = require("redis");
