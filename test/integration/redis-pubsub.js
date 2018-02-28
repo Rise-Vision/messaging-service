@@ -11,7 +11,6 @@ const redisHost = "127.0.0.1";
 const channel = "pubsub-update";
 const displayConnections = require("../../src/messages/display-connections");
 const fileStatusUpdate = require("../../src/file-status-update");
-const logger = require("../../src/logger");
 
 describe("Pubsub : Integration", ()=>{
   let msServer = null;
@@ -139,9 +138,8 @@ describe("Pubsub : Integration", ()=>{
       });
 
       it("forwards reboot messages", () => {
-        simple.mock(logger, "log").returnWith();
         simple.mock(displayConnections, "sendMessage").returnWith();
-        simple.mock(pubsub, "publish").returnWith();
+        simple.mock(pubsub, "publishToPods").returnWith();
 
         restartReboot.forwardRebootMessage('ABC124');
 
@@ -152,21 +150,18 @@ describe("Pubsub : Integration", ()=>{
           }
         ]);
 
-        assert(pubsub.publish.callCount, 1);
-        const message = pubsub.publish.lastCall.args[0]
-        assert.deepEqual(JSON.parse(message), {
-            msg: 'reboot-request', displayId: 'ABC124', podname
+        assert(pubsub.publishToPods.callCount, 1);
+        assert.deepEqual(pubsub.publishToPods.lastCall.args[0], {
+            msg: 'reboot-request', displayId: 'ABC124'
         });
 
-        simple.restore(logger, "log");
         simple.restore(displayConnections, "sendMessage");
-        simple.restore(pubsub, "publish");
+        simple.restore(pubsub, "publishToPods");
       });
 
       it("forwards restart messages", () => {
-        simple.mock(logger, "log").returnWith();
         simple.mock(displayConnections, "sendMessage").returnWith();
-        simple.mock(pubsub, "publish").returnWith();
+        simple.mock(pubsub, "publishToPods").returnWith();
 
         restartReboot.forwardRestartMessage('ABC124');
 
@@ -177,15 +172,13 @@ describe("Pubsub : Integration", ()=>{
           }
         ]);
 
-        assert(pubsub.publish.callCount, 1);
-        const message = pubsub.publish.lastCall.args[0]
-        assert.deepEqual(JSON.parse(message), {
-            msg: 'restart-request', displayId: 'ABC124', podname
+        assert(pubsub.publishToPods.callCount, 1);
+        assert.deepEqual(pubsub.publishToPods.lastCall.args[0], {
+            msg: 'restart-request', displayId: 'ABC124'
         });
 
-        simple.restore(logger, "log");
         simple.restore(displayConnections, "sendMessage");
-        simple.restore(pubsub, "publish");
+        simple.restore(pubsub, "publishToPods");
       });
 
     });
