@@ -1,6 +1,6 @@
 const podname = process.env.podname;
 const logger = require("./logger");
-const pubsub = require("./redis-pubsub");
+const redisPubsub = require("./redis-pubsub");
 const fileStatusUpdate = require("./redis-pubsub/file-status-update");
 
 module.exports = function postHandler(req, resp) {
@@ -9,6 +9,6 @@ module.exports = function postHandler(req, resp) {
   const updateMessage = JSON.stringify(Object.assign({}, req.body, {podname}));
 
   fileStatusUpdate.processUpdate(updateMessage);
-  pubsub.publish(updateMessage);
+  redisPubsub.publish(updateMessage);
   resp.send(updateMessage);
 }
