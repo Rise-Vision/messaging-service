@@ -72,7 +72,8 @@ app.get('/messaging', function(req, res) {
 
 app.post('/messaging/pubsub', jsonParser, pubsub);
 
-app.post('/messaging/presence', jsonParser, presence);
+app.post('/messaging/presence', jsonParser, presence.postHandler);
+app.options('/messaging/presence', jsonParser, presence.optionsHandler);
 
 server.listen(port, (err) => {
   if (err) {
