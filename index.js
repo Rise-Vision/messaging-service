@@ -1,6 +1,6 @@
-const Primus = require('primus');
-const express = require('express');
-const http = require('http');
+const Primus = require("primus");
+const express = require("express");
+const http = require("http");
 const defaultPort = 80;
 const port = process.env.MS_PORT || defaultPort;
 const app = express();
@@ -23,7 +23,7 @@ const url = require("url");
 
 redisPubsub.init([restartReboot, pubsubConnector.fileUpdateHandler]);
 
-const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
+const primus = new Primus(server, {transformer: "uws", pathname: "messaging/primus"});
 
 process.on("SIGUSR2", logger.debugToggle);
 Error.stackTraceLimit = 50;
@@ -43,7 +43,7 @@ primus.authorize((req, done)=>{
   done();
 });
 
-primus.on('connection', (spark) => {
+primus.on("connection", (spark) => {
   logger.log(`Spark connection from ${JSON.stringify(spark.address)}`);
 
   displayConnections.put(spark);
@@ -70,18 +70,18 @@ primus.on('connection', (spark) => {
   });
 });
 
-app.get('/messaging', function(req, res) {
+app.get("/messaging", function(req, res) {
   res.send(`Messaging Service: ${podname} ${pkg.version}`);
 });
 
-app.post('/messaging/pubsub', jsonParser, pubsubConnector.postHandler);
+app.post("/messaging/pubsub", jsonParser, pubsubConnector.postHandler);
 
-app.post('/messaging/presence', jsonParser, presence.postHandler);
-app.options('/messaging/presence', jsonParser, presence.optionsHandler);
+app.post("/messaging/presence", jsonParser, presence.postHandler);
+app.options("/messaging/presence", jsonParser, presence.optionsHandler);
 
 server.listen(port, (err) => {
   if (err) {
-    return console.log('something bad happened', err);
+    return console.log("something bad happened", err);
   }
 
   datastore.initdb();
