@@ -5,6 +5,8 @@ const watchListEntry = require("../watchlist/entry.js");
 const logger = require("../logger.js");
 
 module.exports = function watch(newEntry) {
+  if (newEntry && newEntry.version) {newEntry.version = String(newEntry.version)}
+
   if (!watchListEntry.validate(newEntry)) {
 
     logger.log(`Invalid entry`);
