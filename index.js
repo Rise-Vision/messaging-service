@@ -4,20 +4,24 @@ const http = require('http');
 const defaultPort = 80;
 const port = process.env.MS_PORT || defaultPort;
 const app = express();
-const pubsub = require("./src/pubsub").postHandler;
+const pubsubConnector = require("./src/pubsub-connector");
+const redisPubsub = require("./src/redis-pubsub");
+const restartReboot = require("./src/messages/restart-reboot");
 const bodyParser = require("body-parser");
 const jsonParser = bodyParser.json();
 const server = http.createServer(app);
-const displayConnections = require("./src/messages/display-connections.js");
-const datastore = require("./src/db/redis/datastore.js");
-const watch = require("./src/messages/watch.js");
-const presence = require("./src/presence/presence.js");
+const displayConnections = require("./src/messages/display-connections");
+const datastore = require("./src/db/redis/datastore");
+const watch = require("./src/messages/watch");
+const presence = require("./src/presence/presence");
 const pkg = require("./package.json");
 const podname = process.env.podname;
-const logger = require("./src/logger.js");
-const gcs = require("./src/version-compare/gcs.js");
+const logger = require("./src/logger");
+const gcs = require("./src/version-compare/gcs");
 const querystring = require("querystring");
 const url = require("url");
+
+redisPubsub.init([restartReboot, pubsubConnector.fileUpdateHandler]);
 
 const primus = new Primus(server, {transformer: 'uws', pathname: 'messaging/primus'});
 
@@ -70,7 +74,7 @@ app.get('/messaging', function(req, res) {
   res.send(`Messaging Service: ${podname} ${pkg.version}`);
 });
 
-app.post('/messaging/pubsub', jsonParser, pubsub);
+app.post('/messaging/pubsub', jsonParser, pubsubConnector.postHandler);
 
 app.post('/messaging/presence', jsonParser, presence.postHandler);
 app.options('/messaging/presence', jsonParser, presence.optionsHandler);

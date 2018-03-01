@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 const assert = require("assert");
 const rp = require("request-promise-native");
-const gcs = require("../../src/version-compare/gcs.js");
+const gcs = require("../../src/version-compare/gcs");
 const simple = require("simple-mock");
 const podname = "test-pod";
 const testPort = 9228;
@@ -10,7 +10,9 @@ const redis = require("redis");
 const redisHost = "127.0.0.1";
 const channel = "pubsub-update";
 const displayConnections = require("../../src/messages/display-connections");
-const pubsubUpdate = require("../../src/pubsub/pubsub-update");
+const fileUpdateHandler = require("../../src/pubsub-connector/file-update-handler");
+const restartReboot = require("../../src/messages/restart-reboot");
+const redisPubsub = require("../../src/redis-pubsub");
 
 describe("Pubsub : Integration", ()=>{
   let msServer = null;
@@ -21,6 +23,8 @@ describe("Pubsub : Integration", ()=>{
     process.env.MS_PORT = testPort;
     process.env.podname = podname;
     process.env.NODE_ENV = "test";
+
+    redisPubsub.init([restartReboot, fileUpdateHandler]);
   });
 
   after(()=>{
@@ -36,7 +40,7 @@ describe("Pubsub : Integration", ()=>{
       });
 
       it("receives POST update from pubsub connector, processes update, and shares to other pods", ()=>{
-        simple.mock(pubsubUpdate, "processUpdate");
+        simple.mock(fileUpdateHandler, "processUpdate");
 
         const updateFromPubsubConnector = {
           filePath: "test-file-path/test-object",
@@ -66,26 +70,26 @@ describe("Pubsub : Integration", ()=>{
           const expectedResponse = Object.assign(updateFromPubsubConnector, {podname});
 
           assert.deepEqual(responseToPubsubConnector, expectedResponse);
-          assert.equal(pubsubUpdate.processUpdate.callCount, 1)
-          simple.restore(pubsubUpdate, "processUpdate");
+          assert.equal(fileUpdateHandler.processUpdate.callCount, 1)
+          simple.restore(fileUpdateHandler, "processUpdate");
           return otherPodSubscriberPromise.then(otherPodSubscriber.quit());
         });
       });
 
       it("receives PUBSUB update through REDIS from another MS pod and processes the update", ()=>{
-        const testMessage = JSON.stringify({test: "test"});
+        const testMessage = JSON.stringify({filePath: "test"});
 
         const mainSubscriberPodPromise = new Promise(res=>{
-          simple.mock(pubsubUpdate, "processUpdate").callFn(res);
+          simple.mock(fileUpdateHandler, "processUpdate").callFn(res);
         });
 
         const otherPodPublisher = redis.createClient({host: redisHost});
         otherPodPublisher.publish(channel, testMessage);
 
         return mainSubscriberPodPromise.then(()=>{
-          assert.equal(pubsubUpdate.processUpdate.callCount, 1);
-          assert.deepEqual(pubsubUpdate.processUpdate.lastCall.arg, testMessage);
-          simple.restore(pubsubUpdate, "processUpdate");
+          assert.equal(fileUpdateHandler.processUpdate.callCount, 1);
+          assert.deepEqual(fileUpdateHandler.processUpdate.lastCall.arg, {filePath: "test"});
+          simple.restore(fileUpdateHandler, "processUpdate");
         });
       });
 
@@ -130,6 +134,51 @@ describe("Pubsub : Integration", ()=>{
           simple.restore(displayConnections, "sendMessage");
         });
       });
+
+      it("forwards reboot messages", () => {
+        simple.mock(displayConnections, "sendMessage").returnWith();
+        simple.mock(redisPubsub, "publishToPods").returnWith();
+
+        restartReboot.forwardRebootMessage('ABC124');
+
+        assert(displayConnections.sendMessage.callCount, 1);
+        assert.deepEqual(displayConnections.sendMessage.lastCall.args, [
+          'ABC124', {
+            msg: 'reboot-request', displayId: 'ABC124'
+          }
+        ]);
+
+        assert(redisPubsub.publishToPods.callCount, 1);
+        assert.deepEqual(redisPubsub.publishToPods.lastCall.args[0], {
+            msg: 'reboot-request', displayId: 'ABC124'
+        });
+
+        simple.restore(displayConnections, "sendMessage");
+        simple.restore(redisPubsub, "publishToPods");
+      });
+
+      it("forwards restart messages", () => {
+        simple.mock(displayConnections, "sendMessage").returnWith();
+        simple.mock(redisPubsub, "publishToPods").returnWith();
+
+        restartReboot.forwardRestartMessage('ABC124');
+
+        assert(displayConnections.sendMessage.callCount, 1);
+        assert.deepEqual(displayConnections.sendMessage.lastCall.args, [
+          'ABC124', {
+            msg: 'restart-request', displayId: 'ABC124'
+          }
+        ]);
+
+        assert(redisPubsub.publishToPods.callCount, 1);
+        assert.deepEqual(redisPubsub.publishToPods.lastCall.args[0], {
+            msg: 'restart-request', displayId: 'ABC124'
+        });
+
+        simple.restore(displayConnections, "sendMessage");
+        simple.restore(redisPubsub, "publishToPods");
+      });
+
     });
   });
 

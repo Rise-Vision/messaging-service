@@ -1,8 +1,8 @@
 /* eslint-env mocha */
 const assert = require("assert");
-const dbApi = require("../../src/db/api.js");
-const datastore = require("../../src/db/redis/datastore.js");
-const pubsubUpdate = require("../../src/pubsub/pubsub-update");
+const dbApi = require("../../src/db/api");
+const datastore = require("../../src/db/redis/datastore");
+const fileUpdateHandler = require("../../src/pubsub-connector/file-update-handler");
 
 describe("Pubsub Update : Integration", ()=>{
   before(()=>{
@@ -30,12 +30,12 @@ describe("Pubsub Update : Integration", ()=>{
     .then(datastore.getString.bind(null, `meta:${filePath}:version`))
     .then(dbVersion=>assert.equal(dbVersion, version))
     .then(()=>{
-      return pubsubUpdate.processUpdate(JSON.stringify({
+      return fileUpdateHandler.processUpdate({
         filePath,
         version,
         type: "DELETE",
         podname: process.env.podname
-      }))
+      })
     })
     .then(()=>{
       return datastore.getHash(`watch:${displayId}`)
@@ -64,12 +64,12 @@ describe("Pubsub Update : Integration", ()=>{
       .then(dbApi.fileMetadata.addDisplayTo.bind(null, filePath, displayId))
     })
     .then(()=>{
-      return pubsubUpdate.processUpdate(JSON.stringify({
+      return fileUpdateHandler.processUpdate({
         filePath,
         version: updatedVersion,
         type: "ADD",
         podname: process.env.podname
-      }))
+      })
     })
     .then(()=>{
       return datastore.getHash(`watch:${displayId}`)

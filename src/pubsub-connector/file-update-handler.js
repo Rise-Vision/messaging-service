@@ -1,14 +1,18 @@
 const podname = process.env.podname;
-const makeToken = require("../token/make-token.js");
-const db = require("../db/api.js");
-const displayConnections = require("../messages/display-connections.js");
-const logger = require("../logger.js");
+const makeToken = require("../token/make-token");
+const db = require("../db/api");
+const displayConnections = require("../messages/display-connections");
+const logger = require("../logger");
 
 module.exports = {
-  processUpdate(msg) {
-    const data = JSON.parse(msg);
-
-    return distribute(metadataUpdateOnPrimaryPod(watchers(data)));
+  canHandleMessage(message) {
+    return message.filePath;
+  },
+  handleMessage(message) {
+    return module.exports.processUpdate(message);
+  },
+  processUpdate(message) {
+    return distribute(metadataUpdateOnPrimaryPod(watchers(message)));
   }
 }
 
