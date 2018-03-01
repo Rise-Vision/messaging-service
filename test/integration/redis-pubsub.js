@@ -5,181 +5,104 @@ const gcs = require("../../src/version-compare/gcs");
 const simple = require("simple-mock");
 const podname = "test-pod";
 const testPort = 9228;
-const reasonableResponseTime = 1000;
 const redis = require("redis");
 const redisHost = "127.0.0.1";
-const channel = "pubsub-update";
-const displayConnections = require("../../src/messages/display-connections");
-const fileUpdateHandler = require("../../src/pubsub-connector/file-update-handler");
-const restartReboot = require("../../src/messages/restart-reboot");
-const redisPubsub = require("../../src/redis-pubsub");
+const channel = "inter-pod-publish";
+const fileUpdateHandler = require("../../src/event-handlers/messages/gcs-file-update");
+const db = require("../../src/db/api");
 
 describe("Pubsub : Integration", ()=>{
-  let msServer = null;
-
   before(()=>{
     simple.mock(gcs, "init").returnWith();
 
     process.env.MS_PORT = testPort;
     process.env.podname = podname;
     process.env.NODE_ENV = "test";
-
-    redisPubsub.init([restartReboot, fileUpdateHandler]);
   });
 
   after(()=>{
     simple.restore();
-    msServer.kill();
   });
 
-  describe("With a local running redis server", ()=>{
-    describe("and the messaging service under test running, it...", ()=>{
-      before(()=>{
-        msServer = require("../../index.js");
-        msServer.dropSocketsAfterTimeMS(reasonableResponseTime);
+  describe("With a local running redis and MS servers", ()=>{
+
+    it("receives POST update from pubsub connector and quits when no entry exists", ()=>{
+      simple.mock(fileUpdateHandler, "doOnIncomingPod");
+      simple.mock(db.fileMetadata, "hasMetadata");
+
+      const updateFromPubsubConnector = {
+        filePath: "test-file-path/test-object",
+        version: "0",
+        type: "ADD"
+      };
+
+      return rp({
+        method: "POST",
+        uri: `http://localhost:${testPort}/messaging/pubsub`,
+        body: updateFromPubsubConnector,
+        json: true
+      })
+      .then(()=>{
+        assert.equal(fileUpdateHandler.doOnIncomingPod.callCount, 1)
+        assert.equal(db.fileMetadata.hasMetadata.callCount, 1)
+        simple.restore(fileUpdateHandler, "doOnIncomingPod");
       });
+    });
 
-      it("receives POST update from pubsub connector, processes update, and shares to other pods", ()=>{
-        simple.mock(fileUpdateHandler, "processUpdate");
+    it("receives POST update from pubsub connector, processes update, and shares to other pods", ()=>{
+      simple.mock(fileUpdateHandler, "doOnIncomingPod");
+      simple.mock(db.fileMetadata, "hasMetadata").resolveWith(1);
+      simple.mock(db.fileMetadata, "getWatchersFor").resolveWith(["ABCD"]);
 
-        const updateFromPubsubConnector = {
-          filePath: "test-file-path/test-object",
-          version: "0",
-          type: "add"
-        };
+      const updateFromPubsubConnector = {
+        filePath: "test-file-path/test-object",
+        version: "0",
+        type: "ADD"
+      };
 
-        const otherPodSubscriber = redis.createClient({host: redisHost});
+      const otherPodSubscriber = redis.createClient({host: redisHost});
+      const otherPodSubscriberPromise = new Promise(res=>{
         otherPodSubscriber.subscribe(channel);
-
-        const otherPodSubscriberPromise = new Promise(res=>{
-          otherPodSubscriber.on("message", (ch, msg)=>{
-            assert.equal(ch, channel);
-            assert(msg.includes(podname));
-            assert(msg.includes("test-file-path"));
-            res();
-          });
-        });
-
-        return rp({
-          method: "POST",
-          uri: `http://localhost:${testPort}/messaging/pubsub`,
-          body: updateFromPubsubConnector,
-          json: true
-        })
-        .then((responseToPubsubConnector)=>{
-          const expectedResponse = Object.assign(updateFromPubsubConnector, {podname});
-
-          assert.deepEqual(responseToPubsubConnector, expectedResponse);
-          assert.equal(fileUpdateHandler.processUpdate.callCount, 1)
-          simple.restore(fileUpdateHandler, "processUpdate");
-          return otherPodSubscriberPromise.then(otherPodSubscriber.quit());
+        otherPodSubscriber.on("message", (ch, msg)=>{
+          console.log("Received message into other pod");
+          assert.equal(ch, channel);
+          assert(msg.includes(podname));
+          assert(msg.includes("test-file-path"));
+          res();
         });
       });
 
-      it("receives PUBSUB update through REDIS from another MS pod and processes the update", ()=>{
-        const testMessage = JSON.stringify({filePath: "test"});
+      return rp({
+        method: "POST",
+        uri: `http://localhost:${testPort}/messaging/pubsub`,
+        body: updateFromPubsubConnector,
+        json: true
+      })
+      .then(()=>{
+        assert.equal(fileUpdateHandler.doOnIncomingPod.callCount, 1)
+        simple.restore(fileUpdateHandler, "doOnIncomingPod");
+        simple.restore(db.fileMetadata, "hasMetadata");
+        simple.restore(db.fileMetadata, "getWatchersFor");
+        console.log("Waiting for other pod subscription");
+        return otherPodSubscriberPromise.then(()=>otherPodSubscriber.quit());
+      });
+    });
 
-        const mainSubscriberPodPromise = new Promise(res=>{
-          simple.mock(fileUpdateHandler, "processUpdate").callFn(res);
-        });
+    it("receives PUBSUB update through REDIS from another MS pod and processes the update", ()=>{
+      const testMessage = JSON.stringify({filePath: "test", type: "ADD"});
 
-        const otherPodPublisher = redis.createClient({host: redisHost});
-        otherPodPublisher.publish(channel, testMessage);
-
-        return mainSubscriberPodPromise.then(()=>{
-          assert.equal(fileUpdateHandler.processUpdate.callCount, 1);
-          assert.deepEqual(fileUpdateHandler.processUpdate.lastCall.arg, {filePath: "test"});
-          simple.restore(fileUpdateHandler, "processUpdate");
-        });
+      const mainSubscriberPodPromise = new Promise(res=>{
+        simple.mock(fileUpdateHandler, "doOnAllPods").callFn(res);
       });
 
-      it("receives PUBSUB update through REDIS for restart-request", ()=>{
-        const testMessage =
-          JSON.stringify({displayId: 'ABCDEF', msg: "restart-request"});
+      const otherPodPublisher = redis.createClient({host: redisHost});
+      otherPodPublisher.publish(channel, testMessage);
 
-        const mainSubscriberPodPromise = new Promise(res=>{
-          simple.mock(displayConnections, "sendMessage").callFn(res);
-        });
-
-        const otherPodPublisher = redis.createClient({host: redisHost});
-        otherPodPublisher.publish(channel, testMessage);
-
-        return mainSubscriberPodPromise.then(()=>{
-          assert.equal(displayConnections.sendMessage.callCount, 1);
-          assert.equal(displayConnections.sendMessage.lastCall.args[0], 'ABCDEF');
-          assert.deepEqual(displayConnections.sendMessage.lastCall.args[1], {
-            displayId: 'ABCDEF', msg: "restart-request"
-          });
-          simple.restore(displayConnections, "sendMessage");
-        });
+      return mainSubscriberPodPromise.then(()=>{
+        assert.equal(fileUpdateHandler.doOnAllPods.callCount, 1);
+        assert.deepEqual(fileUpdateHandler.doOnAllPods.lastCall.arg, JSON.parse(testMessage));
+        simple.restore(fileUpdateHandler, "doOnAllPods");
       });
-
-      it("receives PUBSUB update through REDIS for reboot-request", ()=>{
-        const testMessage =
-          JSON.stringify({displayId: 'ABCDEF', msg: "reboot-request"});
-
-        const mainSubscriberPodPromise = new Promise(res=>{
-          simple.mock(displayConnections, "sendMessage").callFn(res);
-        });
-
-        const otherPodPublisher = redis.createClient({host: redisHost});
-        otherPodPublisher.publish(channel, testMessage);
-
-        return mainSubscriberPodPromise.then(()=>{
-          assert.equal(displayConnections.sendMessage.callCount, 1);
-          assert.equal(displayConnections.sendMessage.lastCall.args[0], 'ABCDEF');
-          assert.deepEqual(displayConnections.sendMessage.lastCall.args[1], {
-            displayId: 'ABCDEF', msg: "reboot-request"
-          });
-          simple.restore(displayConnections, "sendMessage");
-        });
-      });
-
-      it("forwards reboot messages", () => {
-        simple.mock(displayConnections, "sendMessage").returnWith();
-        simple.mock(redisPubsub, "publishToPods").returnWith();
-
-        restartReboot.forwardRebootMessage('ABC124');
-
-        assert(displayConnections.sendMessage.callCount, 1);
-        assert.deepEqual(displayConnections.sendMessage.lastCall.args, [
-          'ABC124', {
-            msg: 'reboot-request', displayId: 'ABC124'
-          }
-        ]);
-
-        assert(redisPubsub.publishToPods.callCount, 1);
-        assert.deepEqual(redisPubsub.publishToPods.lastCall.args[0], {
-            msg: 'reboot-request', displayId: 'ABC124'
-        });
-
-        simple.restore(displayConnections, "sendMessage");
-        simple.restore(redisPubsub, "publishToPods");
-      });
-
-      it("forwards restart messages", () => {
-        simple.mock(displayConnections, "sendMessage").returnWith();
-        simple.mock(redisPubsub, "publishToPods").returnWith();
-
-        restartReboot.forwardRestartMessage('ABC124');
-
-        assert(displayConnections.sendMessage.callCount, 1);
-        assert.deepEqual(displayConnections.sendMessage.lastCall.args, [
-          'ABC124', {
-            msg: 'restart-request', displayId: 'ABC124'
-          }
-        ]);
-
-        assert(redisPubsub.publishToPods.callCount, 1);
-        assert.deepEqual(redisPubsub.publishToPods.lastCall.args[0], {
-            msg: 'restart-request', displayId: 'ABC124'
-        });
-
-        simple.restore(displayConnections, "sendMessage");
-        simple.restore(redisPubsub, "publishToPods");
-      });
-
     });
   });
-
 });

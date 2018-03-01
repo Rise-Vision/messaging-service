@@ -1,11 +1,12 @@
 /* eslint-env mocha */
 const assert = require("assert");
 const simple = require("simple-mock");
-const displayConnections = require("../../src/messages/display-connections");
-const restartReboot = require("../../src/messages/restart-reboot");
+const displayConnections = require("../../src/event-handlers/display-connections");
+const restart = require("../../src/event-handlers/messages/restart");
+const reboot = require("../../src/event-handlers/messages/reboot");
 const redisPubsub = require("../../src/redis-pubsub");
 
-describe("Restart / Reboot : Unit", ()=>{
+describe("Restart : Unit", ()=>{
 
   beforeEach(() => {
     simple.mock(displayConnections, "sendMessage").returnWith();
@@ -14,36 +15,43 @@ describe("Restart / Reboot : Unit", ()=>{
 
   afterEach(() => simple.restore());
 
-  it("forwards reboot messages", () => {
-    restartReboot.forwardRebootMessage('ABC124');
+  it("sends message to display and distributes to other pods ", () => {
+    restart.doOnIncomingPod({displayId: "ABCD"});
 
     assert(displayConnections.sendMessage.callCount, 1);
     assert.deepEqual(displayConnections.sendMessage.lastCall.args, [
-      'ABC124', {
-        msg: 'reboot-request', displayId: 'ABC124'
-      }
+      "ABCD",
+      {msg: "restart-request"}
     ]);
 
     assert(redisPubsub.publishToPods.callCount, 1);
     assert.deepEqual(redisPubsub.publishToPods.lastCall.args[0], {
-        msg: 'reboot-request', displayId: 'ABC124'
+      displayId: "ABCD"
     });
   });
+});
 
-  it("forwards restart messages", () => {
-    restartReboot.forwardRestartMessage('ABC124');
+describe("Reboot : Unit", ()=>{
+
+  beforeEach(() => {
+    simple.mock(displayConnections, "sendMessage").returnWith();
+    simple.mock(redisPubsub, "publishToPods").returnWith();
+  })
+
+  afterEach(() => simple.restore());
+
+  it("sends message to display and distributes to other pods ", () => {
+    reboot.doOnIncomingPod({displayId: "ABCD"});
 
     assert(displayConnections.sendMessage.callCount, 1);
     assert.deepEqual(displayConnections.sendMessage.lastCall.args, [
-      'ABC124', {
-        msg: 'restart-request', displayId: 'ABC124'
-      }
+      "ABCD",
+      {msg: "reboot-request"}
     ]);
 
     assert(redisPubsub.publishToPods.callCount, 1);
     assert.deepEqual(redisPubsub.publishToPods.lastCall.args[0], {
-        msg: 'restart-request', displayId: 'ABC124'
+      displayId: "ABCD"
     });
   });
-
 });

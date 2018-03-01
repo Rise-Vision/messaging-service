@@ -21,6 +21,9 @@ module.exports = {
     },
     deleteMetadata(filePath) {
       return redis.deleteKey([`meta:${filePath}:displays`, `meta:${filePath}:version`]);
+    },
+    hasMetadata(filePath) {
+      return redis.hasKey(`meta:${filePath}:version`);
     }
   },
   watchList: {

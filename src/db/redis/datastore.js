@@ -4,7 +4,7 @@ const gkeHostname = "display-ms-redis-master";
 const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 
 let client = null;
-let promisified = ["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hdel", "smembers", "flushall"];
+let promisified = ["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hdel", "smembers", "flushall", "exists"];
 
 module.exports = {
   initdb(dbclient = null) {
@@ -50,6 +50,9 @@ module.exports = {
   },
   eraseEntireDb() {
     return promisified.flushall();
+  },
+  hasKey(key) {
+    return promisified.exists(key);
   },
   multi(cmds) {
     const apiMap = {
