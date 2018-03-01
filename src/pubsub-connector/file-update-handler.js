@@ -1,8 +1,8 @@
 const podname = process.env.podname;
-const makeToken = require("./token/make-token");
-const db = require("./db/api");
-const displayConnections = require("./messages/display-connections");
-const logger = require("./logger");
+const makeToken = require("../token/make-token");
+const db = require("../db/api");
+const displayConnections = require("../messages/display-connections");
+const logger = require("../logger");
 
 module.exports = {
   canHandleMessage(message) {

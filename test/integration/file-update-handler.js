@@ -2,7 +2,7 @@
 const assert = require("assert");
 const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore");
-const fileStatusUpdate = require("../../src/file-status-update");
+const fileUpdateHandler = require("../../src/pubsub-connector/file-update-handler");
 
 describe("Pubsub Update : Integration", ()=>{
   before(()=>{
@@ -30,7 +30,7 @@ describe("Pubsub Update : Integration", ()=>{
     .then(datastore.getString.bind(null, `meta:${filePath}:version`))
     .then(dbVersion=>assert.equal(dbVersion, version))
     .then(()=>{
-      return fileStatusUpdate.processUpdate({
+      return fileUpdateHandler.processUpdate({
         filePath,
         version,
         type: "DELETE",
@@ -64,7 +64,7 @@ describe("Pubsub Update : Integration", ()=>{
       .then(dbApi.fileMetadata.addDisplayTo.bind(null, filePath, displayId))
     })
     .then(()=>{
-      return fileStatusUpdate.processUpdate({
+      return fileUpdateHandler.processUpdate({
         filePath,
         version: updatedVersion,
         type: "ADD",

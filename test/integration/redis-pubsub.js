@@ -10,7 +10,7 @@ const redis = require("redis");
 const redisHost = "127.0.0.1";
 const channel = "pubsub-update";
 const displayConnections = require("../../src/messages/display-connections");
-const fileStatusUpdate = require("../../src/file-status-update");
+const fileUpdateHandler = require("../../src/pubsub-connector/file-update-handler");
 const restartReboot = require("../../src/messages/restart-reboot");
 const redisPubsub = require("../../src/redis-pubsub");
 
@@ -24,7 +24,7 @@ describe("Pubsub : Integration", ()=>{
     process.env.podname = podname;
     process.env.NODE_ENV = "test";
 
-    redisPubsub.init([restartReboot, fileStatusUpdate]);
+    redisPubsub.init([restartReboot, fileUpdateHandler]);
   });
 
   after(()=>{
@@ -40,7 +40,7 @@ describe("Pubsub : Integration", ()=>{
       });
 
       it("receives POST update from pubsub connector, processes update, and shares to other pods", ()=>{
-        simple.mock(fileStatusUpdate, "processUpdate");
+        simple.mock(fileUpdateHandler, "processUpdate");
 
         const updateFromPubsubConnector = {
           filePath: "test-file-path/test-object",
@@ -70,8 +70,8 @@ describe("Pubsub : Integration", ()=>{
           const expectedResponse = Object.assign(updateFromPubsubConnector, {podname});
 
           assert.deepEqual(responseToPubsubConnector, expectedResponse);
-          assert.equal(fileStatusUpdate.processUpdate.callCount, 1)
-          simple.restore(fileStatusUpdate, "processUpdate");
+          assert.equal(fileUpdateHandler.processUpdate.callCount, 1)
+          simple.restore(fileUpdateHandler, "processUpdate");
           return otherPodSubscriberPromise.then(otherPodSubscriber.quit());
         });
       });
@@ -80,16 +80,16 @@ describe("Pubsub : Integration", ()=>{
         const testMessage = JSON.stringify({filePath: "test"});
 
         const mainSubscriberPodPromise = new Promise(res=>{
-          simple.mock(fileStatusUpdate, "processUpdate").callFn(res);
+          simple.mock(fileUpdateHandler, "processUpdate").callFn(res);
         });
 
         const otherPodPublisher = redis.createClient({host: redisHost});
         otherPodPublisher.publish(channel, testMessage);
 
         return mainSubscriberPodPromise.then(()=>{
-          assert.equal(fileStatusUpdate.processUpdate.callCount, 1);
-          assert.deepEqual(fileStatusUpdate.processUpdate.lastCall.arg, {filePath: "test"});
-          simple.restore(fileStatusUpdate, "processUpdate");
+          assert.equal(fileUpdateHandler.processUpdate.callCount, 1);
+          assert.deepEqual(fileUpdateHandler.processUpdate.lastCall.arg, {filePath: "test"});
+          simple.restore(fileUpdateHandler, "processUpdate");
         });
       });
 
