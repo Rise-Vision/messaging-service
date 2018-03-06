@@ -27,8 +27,12 @@ module.exports = {
   },
   sendMessage(displayId, msg) {
     const spark = sparks.get(displayId);
-    if (!spark) {return;}
+    if (!spark) {
+      logger.log(`No spark for ${displayId}`);
+      return;
+    }
 
+    logger.log(`Sending ${JSON.stringify(msg)} to ${displayId}`);
     spark.write(msg);
   },
   hasSparkFor(displayId) {
