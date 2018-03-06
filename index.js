@@ -16,7 +16,7 @@ const redisPubsub = require("./src/redis-pubsub");
 const datastore = require("./src/db/redis/datastore");
 const pkg = require("./package.json");
 const logger = require("./src/logger");
-const gcs = require("./src/version-compare/gcs");
+const gcs = require("./src/gcs");
 const handlers = require("./src/event-handlers/messages");
 
 process.on("SIGUSR2", logger.debugToggle);

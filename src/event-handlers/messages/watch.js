@@ -2,12 +2,15 @@ const db = require("../../db/api.js");
 const makeToken = require("../../token/make-token.js");
 const versionCompare = require("../../version-compare/api.js");
 const watchListEntry = require("../../watchlist/entry.js");
+const watchError = require("../watch-error.js");
 const displayConnections = require("../display-connections");
 const logger = require("../../logger.js");
 
 module.exports = {
   canHandle(data) {
-    return data.topic && data.topic.toUpperCase() === "WATCH";
+    return data &&
+      data.topic && data.topic.toUpperCase() === "WATCH" &&
+      data.filePath && !data.filePath.endsWith("/");
   },
   doOnIncomingPod(newEntry) {
     if (newEntry && newEntry.version) {newEntry.version = String(newEntry.version)}
@@ -43,15 +46,7 @@ module.exports = {
       });
     })
     .catch((err)=>{
-      console.error(newEntry, err);
-
-      displayConnections.sendMessage(displayId, {
-        error: err.code,
-        topic: "watch-result",
-        filePath,
-        msg: `There was an error processing WATCH:${JSON.stringify(newEntry)}`,
-        detail: err.message
-      });
+      watchError(err, filePath, newEntry.displayId);
     });
   }
 };

@@ -1,5 +1,5 @@
 const Storage = require("@google-cloud/storage");
-const logger = require("../logger.js");
+const logger = require("./logger.js");
 let storage = null;
 
 module.exports = {

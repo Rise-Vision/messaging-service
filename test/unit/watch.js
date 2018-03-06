@@ -5,7 +5,6 @@ const simple = require("simple-mock");
 const watch = require("../../src/event-handlers/messages/watch.js");
 const versionCompare = require("../../src/version-compare/api.js");
 const db = require("../../src/db/api.js");
-const gcs = require("../../src/gcs.js");
 
 describe("WATCH", ()=>{
   beforeEach(()=>{
@@ -44,34 +43,6 @@ describe("WATCH", ()=>{
 
     return watch.doOnIncomingPod({displayId, filePath, version})
     .then(()=>assert(db.fileMetadata.addDisplayTo.called))
-  });
-
-  it("saves file metadata for folders", ()=>{
-    simple.mock(db.folders, "watchingFolder").resolveWith(false);
-    simple.mock(gcs, "getFiles").resolveWith([
-      {
-        name: "test-folder/test-file-1",
-        generation: "12345"
-      },
-      {
-        name: "test-folder/test-file-2",
-        generation: "54321"
-      }
-    ]);
-    const displayId = "test";
-    const filePath = "bucket/test-folder/";
-
-    return watch({displayId, filePath})
-    .then(()=>assert(db.fileMetadata.addDisplayToMany.called))
-  });
-
-  it("returns existing folder data", ()=>{
-    simple.mock(db.folders, "watchingFolder").resolveWith(true);
-    const displayId = "test";
-    const filePath = "bucket/test-folder/";
-
-    return watch({displayId, filePath})
-    .then(()=>assert(db.folders.filePathsAndVersionsFor.called))
   });
 
   it("saves watchlist entries", ()=>{
