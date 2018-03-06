@@ -30,6 +30,10 @@ module.exports = {
         displayConnections.remove(spark);
       });
 
+      if (spark.query.displayId === "apps") {
+        spark.write({"msg": "client-connected", "clientId": spark.id});
+      }
+
       spark.on("data", (data)=>{
         const displayIdError =
         "DisplayId should not be included in messages. It is included as a connection parameter.";
