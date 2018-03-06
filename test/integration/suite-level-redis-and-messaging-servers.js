@@ -9,6 +9,8 @@ before(()=>{
   console.log("Starting suite-level redis server");
   redisServer = cp.spawn("redis-server");
 
+  redisServer.on("error", console.error);
+
   return new Promise(res=>redisServer.stdout.on("data", data=>{
     if (data.includes("Ready to accept connections")) {res();}
   })).then(startMS);

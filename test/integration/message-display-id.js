@@ -71,9 +71,9 @@ describe("MS Display Id : Integration", ()=>{
 
       return new Promise((res, rej)=>{
         const watchData = {
-          "topic": "watch",
+          topic: "watch",
           version: -1,
-          "filePath": "messaging-service-test-bucket/test-folder/test-file.txt"
+          filePath: "messaging-service-test-bucket/test-folder/test-file.txt"
         };
 
         console.log("Sending:");

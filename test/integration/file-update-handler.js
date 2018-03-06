@@ -2,9 +2,9 @@
 const assert = require("assert");
 const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore");
-const fileUpdateHandler = require("../../src/pubsub-connector/file-update-handler");
+const fileUpdateHandler = require("../../src/event-handlers/messages/gcs-file-update");
 
-describe("Pubsub Update : Integration", ()=>{
+describe("GCS File Update : Integration", ()=>{
   before(()=>{
     datastore.initdb();
   });
@@ -30,7 +30,7 @@ describe("Pubsub Update : Integration", ()=>{
     .then(datastore.getString.bind(null, `meta:${filePath}:version`))
     .then(dbVersion=>assert.equal(dbVersion, version))
     .then(()=>{
-      return fileUpdateHandler.processUpdate({
+      return fileUpdateHandler.doOnIncomingPod({
         filePath,
         version,
         type: "DELETE",
@@ -62,9 +62,10 @@ describe("Pubsub Update : Integration", ()=>{
     .then(()=>{
       return dbApi.watchList.put({filePath, version, displayId})
       .then(dbApi.fileMetadata.addDisplayTo.bind(null, filePath, displayId))
+      .then(dbApi.fileMetadata.setFileVersion.bind(null, filePath, version))
     })
     .then(()=>{
-      return fileUpdateHandler.processUpdate({
+      return fileUpdateHandler.doOnIncomingPod({
         filePath,
         version: updatedVersion,
         type: "ADD",

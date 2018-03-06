@@ -26,5 +26,8 @@ module.exports = {
     if (!spark) {return;}
 
     spark.write(msg);
+  },
+  hasSparkFor(displayId) {
+    return sparks.has(displayId);
   }
 };

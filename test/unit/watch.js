@@ -1,7 +1,7 @@
 /* eslint-env mocha */
 const assert = require("assert");
 const simple = require("simple-mock");
-const watch = require("../../src/messages/watch.js");
+const watch = require("../../src/event-handlers/messages/watch.js");
 const versionCompare = require("../../src/version-compare/api.js");
 const db = require("../../src/db/api.js");
 
@@ -21,10 +21,10 @@ describe("WATCH", ()=>{
     const errmsg = resp=>assert(resp.msg.startsWith(`invalid watchlist entry`));
 
     return Promise.all([
-      watch().then(errmsg),
-      watch({displayId}).then(errmsg),
-      watch({displayId, filePath}).then(errmsg),
-      watch({displayId, filePath, version}).then(errmsg)
+      watch.doOnIncomingPod().then(errmsg),
+      watch.doOnIncomingPod({displayId}).then(errmsg),
+      watch.doOnIncomingPod({displayId, filePath}).then(errmsg),
+      watch.doOnIncomingPod({displayId, filePath, version}).then(errmsg)
     ]);
   });
 
@@ -33,7 +33,7 @@ describe("WATCH", ()=>{
     const filePath = "bucket/object";
     const version = "test";
 
-    return watch({displayId, filePath, version})
+    return watch.doOnIncomingPod({displayId, filePath, version})
     .then(()=>assert(db.fileMetadata.addDisplayTo.called))
   });
 
@@ -42,7 +42,7 @@ describe("WATCH", ()=>{
     const filePath = "bucket/object";
     const version = "test";
 
-    return watch({displayId, filePath, version})
+    return watch.doOnIncomingPod({displayId, filePath, version})
     .then(()=>assert(db.watchList.put.called));
   });
 });

@@ -5,7 +5,8 @@ module.exports = {
     debugMode = !debugMode;
     console.log(`Debug mode is ${debugMode ? "on" : "off"}`);
   },
-  log(str) {
-    debugMode && console.log(str); // eslint-disable-line
+  log(str, data) {
+    if (!debugMode) {return;}
+    console.log(data ? `${str}${JSON.stringify(data, 2, null)}` : str); // eslint-disable-line
   }
 };
