@@ -1,4 +1,5 @@
 /* eslint-env mocha */
+const displayConnections = require("../../src/event-handlers/display-connections");
 const assert = require("assert");
 const simple = require("simple-mock");
 const watch = require("../../src/event-handlers/messages/watch.js");
@@ -7,6 +8,7 @@ const db = require("../../src/db/api.js");
 
 describe("WATCH", ()=>{
   beforeEach(()=>{
+    simple.mock(displayConnections, "sendMessage").returnWith(true);
     simple.mock(db.fileMetadata, "addDisplayTo").returnWith(true);
     simple.mock(db.watchList, "put").returnWith(true);
     simple.mock(versionCompare, "compare").resolveWith({matched: true});
@@ -16,16 +18,17 @@ describe("WATCH", ()=>{
     simple.restore();
   });
 
-  it("returns error msg on invalid watch entry", ()=>{
+  it("sends error msg on invalid watch entry", ()=>{
     const [displayId, filePath, version] = Array.from({length: 3}, ()=>"test");
-    const errmsg = resp=>assert(resp.msg.startsWith(`invalid watchlist entry`));
+    const receivedError = ()=>{
+      return displayConnections.sendMessage.lastCall.args[1].msg.startsWith("invalid");
+    };
 
-    return Promise.all([
-      watch.doOnIncomingPod().then(errmsg),
-      watch.doOnIncomingPod({displayId}).then(errmsg),
-      watch.doOnIncomingPod({displayId, filePath}).then(errmsg),
-      watch.doOnIncomingPod({displayId, filePath, version}).then(errmsg)
-    ]);
+    watch.doOnIncomingPod({displayId});
+    assert(receivedError());
+    watch.doOnIncomingPod({displayId, filePath});
+    assert(receivedError());
+    watch.doOnIncomingPod({displayId, filePath, version});
   });
 
   it("saves file metadata", ()=>{

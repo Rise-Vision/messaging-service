@@ -15,7 +15,8 @@ module.exports = {
     if (!watchListEntry.validate(newEntry)) {
 
       logger.log(`Invalid entry`);
-      return Promise.resolve({
+
+      return newEntry && displayConnections.sendMessage(newEntry.displayId, {
         error: 400,
         msg: `invalid watchlist entry ${JSON.stringify(newEntry)}`
       });
