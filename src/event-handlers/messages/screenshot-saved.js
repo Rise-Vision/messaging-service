@@ -9,11 +9,10 @@ module.exports = {
     module.exports.doOnAllPods(data);
     redisPubsub.publishToPods(data);
   },
-  doOnAllPods({did: displayId, cid: clientId, url} = {}) {
+  doOnAllPods({clientId} = {}) {
     displayConnections.sendMessage(clientId, {
       msg: "screenshot-saved",
-      displayId,
-      url
+      clientId
     });
   }
 };
