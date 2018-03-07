@@ -10,7 +10,7 @@ module.exports = {
     redisPubsub.publishToPods(data);
   },
   doOnAllPods(data) {
-    displayConnections.sendMessage(data.displayId, {
+    displayConnections.sendMessage(data.displayId || data.did, {
       msg: "restart-request"
     });
   }
