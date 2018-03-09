@@ -10,6 +10,6 @@ module.exports = (req, resp) => {
 
   resp.set({
     "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Headers": "*"
+    "Access-Control-Allow-Headers": req.get("access-control-request-headers") || "*"
   });
 };
