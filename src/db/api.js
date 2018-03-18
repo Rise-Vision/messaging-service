@@ -10,13 +10,16 @@ module.exports = {
     addDisplayToMany(filePathsAndVersions, displayId) {
       if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
 
-      return Promise.all(filePathsAndVersions.map(fileData=>{
-        return redis.setAdd(`meta:${fileData.filePath}:displays`, [displayId]);
+      const command = "setAdd";
+
+      return redis.multi(filePathsAndVersions.map(fileData=>{
+        return [command, `meta:${fileData.filePath}:displays`, displayId];
       }))
       .then(()=>filePathsAndVersions);
     },
     getWatchersFor(filePath) {
       if (!filePath) {throw Error("missing params");}
+
       return redis.getSet(`meta:${filePath}:displays`);
     },
     getFileVersion(filePath) {
