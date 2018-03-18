@@ -1,8 +1,9 @@
 const displayConnections = require("./display-connections");
 
-module.exports = function(err, filePath, displayId) {
+module.exports = function(err = {}, filePath, displayId) {
   console.error(`[${err.message}] [${filePath}] [${displayId}]`);
 
+  console.error(err.stack);
   displayConnections.sendMessage(displayId, {
     error: err.code,
     topic: "watch-result",

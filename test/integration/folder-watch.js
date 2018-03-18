@@ -20,11 +20,24 @@ describe("FOLDER-WATCH : Integration", ()=>{
 
   afterEach(()=>{simple.restore();});
 
+  it("indicates whether a folder is not being watched", ()=>{
+    return folders.watchingFolder("not-watching-test")
+    .then(watching=>assert.equal(watching, 0));
+  });
+
+  it("indicates whether a folder is being watched", ()=>{
+    const mockFolderPath = "my-test-bucket/my-test-folder/";
+
+    return redis.setString(`folders:${mockFolderPath}`, "")
+    .then(()=>folders.watchingFolder(mockFolderPath))
+    .then(watching=>assert.equal(watching, 1));
+  });
+
   it("saves a new folder, on subsequent call returns existing data without gcs fetch", ()=>{ // eslint-disable-line max-statements
     simple.mock(gcs, "getFiles");
     simple.mock(md, "addDisplayToMany");
     simple.mock(md, "setMultipleFileVersions");
-    simple.mock(watchList, "putFolderData");
+    simple.mock(watchList, "putFolder");
     simple.mock(displayConnections, "sendMessage");
     simple.mock(folders, "addFileNames");
     simple.mock(folders, "filePathsAndVersionsFor");
@@ -34,7 +47,7 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert(gcs.getFiles.called);
       assert(md.setMultipleFileVersions.called);
       assert(md.addDisplayToMany.called);
-      assert(watchList.putFolderData.called);
+      assert(watchList.putFolder.called);
       assert(folders.addFileNames.called);
       verifyReply(displayId, 1);
     })
@@ -47,7 +60,7 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert.equal(gcs.getFiles.callCount, 1);
       assert.equal(md.setMultipleFileVersions.callCount, 1);
       assert.equal(md.addDisplayToMany.callCount, 2); // eslint-disable-line no-magic-numbers
-      assert.equal(watchList.putFolderData.callCount, 2); // eslint-disable-line no-magic-numbers
+      assert.equal(watchList.putFolder.callCount, 2); // eslint-disable-line no-magic-numbers
       verifyReply("someOtherDisplay", 2); // eslint-disable-line no-magic-numbers
     });
 

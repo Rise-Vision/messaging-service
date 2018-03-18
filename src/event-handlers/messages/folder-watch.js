@@ -12,13 +12,13 @@ module.exports = {
   },
   doOnIncomingPod({filePath: folderPath, displayId} = {}) {
     return folders.watchingFolder(folderPath)
-    .then(res=>{
-      return res ? existingFolder(folderPath) : newFolder(folderPath);
+    .then(watching=>{
+      return watching ? existingFolder(folderPath) : newFolder(folderPath);
     })
     .then(filePathsAndVersions=>{
       return Promise.all([
         md.addDisplayToMany(filePathsAndVersions, displayId),
-        watchList.putFolderData(filePathsAndVersions, displayId)
+        watchList.putFolder(filePathsAndVersions, displayId)
       ]);
     })
     .then(all=>{

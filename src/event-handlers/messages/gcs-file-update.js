@@ -9,7 +9,8 @@ module.exports = {
     return data.filePath && ["ADD", "UPDATE", "DELETE"].includes(data.type);
   },
   doOnIncomingPod(pscData) {
-    return entryExists(pscData)
+    return addIntoFolder(pscData)
+    .then(checkEntryNeedsUpdate)
     .then(getWatchers)
     .then(data=>{
       if (data.type === "DELETE") {return deleteEntry(data);}
@@ -38,7 +39,20 @@ module.exports = {
   }
 };
 
-function entryExists(data) {
+function addIntoFolder(data) {
+  if (data.type !== "ADD") {return Promise.resolve(data);}
+
+  return db.folders.watchingFolder(data.filePath)
+  .then(watching=>{
+    if (!watching) {return Promise.resolve(data);}
+
+    return db.folders.addFileToFolder(data);
+  });
+}
+
+function checkEntryNeedsUpdate(data) {
+  if (data.addedIntoFolder) {return data;}
+
   return db.fileMetadata.hasMetadata(data.filePath)
   .then(hasData=>{
     if (!hasData) {
@@ -59,7 +73,8 @@ function deleteEntry(data) {
   logger.log(`Removing entry for ${JSON.stringify(data)}`);
   return Promise.all([
     db.watchList.removeEntry(data.filePath, data.watchers),
-    db.fileMetadata.deleteMetadata(data.filePath)
+    db.fileMetadata.deleteMetadata(data.filePath),
+    db.folders.removeFileFromFolder(data.filePath)
   ]).then(()=>data);
 }
 
@@ -69,5 +84,10 @@ function updateEntry(data) {
 
   return db.fileMetadata.setFileVersion(filePath, version)
   .then(()=>db.watchList.updateVersion(filePath, version, data.watchers))
+  .then(()=>{
+    if (data.addedIntoFolder) {
+      return db.fileMetadata.addDisplaysTo(filePath, data.watchers);
+    }
+  })
   .then(()=>data);
 }

@@ -3,6 +3,7 @@ const assert = require("assert");
 const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore");
 const fileUpdateHandler = require("../../src/event-handlers/messages/gcs-file-update");
+const folderWatch = require("../../src/event-handlers/messages/folder-watch");
 
 describe("GCS File Update : Integration", ()=>{
   before(()=>{
@@ -80,5 +81,52 @@ describe("GCS File Update : Integration", ()=>{
       .then(datastore.getString.bind(null, `meta:${filePath}:version`))
       .then(dbVersion=>assert.equal(dbVersion, updatedVersion))
     });
+  });
+
+  it("returns files in folder on watch, updates metadata when a file is ADDED / DELETED", ()=>{
+    const folderPathToWatch = "messaging-service-test-bucket/test-folder/";
+    const preExistingGCSFile = "messaging-service-test-bucket/test-folder/test-file.txt";
+    const preExistingGCSFileVersion = "1509655894026319";
+    const newFile = "messaging-service-test-bucket/test-folder/fake-new-file.txt";
+    const newFileVersion = "12345";
+    const displayId = "test-id";
+
+    console.log(`Sending folder watch for ${folderPathToWatch}`);
+    return folderWatch.doOnIncomingPod({filePath: folderPathToWatch, displayId})
+    .then(()=>datastore.getHash(`watch:${displayId}`))
+    .then(map=>{
+      assert.equal(map[preExistingGCSFile], preExistingGCSFileVersion);
+      assert.equal(map[folderPathToWatch], "0");
+    })
+    .then(()=>fileUpdateHandler.doOnIncomingPod({
+      filePath: newFile,
+      version: newFileVersion,
+      type: "ADD"
+    }))
+    .then(datastore.getSet.bind(null, `meta:${newFile}:displays`))
+    .then(set=>assert(set.includes(displayId)))
+    .then(datastore.getHash.bind(null, `watch:${displayId}`))
+    .then(map=>{
+      assert.equal(map[preExistingGCSFile], preExistingGCSFileVersion);
+      assert.equal(map[folderPathToWatch], "0");
+      assert.equal(map[newFile], "12345");
+    })
+    .then(datastore.getSet.bind(null, `folders:${folderPathToWatch}`))
+    .then(set=>assert(set.includes("fake-new-file.txt")))
+    .then(()=>fileUpdateHandler.doOnIncomingPod({
+      filePath: newFile,
+      version: newFileVersion,
+      type: "DELETE"
+    }))
+    .then(datastore.getSet.bind(null, `folders:${folderPathToWatch}`))
+    .then(set=>assert(!set.includes("fake-new-file.txt")))
+    .then(datastore.getHash.bind(null, `watch:${displayId}`))
+    .then(map=>{
+      assert.equal(map[preExistingGCSFile], preExistingGCSFileVersion);
+      assert.equal(map[folderPathToWatch], "0");
+      assert(!map[newFile]);
+    })
+    .then(datastore.getSet.bind(null, `meta:${newFile}:displays`))
+    .then(set=>assert(!set.includes(displayId)))
   });
 });
