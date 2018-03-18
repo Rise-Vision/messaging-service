@@ -71,16 +71,19 @@ module.exports = {
       .then(()=>filePathsAndVersions);
     },
     removeEntry(filePath, displays) {
-      displays.forEach(display=>{
-        redis.removeHashField(`watch:${display}`, filePath);
-      });
+      const command = "removeHashField";
+
+      return redis.multi(displays.map(display=>{
+        return [command, `watch:${display}`, filePath];
+      }));
     },
     updateVersion(filePath, version, displays) {
-      displays.forEach(display=>{
-        redis.patchHash(`watch:${display}`, {
-          [filePath]: version
-        });
-      });
+      const patch = {[filePath]: version};
+      const command = "patchHash";
+
+      return redis.multi(displays.map(display=>{
+        return [command, `watch:${display}`, patch];
+      }));
     }
   },
   connections: {
