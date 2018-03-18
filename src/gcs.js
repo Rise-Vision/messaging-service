@@ -23,6 +23,7 @@ module.exports = {
   getFiles(folder) {
     validate(folder);
 
+    logger.log(`Retrieving GCS file contents for ${folder}`);
     return storage.bucket(folder.split("/")[0])
     .getFiles({
       prefix: folder.split("/").slice(1).join("/"),

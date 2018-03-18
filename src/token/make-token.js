@@ -1,7 +1,7 @@
 const crypto = require("./crypto.js");
 
 module.exports = (inp = {})=>{
-  const {displayId, filePath} = inp;
+  const {displayId, filePath, version} = inp;
   if (!displayId || !filePath) {throw Error("invalid params");}
 
   const data = {
@@ -15,5 +15,5 @@ module.exports = (inp = {})=>{
     hash: crypto.encryptAndHash(data)
   };
 
-  return Object.assign({}, inp, {token});
+  return {filePath, version, token};
 }

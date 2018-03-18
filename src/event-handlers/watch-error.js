@@ -1,6 +1,6 @@
 const displayConnections = require("./display-connections");
 
-module.exports = function(err, filePath, displayId) {
+module.exports = function(err = {}, filePath, displayId) {
   console.error(`[${err.message}] [${filePath}] [${displayId}]`);
 
   displayConnections.sendMessage(displayId, {

@@ -66,6 +66,7 @@ module.exports = {
       setAdd: "sadd",
       setString: "set",
       getString: "get",
+      getSet: "smembers",
       setIsMember: "sismember",
       patchHash: "hmset",
       removeHashField: "hdel"

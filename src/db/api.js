@@ -1,3 +1,4 @@
+const {basename, dirname} = require("path");
 const redis = require("./redis/datastore.js");
 
 module.exports = {
@@ -7,20 +8,36 @@ module.exports = {
 
       return redis.setAdd(`meta:${filePath}:displays`, [displayId]);
     },
+    addDisplaysTo(filePath, displayIds) {
+      if (!filePath || !displayIds) {throw Error("missing params");}
+      if (!Array.isArray(displayIds)) {throw Error("invalid param");}
+
+      const command = "setAdd";
+      return redis.multi(displayIds.map(display=>{
+        return [command, `meta:${filePath}:displays`, [display]];
+      }));
+    },
     addDisplayToMany(filePathsAndVersions, displayId) {
       if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
 
       const command = "setAdd";
+      const folderPath = `${dirname(filePathsAndVersions[0].filePath)}/`;
 
       return redis.multi(filePathsAndVersions.map(fileData=>{
         return [command, `meta:${fileData.filePath}:displays`, displayId];
-      }))
+      }).concat([[command, `meta:${folderPath}:displays`, displayId]]))
       .then(()=>filePathsAndVersions);
     },
     getWatchersFor(filePath) {
       if (!filePath) {throw Error("missing params");}
 
-      return redis.getSet(`meta:${filePath}:displays`);
+      const command = "getSet";
+      const folderPath = `${dirname(filePath)}/`;
+
+      return redis.multi([
+        [command, `meta:${filePath}:displays`],
+        [command, `meta:${folderPath}:displays`]
+      ]).then(resp=>resp[0].concat(resp[1]));
     },
     getFileVersion(filePath) {
       if (!filePath) {throw Error("missing params");}
@@ -63,12 +80,13 @@ module.exports = {
         [entry.filePath]: entry.version
       });
     },
-    putFolderData(filePathsAndVersions, displayId) {
+    putFolder(filePathsAndVersions, displayId) {
       if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
 
+      const folderPath = `${dirname(filePathsAndVersions[0].filePath)}/`;
       const multipleEntryObj = filePathsAndVersions.reduce((obj, fileData)=>{
         return {...obj, [fileData.filePath]: fileData.version};
-      }, {});
+      }, {[folderPath]: "0"});
 
       return redis.patchHash(`watch:${displayId}`, multipleEntryObj)
       .then(()=>filePathsAndVersions);
@@ -133,21 +151,35 @@ module.exports = {
   },
   folders: {
     addFileNames(folderPath, filePathsAndVersions) {
-      const simpleFileNames = filePathsAndVersions.map(data=>{
-        const fileNameIndex = -1;
-        return data.filePath.split("/").slice(fileNameIndex)[0];
-      });
+      const files = filePathsAndVersions.map(data=>basename(data.filePath));
 
-      return redis.setAdd(`folders:${folderPath}`, simpleFileNames)
+      return redis.setAdd(`folders:${folderPath}`, files)
       .then(()=>filePathsAndVersions);
+    },
+    removeFileFromFolder(filePath) {
+      const folderPath = `${dirname(filePath)}/`;
+      const fileName = basename(filePath);
+
+      return redis.setRemove(`folders:${folderPath}`, [fileName]);
+    },
+    addFileToFolder(data) {
+      const folderPath = `${dirname(data.filePath)}/`;
+      const fileName = basename(data.filePath);
+
+      return redis.setAdd(`folders:${folderPath}`, [fileName])
+      .then(()=>({...data, addedIntoFolder: true}));
     },
     filePathsAndVersionsFor(folderPath) {
       return redis.getSet(`folders:${folderPath}`)
       .then(fileNames=>fileNames.map(fileName=>folderPath.concat(fileName)))
       .then(module.exports.fileMetadata.getMultipleFileVersions);
     },
-    watchingFolder(folder) {
-      return redis.keyExists(`folders:${folder}`);
+    watchingFolder(filePathOrFolderPath) {
+      const folderPath = filePathOrFolderPath.endsWith("/") ?
+        filePathOrFolderPath :
+        `${dirname(filePathOrFolderPath)}/`;
+
+      return redis.keyExists(`folders:${folderPath}`);
     }
   }
 };
