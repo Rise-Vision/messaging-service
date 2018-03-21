@@ -53,7 +53,6 @@ describe("FOLDER-WATCH : Integration", ()=>{
 
     function verifyReply(id, replyCount) {
       const [repliedTo, reply] = displayConnections.sendMessage.lastCall.args;
-      console.log(reply);
 
       assert.equal(displayConnections.sendMessage.callCount, replyCount);
       assert.equal(repliedTo, id);
@@ -69,4 +68,3 @@ describe("FOLDER-WATCH : Integration", ()=>{
     }
   });
 });
-
