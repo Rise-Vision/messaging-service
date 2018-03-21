@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-const gcs = require("../../src/version-compare/gcs.js");
+const gcs = require("../../src/gcs.js");
 const datastore = require("../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 const db = require("../../src/db/api.js");

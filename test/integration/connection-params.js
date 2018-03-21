@@ -1,5 +1,5 @@
 /* eslint-env mocha */
-const gcs = require("../../src/version-compare/gcs.js");
+const gcs = require("../../src/gcs.js");
 const datastore = require("../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 const testPort = 9228;
@@ -25,7 +25,8 @@ describe("MS Connection : Integration", ()=>{
 
       const ms = new (Primus.createSocket({
         transformer: "websockets",
-        pathname: "messaging/primus/"
+        pathname: "messaging/primus/",
+        reconnect: {retries: 0}
       }))(msUrl);
 
       return new Promise((res, rej)=>{
@@ -42,7 +43,8 @@ describe("MS Connection : Integration", ()=>{
 
       const ms = new (Primus.createSocket({
         transformer: "websockets",
-        pathname: "messaging/primus/"
+        pathname: "messaging/primus/",
+        reconnect: {retries: 0}
       }))(msUrl);
 
       return new Promise((res, rej)=>{
@@ -59,7 +61,8 @@ describe("MS Connection : Integration", ()=>{
 
       const ms = new (Primus.createSocket({
         transformer: "websockets",
-        pathname: "messaging/primus/"
+        pathname: "messaging/primus/",
+        reconnect: {retries: 0}
       }))(msUrl);
 
       return new Promise((res, rej)=>{
@@ -76,7 +79,8 @@ describe("MS Connection : Integration", ()=>{
 
       const ms = new (Primus.createSocket({
         transformer: "websockets",
-        pathname: "messaging/primus/"
+        pathname: "messaging/primus/",
+        reconnect: {retries: 0}
       }))(msUrl);
 
       return new Promise((res, rej)=>{
@@ -93,7 +97,8 @@ describe("MS Connection : Integration", ()=>{
 
       const ms = new (Primus.createSocket({
         transformer: "websockets",
-        pathname: "messaging/primus/"
+        pathname: "messaging/primus/",
+        reconnect: {retries: 0}
       }))(msUrl);
 
       return new Promise((res, rej)=>{
@@ -110,7 +115,8 @@ describe("MS Connection : Integration", ()=>{
 
       const ms = new (Primus.createSocket({
         transformer: "websockets",
-        pathname: "messaging/primus/"
+        pathname: "messaging/primus/",
+        reconnect: {retries: 0}
       }))(msUrl);
 
       return new Promise((res, rej)=>{

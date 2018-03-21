@@ -7,7 +7,8 @@
     "test": "eslint . && mocha -t 15000 -r test/mocha-env.js test/**",
     "test-unit": "eslint . && mocha -t 15000 -r test/mocha-env.js test/unit/**",
     "test-integration": "eslint . && mocha -t 15000 -r test/mocha-env.js test/integration/**",
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "MS_PORT=9009 NODE_ENV=test node index.js"
   },
   "repository": {
     "type": "git",
@@ -29,7 +30,7 @@
     "gcs-filepath-validator": "^1.0.0",
     "primus": "^7.1.0",
     "redis": "^2.8.0",
-    "uws": "^8.14.1"
+    "uws": "^9.14.0"
   },
   "devDependencies": {
     "eslint": "^4.9.0",

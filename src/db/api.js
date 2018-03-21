@@ -4,7 +4,16 @@ module.exports = {
   fileMetadata: {
     addDisplayTo(filePath, displayId) {
       if (!filePath || !displayId) {throw Error("missing params");}
+
       return redis.setAdd(`meta:${filePath}:displays`, [displayId]);
+    },
+    addDisplayToMany(filePathsAndVersions, displayId) {
+      if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
+
+      return Promise.all(filePathsAndVersions.map(fileData=>{
+        return redis.setAdd(`meta:${fileData.filePath}:displays`, [displayId]);
+      }))
+      .then(()=>filePathsAndVersions);
     },
     getWatchersFor(filePath) {
       if (!filePath) {throw Error("missing params");}
@@ -16,8 +25,25 @@ module.exports = {
     },
     setFileVersion(filePath, version) {
       if (!filePath) {throw Error("missing params");}
+
       return redis.setString(`meta:${filePath}:version`, version)
       .then(()=>version);
+    },
+    setMultipleFileVersions(filePathsAndVersions) {
+      if (!filePathsAndVersions) {throw Error("missing params");}
+
+      return Promise.all(filePathsAndVersions.map(fileData=>{
+        const key = `meta:${fileData.filePath}:version`;
+        return redis.setString(key, fileData.version);
+      })).then(()=>filePathsAndVersions);
+    },
+    getMultipleFileVersions(filePaths) {
+      if (!filePaths) {throw Error("missing params");}
+
+      return Promise.all(filePaths.map(filePath=>{
+        return module.exports.fileMetadata.getFileVersion(filePath)
+        .then(version=>({filePath, version}));
+      }));
     },
     deleteMetadata(filePath) {
       return redis.deleteKey([`meta:${filePath}:displays`, `meta:${filePath}:version`]);
@@ -33,6 +59,16 @@ module.exports = {
       return redis.patchHash(`watch:${entry.displayId}`, {
         [entry.filePath]: entry.version
       });
+    },
+    putFolderData(filePathsAndVersions, displayId) {
+      if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
+
+      const multipleEntryObj = filePathsAndVersions.reduce((obj, fileData)=>{
+        return {...obj, [fileData.filePath]: fileData.version};
+      }, {});
+
+      return redis.patchHash(`watch:${displayId}`, multipleEntryObj)
+      .then(()=>filePathsAndVersions);
     },
     removeEntry(filePath, displays) {
       displays.forEach(display=>{
@@ -87,6 +123,25 @@ module.exports = {
           return presenceObj;
         });
       });
+    }
+  },
+  folders: {
+    addFileNames(folderPath, filePathsAndVersions) {
+      const simpleFileNames = filePathsAndVersions.map(data=>{
+        const fileNameIndex = -1;
+        return data.filePath.split("/").slice(fileNameIndex)[0];
+      });
+
+      return redis.setAdd(`folders:${folderPath}`, simpleFileNames)
+      .then(()=>filePathsAndVersions);
+    },
+    filePathsAndVersionsFor(folderPath) {
+      return redis.getSet(`folders:${folderPath}`)
+      .then(fileNames=>fileNames.map(fileName=>folderPath.concat(fileName)))
+      .then(module.exports.fileMetadata.getMultipleFileVersions);
+    },
+    watchingFolder(folder) {
+      return redis.keyExists(`folders:${folder}`);
     }
   }
 };
