@@ -78,7 +78,7 @@ describe("WATCH : Integration", ()=>{
         assert.equal(reply.version, knownGCSversion);
         assert(gcs.version.called);
         return redis.getString(`meta:${validFilePath}:version`)
-        .then(string=>knownGCSversion === string) // shouldn't this be an assert.equal() ?
+        .then(string=> assert.equal(string, knownGCSversion));
       })
       .then(() => watchList.lastChanged(displayId))
       .then(lastChanged => assert.equal(lastChanged, fakeTimestamp));

@@ -61,7 +61,6 @@ describe("FOLDER-WATCH : Integration", ()=>{
     .then(lastChanged=>{
       assert.equal(lastChanged, fakeTimestamp);
 
-      simple.restore(Date, "now");
       simple.mock(Date, "now").returnWith(fakeTimestamp2);
 
       return folderWatch.doOnIncomingPod({displayId: "someOtherDisplay", filePath: folderPath})
