@@ -159,7 +159,11 @@ describe("GCS File Update : Integration", ()=>{
       assert.equal(map[newFile], "12345");
     })
     .then(datastore.getSet.bind(null, `folders:${folderPathToWatch}`))
-    .then(set=>assert(set.includes("fake-new-file.txt")))
+    .then(set => {
+      assert(set.includes("fake-new-file.txt"));
+
+      return dbApi.watchList.lastChanged(displayId);
+    })
     .then(lastChanged => {
       assert.equal(lastChanged, fakeTimestamp2);
 
