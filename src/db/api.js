@@ -78,7 +78,8 @@ module.exports = {
 
       return redis.patchHash(`watch:${entry.displayId}`, {
         [entry.filePath]: entry.version
-      });
+      })
+      .then(() => module.exports.watchList.updateLastChanged(entry.displayId));
     },
     putFolder(filePathsAndVersions, displayId) {
       if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
@@ -89,6 +90,7 @@ module.exports = {
       }, {[folderPath]: "0"});
 
       return redis.patchHash(`watch:${displayId}`, multipleEntryObj)
+      .then(()=>module.exports.watchList.updateLastChanged(displayId))
       .then(()=>filePathsAndVersions);
     },
     removeEntry(filePath, displays) {
@@ -96,7 +98,8 @@ module.exports = {
 
       return redis.multi(displays.map(display=>{
         return [command, `watch:${display}`, filePath];
-      }));
+      }))
+      .then(() => Promise.all(displays.map(module.exports.watchList.updateLastChanged)));
     },
     updateVersion(filePath, version, displays) {
       const patch = {[filePath]: version};
@@ -104,7 +107,14 @@ module.exports = {
 
       return redis.multi(displays.map(display=>{
         return [command, `watch:${display}`, patch];
-      }));
+      }))
+      .then(() => Promise.all(displays.map(module.exports.watchList.updateLastChanged)));
+    },
+    updateLastChanged(displayId) {
+      return redis.setString(`last_changed:${displayId}`, Date.now());
+    },
+    lastChanged(displayId) {
+      return redis.getString(`last_changed:${displayId}`);
     }
   },
   connections: {
