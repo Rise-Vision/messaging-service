@@ -1,5 +1,7 @@
 /* eslint-env mocha */
 const assert = require("assert");
+const simple = require("simple-mock");
+
 const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore");
 const fileUpdateHandler = require("../../src/event-handlers/messages/gcs-file-update");
@@ -14,15 +16,30 @@ describe("GCS File Update : Integration", ()=>{
     return datastore.eraseEntireDb();
   });
 
+  afterEach(() => simple.restore());
+
   it("deletes from watchlist and metadata on DELETE message type", ()=>{
     const filePath = "my-bucket/my-file";
     const version = "12345";
     const displayId = "test-id";
+    const fakeTimestamp = 123456;
+    const fakeTimestamp2 = 234567;
 
-    return dbApi.watchList.put({filePath, version, displayId})
+    return dbApi.watchList.updateLastChanged(displayId)
+    .then(() => {
+      simple.mock(Date, "now").returnWith(fakeTimestamp);
+
+      return dbApi.watchList.put({filePath, version, displayId});
+    })
     .then(datastore.getHash.bind(null, `watch:${displayId}`))
-    .then(map=>assert.deepEqual(map, {[filePath]: version}))
-    .then(()=>{
+    .then(map=> {
+      assert.deepEqual(map, {[filePath]: version});
+
+      return dbApi.watchList.lastChanged(displayId);
+    })
+    .then(lastChanged => {
+      assert.equal(lastChanged, fakeTimestamp);
+
       return dbApi.fileMetadata.addDisplayTo(filePath, displayId)
       .then(dbApi.fileMetadata.setFileVersion.bind(null, filePath, version));
     })
@@ -31,6 +48,9 @@ describe("GCS File Update : Integration", ()=>{
     .then(datastore.getString.bind(null, `meta:${filePath}:version`))
     .then(dbVersion=>assert.equal(dbVersion, version))
     .then(()=>{
+      simple.restore(Date, "now");
+      simple.mock(Date, "now").returnWith(fakeTimestamp2);
+
       return fileUpdateHandler.doOnIncomingPod({
         filePath,
         version,
@@ -46,6 +66,8 @@ describe("GCS File Update : Integration", ()=>{
       .then(datastore.getString.bind(null, `meta:${filePath}:version`))
       .then(dbVersion=>assert(!dbVersion));
     })
+    .then(() => dbApi.watchList.lastChanged(displayId))
+    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp2));
   });
 
   it("saves to watchlist and metadata on ADD/UPDATE message type", ()=>{

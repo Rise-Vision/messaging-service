@@ -110,8 +110,8 @@ module.exports = {
       }))
       .then(() => Promise.all(displays.map(module.exports.watchList.updateLastChanged)));
     },
-    updateLastChanged(displayId, lastChanged = Date.now()) {
-      return redis.setString(`last_changed:${displayId}`, lastChanged);
+    updateLastChanged(displayId) {
+      return redis.setString(`last_changed:${displayId}`, Date.now());
     },
     lastChanged(displayId) {
       return redis.getString(`last_changed:${displayId}`);
