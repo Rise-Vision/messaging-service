@@ -5,17 +5,20 @@ const redis = require("../../src/db/redis/datastore.js");
 const displayConnections = require("../../src/event-handlers/display-connections");
 const simple = require("simple-mock");
 const gcs = require("../../src/gcs.js");
-const {fileMetadata: md} = require("../../src/db/api.js");
+const {fileMetadata: md, watchList} = require("../../src/db/api.js");
 
 describe("WATCH : Integration", ()=>{
   const displayId = "fakeId";
   const version = "fakeVersion";
   const invalidFilePath = "messaging-service-test-bucket/non-existent-test-file.txt";
   const validFilePath = invalidFilePath.replace("non-existent-", "");
+  const fakeTimestamp = 123456;
 
   before(()=>{
     return redis.eraseEntireDb();
   });
+
+  beforeEach(() => watchList.updateLastChanged(displayId));
 
   afterEach(()=>{simple.restore();});
 
@@ -32,13 +35,17 @@ describe("WATCH : Integration", ()=>{
   });
 
   it("adds display to file metadata", ()=>{
+    simple.mock(Date, "now").returnWith(fakeTimestamp);
     simple.mock(md, "getFileVersion").resolveWith("existing-file-metadata-version");
 
     return watch.doOnIncomingPod({displayId, filePath: invalidFilePath, version})
     .then(redis.getSet.bind(null, `meta:${invalidFilePath}:displays`))
     .then((reply)=>{
       assert.equal(reply, displayId);
-    });
+
+      return watchList.lastChanged(displayId);
+    })
+    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp));
   });
 
   it("returns error if invalid filePath requested", ()=>{
@@ -55,6 +62,8 @@ describe("WATCH : Integration", ()=>{
   describe("filePath exists on GCS but not present in file metadata db", ()=>{
     it("returns a token and version and saves version in file metadata", ()=>{
       const knownGCSversion = "1509652220691132";
+
+      simple.mock(Date, "now").returnWith(fakeTimestamp);
       simple.mock(gcs, "version");
       simple.mock(displayConnections, "sendMessage");
 
@@ -69,14 +78,18 @@ describe("WATCH : Integration", ()=>{
         assert.equal(reply.version, knownGCSversion);
         assert(gcs.version.called);
         return redis.getString(`meta:${validFilePath}:version`)
-        .then(string=>knownGCSversion === string)
+        .then(string=>knownGCSversion === string) // shouldn't this be an assert.equal() ?
       })
+      .then(() => watchList.lastChanged(displayId))
+      .then(lastChanged => assert.equal(lastChanged, fakeTimestamp));
     });
   });
 
   describe("filePath is present in file metadata db and version matches", ()=>{
     it("does not return a token and does not query GCS", ()=>{
       const knownGCSversion = "1509652220691132";
+
+      simple.mock(Date, "now").returnWith(fakeTimestamp);
       simple.mock(gcs, "version");
       simple.mock(displayConnections, "sendMessage");
 
@@ -93,7 +106,10 @@ describe("WATCH : Integration", ()=>{
         assert.equal(reply.msg, "ok");
         assert.equal(reply.version, knownGCSversion);
         assert(!gcs.version.called);
-      });
+
+        return watchList.lastChanged(displayId);
+      })
+      .then(lastChanged => assert.equal(lastChanged, fakeTimestamp));
     });
   });
 });
