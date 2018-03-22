@@ -8,6 +8,10 @@ const fileUpdateHandler = require("../../src/event-handlers/messages/gcs-file-up
 const folderWatch = require("../../src/event-handlers/messages/folder-watch");
 
 describe("GCS File Update : Integration", ()=>{
+  const fakeTimestamp = 123456;
+  const fakeTimestamp2 = 234567;
+  const fakeTimestamp3 = 345679;
+
   before(()=>{
     datastore.initdb();
   });
@@ -22,8 +26,6 @@ describe("GCS File Update : Integration", ()=>{
     const filePath = "my-bucket/my-file";
     const version = "12345";
     const displayId = "test-id";
-    const fakeTimestamp = 123456;
-    const fakeTimestamp2 = 234567;
 
     return dbApi.watchList.updateLastChanged(displayId)
     .then(() => {
@@ -48,7 +50,6 @@ describe("GCS File Update : Integration", ()=>{
     .then(datastore.getString.bind(null, `meta:${filePath}:version`))
     .then(dbVersion=>assert.equal(dbVersion, version))
     .then(()=>{
-      simple.restore(Date, "now");
       simple.mock(Date, "now").returnWith(fakeTimestamp2);
 
       return fileUpdateHandler.doOnIncomingPod({
@@ -76,18 +77,26 @@ describe("GCS File Update : Integration", ()=>{
     const updatedVersion = "54321";
     const displayId = "test-id";
 
-    return datastore.getHash(`watch:${displayId}`)
+    return dbApi.watchList.updateLastChanged(displayId)
+    .then(()=>datastore.getHash(`watch:${displayId}`))
     .then(map=>assert.deepEqual(map, null))
     .then(datastore.getSet.bind(null, `meta:${filePath}:displays`))
     .then(set=>assert(!set.includes(displayId)))
     .then(datastore.getString.bind(null, `meta:${filePath}:version`))
     .then(dbVersion=>assert(!dbVersion))
     .then(()=>{
+      simple.mock(Date, "now").returnWith(fakeTimestamp);
+
       return dbApi.watchList.put({filePath, version, displayId})
       .then(dbApi.fileMetadata.addDisplayTo.bind(null, filePath, displayId))
       .then(dbApi.fileMetadata.setFileVersion.bind(null, filePath, version))
     })
-    .then(()=>{
+    .then(() => dbApi.watchList.lastChanged(displayId))
+    .then(lastChanged => {
+      assert.equal(lastChanged, fakeTimestamp);
+
+      simple.mock(Date, "now").returnWith(fakeTimestamp2);
+
       return fileUpdateHandler.doOnIncomingPod({
         filePath,
         version: updatedVersion,
@@ -102,7 +111,9 @@ describe("GCS File Update : Integration", ()=>{
       .then(set=>assert(set.includes(displayId)))
       .then(datastore.getString.bind(null, `meta:${filePath}:version`))
       .then(dbVersion=>assert.equal(dbVersion, updatedVersion))
-    });
+    })
+    .then(() => dbApi.watchList.lastChanged(displayId))
+    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp2));
   });
 
   it("returns files in folder on watch, updates metadata when a file is ADDED / DELETED", ()=>{
@@ -114,17 +125,31 @@ describe("GCS File Update : Integration", ()=>{
     const displayId = "test-id";
 
     console.log(`Sending folder watch for ${folderPathToWatch}`);
-    return folderWatch.doOnIncomingPod({filePath: folderPathToWatch, displayId})
+
+    return dbApi.watchList.updateLastChanged(displayId)
+    .then(() => {
+      simple.mock(Date, "now").returnWith(fakeTimestamp);
+
+      return folderWatch.doOnIncomingPod({filePath: folderPathToWatch, displayId});
+    })
     .then(()=>datastore.getHash(`watch:${displayId}`))
     .then(map=>{
       assert.equal(map[preExistingGCSFile], preExistingGCSFileVersion);
       assert.equal(map[folderPathToWatch], "0");
+
+      return dbApi.watchList.lastChanged(displayId);
     })
-    .then(()=>fileUpdateHandler.doOnIncomingPod({
-      filePath: newFile,
-      version: newFileVersion,
-      type: "ADD"
-    }))
+    .then(lastChanged => {
+      assert.equal(lastChanged, fakeTimestamp);
+
+      simple.mock(Date, "now").returnWith(fakeTimestamp2);
+
+      return fileUpdateHandler.doOnIncomingPod({
+        filePath: newFile,
+        version: newFileVersion,
+        type: "ADD"
+      });
+    })
     .then(datastore.getSet.bind(null, `meta:${newFile}:displays`))
     .then(set=>assert(set.includes(displayId)))
     .then(datastore.getHash.bind(null, `watch:${displayId}`))
@@ -135,11 +160,17 @@ describe("GCS File Update : Integration", ()=>{
     })
     .then(datastore.getSet.bind(null, `folders:${folderPathToWatch}`))
     .then(set=>assert(set.includes("fake-new-file.txt")))
-    .then(()=>fileUpdateHandler.doOnIncomingPod({
-      filePath: newFile,
-      version: newFileVersion,
-      type: "DELETE"
-    }))
+    .then(lastChanged => {
+      assert.equal(lastChanged, fakeTimestamp2);
+
+      simple.mock(Date, "now").returnWith(fakeTimestamp3);
+
+      return fileUpdateHandler.doOnIncomingPod({
+        filePath: newFile,
+        version: newFileVersion,
+        type: "DELETE"
+      });
+    })
     .then(datastore.getSet.bind(null, `folders:${folderPathToWatch}`))
     .then(set=>assert(!set.includes("fake-new-file.txt")))
     .then(datastore.getHash.bind(null, `watch:${displayId}`))
@@ -150,5 +181,7 @@ describe("GCS File Update : Integration", ()=>{
     })
     .then(datastore.getSet.bind(null, `meta:${newFile}:displays`))
     .then(set=>assert(!set.includes(displayId)))
+    .then(() => dbApi.watchList.lastChanged(displayId))
+    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp3));
   });
 });
