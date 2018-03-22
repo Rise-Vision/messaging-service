@@ -26,13 +26,14 @@ module.exports = {
     logger.log(`Removed spark for ${displayId}`);
   },
   sendMessage(displayId, msg) {
+    logger.log(`Sending ${JSON.stringify(msg)} to ${displayId}`);
+
     const spark = sparks.get(displayId);
     if (!spark) {
       logger.log(`No spark for ${displayId}`);
       return;
     }
 
-    logger.log(`Sending ${JSON.stringify(msg)} to ${displayId}`);
     spark.write(msg);
   },
   hasSparkFor(displayId) {

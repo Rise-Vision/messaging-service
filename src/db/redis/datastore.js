@@ -66,7 +66,10 @@ module.exports = {
       setAdd: "sadd",
       setString: "set",
       getString: "get",
-      setIsMember: "sismember"
+      getSet: "smembers",
+      setIsMember: "sismember",
+      patchHash: "hmset",
+      removeHashField: "hdel"
     };
 
     return new Promise((res, rej)=>{

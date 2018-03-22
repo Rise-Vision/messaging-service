@@ -39,8 +39,7 @@ describe("GCS : Integration", ()=>{
 
   describe("Folder fetch", ()=>{
     it("retrieves a list of files from a folder", ()=>{
-      return getFiles("messaging-service-test-bucket/test-folder/")
-      .then(console.dir);
+      return getFiles("messaging-service-test-bucket/test-folder/");
     });
     it("expects subfolders to be each individually requested", ()=>{
       return getFiles("messaging-service-test-bucket/test-folder/")

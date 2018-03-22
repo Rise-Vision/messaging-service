@@ -14,7 +14,7 @@ describe("WATCH (FOLDER)", ()=>{
     simple.mock(db.fileMetadata, "addDisplayToMany").callFn(input=>input);
     simple.mock(db.fileMetadata, "setMultipleFileVersions").resolveWith(true);
     simple.mock(db.watchList, "put").returnWith(true);
-    simple.mock(db.watchList, "putFolderData").returnWith(true);
+    simple.mock(db.watchList, "putFolder").returnWith(true);
     simple.mock(db.folders, "addFileNames").returnWith([]);
     simple.mock(db.folders, "filePathsAndVersionsFor").returnWith([]);
     simple.mock(versionCompare, "compare").resolveWith({matched: true});
@@ -42,7 +42,7 @@ describe("WATCH (FOLDER)", ()=>{
     return folderWatch.doOnIncomingPod({displayId, filePath})
     .then(()=>{
       assert(db.fileMetadata.addDisplayToMany.called);
-      assert(db.watchList.putFolderData.called);
+      assert(db.watchList.putFolder.called);
     })
   });
 

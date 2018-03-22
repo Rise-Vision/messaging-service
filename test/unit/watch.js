@@ -13,7 +13,7 @@ describe("WATCH", ()=>{
     simple.mock(db.fileMetadata, "addDisplayToMany").returnWith(true);
     simple.mock(db.fileMetadata, "setMultipleFileVersions").resolveWith(true);
     simple.mock(db.watchList, "put").returnWith(true);
-    simple.mock(db.watchList, "putFolderData").returnWith(true);
+    simple.mock(db.watchList, "putFolder").returnWith(true);
     simple.mock(db.folders, "addFileNames").returnWith([]);
     simple.mock(db.folders, "filePathsAndVersionsFor").returnWith([]);
     simple.mock(versionCompare, "compare").resolveWith({matched: true});
