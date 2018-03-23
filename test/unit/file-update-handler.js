@@ -79,8 +79,7 @@ describe("Pub/sub Update", ()=>{
       assert(displayConnections.sendMessage.lastCall.args[1].token);
 
       displayConnections.sendMessage.calls.forEach(call => {
-        const displayId = call.args[0];
-        const displayNumber = Number(displayId.substring(1));
+        const displayNumber = Number(call.args[0].substring(1));
         const message = call.args[1];
 
         assert.equal(message.topic, "MSFILEUPDATE");
@@ -100,60 +99,105 @@ describe("Pub/sub Update", ()=>{
     });
   });
 
-  it("updates db on DELETE", ()=>{
-    simple.mock(db.fileMetadata, "hasMetadata").resolveWith(true);
-    simple.mock(displayConnections, "hasSparkFor").returnWith(true);
+  describe("Updates db", ()=>{
+    let lastChangedMap = {};
 
-    const delPodMsg = Object.assign({}, testIncomingADDMessage, {type: "DELETE"});
+    beforeEach(() => {
+      simple.mock(db.watchList, "updateLastChanged").callFn(displayId =>
+        Promise.resolve(lastChangedMap[displayId] = Math.random()));
+      simple.mock(db.watchList, "lastChanged").callFn(displayId =>
+        Promise.resolve(lastChangedMap[displayId]));
 
-    return fileUpdateHandler.doOnIncomingPod(delPodMsg)
-    .then(()=>{
-      assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
-      assert.equal(db.fileMetadata.deleteMetadata.callCount, 1);
-      assert.equal(db.watchList.removeEntry.callCount, 1);
-      assert.equal(displayConnections.sendMessage.callCount, watchers.length);
+      simple.mock(db.fileMetadata, "hasMetadata").resolveWith(true);
+      simple.mock(displayConnections, "hasSparkFor").returnWith(true);
+    });
 
-      assert([
-        db.fileMetadata.setFileVersion.callCount,
-        db.watchList.updateVersion.callCount
-      ].every(callCount=>callCount === 0));
+    afterEach(() => lastChangedMap = {});
+
+    it("updates db on DELETE", () => {
+      const delPodMsg = Object.assign({}, testIncomingADDMessage, {type: "DELETE"});
+
+      return fileUpdateHandler.doOnIncomingPod(delPodMsg)
+      .then(()=>{
+        assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
+        assert.equal(db.fileMetadata.deleteMetadata.callCount, 1);
+        assert.equal(db.watchList.removeEntry.callCount, 1);
+        assert.equal(displayConnections.sendMessage.callCount, watchers.length);
+
+        displayConnections.sendMessage.calls.forEach(call => {
+          const displayId = call.args[0];
+          const message = call.args[1];
+
+          assert.equal(message.topic, "MSFILEUPDATE");
+          assert.equal(message.filePath, "my-bucket/my-file");
+          assert.equal(message.version, "12345");
+          assert.equal(message.type, "DELETE");
+          assert(!message.token);
+          assert.equal(message.watchlistLastChanged, lastChangedMap[displayId]);
+        });
+
+        assert([
+          db.fileMetadata.setFileVersion.callCount,
+          db.watchList.updateVersion.callCount
+        ].every(callCount=>callCount === 0));
+      });
+    });
+
+    it("updates db on UPDATE", () => {
+      const updMsg = Object.assign({}, testIncomingADDMessage, {type: "UPDATE"});
+
+      return fileUpdateHandler.doOnIncomingPod(updMsg)
+      .then(()=>{
+        assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
+        assert.equal(db.fileMetadata.setFileVersion.callCount, 1);
+        assert.equal(db.watchList.updateVersion.callCount, 1);
+        assert.equal(displayConnections.sendMessage.callCount, watchers.length);
+
+        displayConnections.sendMessage.calls.forEach(call => {
+          const displayId = call.args[0];
+          const message = call.args[1];
+
+          assert.equal(message.topic, "MSFILEUPDATE");
+          assert.equal(message.filePath, "my-bucket/my-file");
+          assert.equal(message.version, "12345");
+          assert.equal(message.type, "UPDATE");
+          assert(message.token);
+          assert.equal(message.watchlistLastChanged, lastChangedMap[displayId]);
+        });
+
+        assert([
+          db.fileMetadata.deleteMetadata.callCount,
+          db.watchList.removeEntry.callCount
+        ].every(callCount=>callCount === 0));
+      });
+    });
+
+    it("updates db on ADD", () => {
+      return fileUpdateHandler.doOnIncomingPod(testIncomingADDMessage)
+      .then(()=>{
+        assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
+        assert.equal(db.fileMetadata.setFileVersion.callCount, 1);
+        assert.equal(db.watchList.updateVersion.callCount, 1);
+        assert.equal(displayConnections.sendMessage.callCount, watchers.length);
+
+        displayConnections.sendMessage.calls.forEach(call => {
+          const displayId = call.args[0];
+          const message = call.args[1];
+
+          assert.equal(message.topic, "MSFILEUPDATE");
+          assert.equal(message.filePath, "my-bucket/my-file");
+          assert.equal(message.version, "12345");
+          assert.equal(message.type, "ADD");
+          assert(message.token);
+          assert.equal(message.watchlistLastChanged, lastChangedMap[displayId]);
+        });
+
+        assert([
+          db.fileMetadata.deleteMetadata.callCount,
+          db.watchList.removeEntry.callCount
+        ].every(callCount=>callCount === 0));
+      });
     });
   });
 
-  it("updates db on UPDATE", ()=>{
-    simple.mock(db.fileMetadata, "hasMetadata").resolveWith(true);
-    simple.mock(displayConnections, "hasSparkFor").returnWith(true);
-    const updMsg = Object.assign({}, testIncomingADDMessage, {type: "UPDATE"});
-
-    return fileUpdateHandler.doOnIncomingPod(updMsg)
-    .then(()=>{
-      assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
-      assert.equal(db.fileMetadata.setFileVersion.callCount, 1);
-      assert.equal(db.watchList.updateVersion.callCount, 1);
-      assert.equal(displayConnections.sendMessage.callCount, watchers.length);
-
-      assert([
-        db.fileMetadata.deleteMetadata.callCount,
-        db.watchList.removeEntry.callCount
-      ].every(callCount=>callCount === 0));
-    });
-  });
-
-  it("updates db on ADD", ()=>{
-    simple.mock(db.fileMetadata, "hasMetadata").resolveWith(true);
-    simple.mock(displayConnections, "hasSparkFor").returnWith(true);
-
-    return fileUpdateHandler.doOnIncomingPod(testIncomingADDMessage)
-    .then(()=>{
-      assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
-      assert.equal(db.fileMetadata.setFileVersion.callCount, 1);
-      assert.equal(db.watchList.updateVersion.callCount, 1);
-      assert.equal(displayConnections.sendMessage.callCount, watchers.length);
-
-      assert([
-        db.fileMetadata.deleteMetadata.callCount,
-        db.watchList.removeEntry.callCount
-      ].every(callCount=>callCount === 0));
-    });
-  });
 });
