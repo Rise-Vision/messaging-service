@@ -1,6 +1,13 @@
 const {basename, dirname} = require("path");
 const redis = require("./redis/datastore.js");
 
+const getSetCommand = "getSet";
+const patchHashCommand = "patchHash";
+const removeHashFieldCommand = "removeHashField";
+const setAddCommand = "setAdd";
+const setRemoveCommand = "setRemove";
+const setStringCommand = "setString";
+
 module.exports = {
   fileMetadata: {
     addDisplayTo(filePath, displayId) {
@@ -12,31 +19,28 @@ module.exports = {
       if (!filePath || !displayIds) {throw Error("missing params");}
       if (!Array.isArray(displayIds)) {throw Error("invalid param");}
 
-      const command = "setAdd";
       return redis.multi(displayIds.map(display=>{
-        return [command, `meta:${filePath}:displays`, [display]];
+        return [setAddCommand, `meta:${filePath}:displays`, [display]];
       }));
     },
     addDisplayToMany(filePathsAndVersions, displayId) {
       if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
 
-      const command = "setAdd";
       const folderPath = `${dirname(filePathsAndVersions[0].filePath)}/`;
 
       return redis.multi(filePathsAndVersions.map(fileData=>{
-        return [command, `meta:${fileData.filePath}:displays`, displayId];
-      }).concat([[command, `meta:${folderPath}:displays`, displayId]]))
+        return [setAddCommand, `meta:${fileData.filePath}:displays`, displayId];
+      }).concat([[setAddCommand, `meta:${folderPath}:displays`, displayId]]))
       .then(()=>filePathsAndVersions);
     },
     getWatchersFor(filePath) {
       if (!filePath) {throw Error("missing params");}
 
-      const command = "getSet";
       const folderPath = `${dirname(filePath)}/`;
 
       return redis.multi([
-        [command, `meta:${filePath}:displays`],
-        [command, `meta:${folderPath}:displays`]
+        [getSetCommand, `meta:${filePath}:displays`],
+        [getSetCommand, `meta:${folderPath}:displays`]
       ]).then(resp=>resp[0].concat(resp[1]));
     },
     getFileVersion(filePath) {
@@ -94,21 +98,23 @@ module.exports = {
       .then(()=>filePathsAndVersions);
     },
     removeEntry(filePath, displays) {
-      const command = "removeHashField";
+      const lastChanged = Date.now();
 
       return redis.multi(displays.map(display=>{
-        return [command, `watch:${display}`, filePath];
-      }))
-      .then(() => Promise.all(displays.map(module.exports.watchList.updateLastChanged)));
+        return [removeHashFieldCommand, `watch:${display}`, filePath];
+      }).concat(displays.map(display=>{
+        return [setStringCommand, `last_changed:${display}`, lastChanged];
+      })));
     },
     updateVersion(filePath, version, displays) {
       const patch = {[filePath]: version};
-      const command = "patchHash";
+      const lastChanged = Date.now();
 
       return redis.multi(displays.map(display=>{
-        return [command, `watch:${display}`, patch];
-      }))
-      .then(() => Promise.all(displays.map(module.exports.watchList.updateLastChanged)));
+        return [patchHashCommand, `watch:${display}`, patch];
+      }).concat(displays.map(display=>{
+        return [setStringCommand, `last_changed:${display}`, lastChanged];
+      })));
     },
     updateLastChanged(displayId) {
       return redis.setString(`last_changed:${displayId}`, Date.now());
@@ -122,16 +128,16 @@ module.exports = {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.multi([
-        ["setAdd", "connections:id", displayId],
-        ["setString", `lastConnection:${displayId}`, Date.now()]
+        [setAddCommand, "connections:id", displayId],
+        [setStringCommand, `lastConnection:${displayId}`, Date.now()]
       ]);
     },
     setDisconnected(displayId) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.multi([
-        ["setRemove", "connections:id", displayId],
-        ["setString", `lastConnection:${displayId}`, Date.now()]
+        [setRemoveCommand, "connections:id", displayId],
+        [setStringCommand, `lastConnection:${displayId}`, Date.now()]
       ]);
     },
     getPresence(ids) {
