@@ -28,7 +28,7 @@ describe("DB API : Integration", ()=>{
 
   it("retrieves last changed value even if it was not set before", ()=>{
     return dbApi.watchList.lastChanged("ABC124")
-    .then(lastChanged => assert.equal(lastChanged, 0));
+    .then(lastChanged => assert.equal(lastChanged, '0'));
   });
 
 });

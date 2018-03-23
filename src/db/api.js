@@ -121,7 +121,7 @@ module.exports = {
     },
     lastChanged(displayId) {
       return redis.getString(`last_changed:${displayId}`)
-      .then(lastChanged => lastChanged || 0);
+      .then(lastChanged => lastChanged || '0');
     }
   },
   connections: {
