@@ -71,16 +71,18 @@ describe("Pub/sub Update", ()=>{
     simple.mock(db.fileMetadata, "hasMetadata").resolveWith(true);
     simple.mock(displayConnections, "hasSparkFor").returnWith(true);
 
-    fileUpdateHandler.doOnAllPods(otherPodMsg);
-    assert.equal(displayConnections.sendMessage.callCount, watchers.length);
-    assert(displayConnections.sendMessage.lastCall.args[1].token);
+    return fileUpdateHandler.doOnAllPods(otherPodMsg)
+    .then(() => {
+      assert.equal(displayConnections.sendMessage.callCount, watchers.length);
+      assert(displayConnections.sendMessage.lastCall.args[1].token);
 
-    assert([
-      db.fileMetadata.deleteMetadata.callCount,
-      db.fileMetadata.setFileVersion.callCount,
-      db.watchList.removeEntry.callCount,
-      db.watchList.updateVersion.callCount
-    ].every(callCount=>callCount === 0));
+      assert([
+        db.fileMetadata.deleteMetadata.callCount,
+        db.fileMetadata.setFileVersion.callCount,
+        db.watchList.removeEntry.callCount,
+        db.watchList.updateVersion.callCount
+      ].every(callCount=>callCount === 0));
+    });
   });
 
   it("updates db on DELETE", ()=>{
