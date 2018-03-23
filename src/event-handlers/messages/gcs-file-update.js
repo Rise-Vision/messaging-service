@@ -19,8 +19,8 @@ module.exports = {
     .then(data=>{
       if (!data.watchers.length) {return;}
 
-      module.exports.doOnAllPods(data);
-      redisPubsub.publishToPods(data);
+      return module.exports.doOnAllPods(data)
+      .then(() => redisPubsub.publishToPods(data));
     })
     .catch(err=>{
       if (err) {console.error(pscData, err.stack);}
@@ -28,14 +28,23 @@ module.exports = {
   },
   doOnAllPods(data) {
     const {filePath, version, type} = data;
-    const msg = {filePath, version, type, topic: "MSFILEUPDATE"};
+    const isAddOrUpdate = ["ADD", "UPDATE"].includes(type);
 
-    data.watchers.forEach(watcher=>{
-      if (!displayConnections.hasSparkFor(watcher)) {return;}
+    return Promise.all(data.watchers
+      .filter(displayConnections.hasSparkFor)
+      .map(watcher =>
+        db.watchList.lastChanged(watcher)
+        .then(watchlistLastChanged => {
+          const message = {
+            filePath, version, type, topic: "MSFILEUPDATE", watchlistLastChanged
+          };
 
-      displayConnections.sendMessage(watcher, ["ADD", "UPDATE"].includes(type) ?
-        makeToken({...msg, displayId: watcher}) : msg);
-    });
+          if (isAddOrUpdate) {
+            message.token = makeToken({filePath, version, displayId: watcher}).token;
+          }
+
+          return displayConnections.sendMessage(watcher, message);
+    })));
   }
 };
 
