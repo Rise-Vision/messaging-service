@@ -35,11 +35,13 @@ module.exports = {
       .map(watcher =>
         db.watchList.lastChanged(watcher)
         .then(watchlistLastChanged => {
-          let message = {
+          const message = {
             filePath, version, type, topic: "MSFILEUPDATE", watchlistLastChanged
           };
-          message = isAddOrUpdate ?
-            makeToken({...message, displayId: watcher}) : message;
+
+          if (isAddOrUpdate) {
+            message.token = makeToken({filePath, version, displayId: watcher}).token;
+          }
 
           return displayConnections.sendMessage(watcher, message);
     })));

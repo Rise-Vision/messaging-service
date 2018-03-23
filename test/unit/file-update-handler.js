@@ -69,12 +69,27 @@ describe("Pub/sub Update", ()=>{
     };
 
     simple.mock(db.fileMetadata, "hasMetadata").resolveWith(true);
+    simple.mock(db.watchList, "lastChanged").callFn(displayId =>
+      Promise.resolve(Number(displayId.substring(1))));
     simple.mock(displayConnections, "hasSparkFor").returnWith(true);
 
     return fileUpdateHandler.doOnAllPods(otherPodMsg)
     .then(() => {
       assert.equal(displayConnections.sendMessage.callCount, watchers.length);
       assert(displayConnections.sendMessage.lastCall.args[1].token);
+
+      displayConnections.sendMessage.calls.forEach(call => {
+        const displayId = call.args[0];
+        const displayNumber = Number(displayId.substring(1));
+        const message = call.args[1];
+
+        assert.equal(message.topic, "MSFILEUPDATE");
+        assert.equal(message.filePath, "my-bucket/my-file");
+        assert.equal(message.version, "12345");
+        assert.equal(message.type, "ADD");
+        assert(message.token);
+        assert.equal(message.watchlistLastChanged, displayNumber);
+      });
 
       assert([
         db.fileMetadata.deleteMetadata.callCount,
