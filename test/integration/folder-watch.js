@@ -13,10 +13,14 @@ describe("FOLDER-WATCH : Integration", ()=>{
   const filePath2 = "messaging-service-test-bucket/test-folder/test-file.txt";
   const fileVersion = "1509655894026319";
   const displayId = "test-display-id";
+  const fakeTimestamp = 123456;
+  const fakeTimestamp2 = 234567;
 
   before(()=>{
     return redis.eraseEntireDb();
   });
+
+  beforeEach(() => watchList.updateLastChanged(displayId));
 
   afterEach(()=>{simple.restore();});
 
@@ -33,7 +37,8 @@ describe("FOLDER-WATCH : Integration", ()=>{
     .then(watching=>assert.equal(watching, 1));
   });
 
-  it("saves a new folder, on subsequent call returns existing data without gcs fetch", ()=>{ // eslint-disable-line max-statements
+  it("saves a new folder, on subsequent call returns existing data without gcs fetch", ()=>{
+    simple.mock(Date, "now").returnWith(fakeTimestamp);
     simple.mock(gcs, "getFiles");
     simple.mock(md, "addDisplayToMany");
     simple.mock(md, "setMultipleFileVersions");
@@ -50,8 +55,14 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert(watchList.putFolder.called);
       assert(folders.addFileNames.called);
       verifyReply(displayId, 1);
+
+      return watchList.lastChanged(displayId);
     })
-    .then(()=>{
+    .then(lastChanged=>{
+      assert.equal(lastChanged, fakeTimestamp);
+
+      simple.mock(Date, "now").returnWith(fakeTimestamp2);
+
       return folderWatch.doOnIncomingPod({displayId: "someOtherDisplay", filePath: folderPath})
     })
     .then(()=>{
@@ -62,6 +73,11 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert.equal(md.addDisplayToMany.callCount, 2); // eslint-disable-line no-magic-numbers
       assert.equal(watchList.putFolder.callCount, 2); // eslint-disable-line no-magic-numbers
       verifyReply("someOtherDisplay", 2); // eslint-disable-line no-magic-numbers
+
+      return watchList.lastChanged("someOtherDisplay");
+    })
+    .then(lastChanged=>{
+      assert.equal(lastChanged, fakeTimestamp2);
     });
 
     function verifyReply(id, replyCount) {
