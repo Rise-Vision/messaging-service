@@ -120,7 +120,8 @@ module.exports = {
       return redis.setString(`last_changed:${displayId}`, Date.now());
     },
     lastChanged(displayId) {
-      return redis.getString(`last_changed:${displayId}`);
+      return redis.getString(`last_changed:${displayId}`)
+      .then(lastChanged => lastChanged || 0);
     }
   },
   connections: {
