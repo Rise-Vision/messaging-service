@@ -77,6 +77,9 @@ module.exports = {
     }
   },
   watchList: {
+    get(displayId) {
+      return redis.getHash(`watch:${displayId}`);
+    },
     put(entry) {
       if (!entry) {throw Error("missing params");}
 
