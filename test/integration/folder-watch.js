@@ -88,6 +88,8 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert.equal(reply.msg, "ok");
       assert.equal(reply.topic, "watch-result");
       assert.equal(reply.folderData.length, 2); // eslint-disable-line no-magic-numbers
+      assert.equal(reply.watchlistLastChanged, fakeTimestamp2);
+
       assert(reply.folderData.some(entry=>entry.filePath.includes(filePath1)));
       assert(reply.folderData.some(entry=>entry.filePath.includes(filePath2)));
       assert(reply.folderData.some(entry=>entry.version.includes(fileVersion)));
