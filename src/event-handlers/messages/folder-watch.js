@@ -27,11 +27,14 @@ module.exports = {
       });
     })
     .then((folderData)=>{
-      displayConnections.sendMessage(displayId, {
-        msg: "ok",
-        topic: "watch-result",
-        folderData
-      });
+      return watchList.lastChanged(displayId)
+      .then(watchlistLastChanged =>
+        displayConnections.sendMessage(displayId, {
+          msg: "ok",
+          topic: "watch-result",
+          folderData,
+          watchlistLastChanged
+        }));
     })
     .catch((err)=>{
       watchError(err, folderPath, displayId);
