@@ -54,7 +54,7 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert(md.addDisplayToMany.called);
       assert(watchList.putFolder.called);
       assert(folders.addFileNames.called);
-      verifyReply(displayId, 1);
+      verifyReply(displayId, 1, fakeTimestamp);
 
       return watchList.lastChanged(displayId);
     })
@@ -72,7 +72,7 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert.equal(md.setMultipleFileVersions.callCount, 1);
       assert.equal(md.addDisplayToMany.callCount, 2); // eslint-disable-line no-magic-numbers
       assert.equal(watchList.putFolder.callCount, 2); // eslint-disable-line no-magic-numbers
-      verifyReply("someOtherDisplay", 2); // eslint-disable-line no-magic-numbers
+      verifyReply("someOtherDisplay", 2, fakeTimestamp2); // eslint-disable-line no-magic-numbers
 
       return watchList.lastChanged("someOtherDisplay");
     })
@@ -80,7 +80,7 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert.equal(lastChanged, fakeTimestamp2);
     });
 
-    function verifyReply(id, replyCount) {
+    function verifyReply(id, replyCount, lastChanged) {
       const [repliedTo, reply] = displayConnections.sendMessage.lastCall.args;
 
       assert.equal(displayConnections.sendMessage.callCount, replyCount);
@@ -88,6 +88,8 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert.equal(reply.msg, "ok");
       assert.equal(reply.topic, "watch-result");
       assert.equal(reply.folderData.length, 2); // eslint-disable-line no-magic-numbers
+      assert.equal(reply.watchlistLastChanged, lastChanged);
+
       assert(reply.folderData.some(entry=>entry.filePath.includes(filePath1)));
       assert(reply.folderData.some(entry=>entry.filePath.includes(filePath2)));
       assert(reply.folderData.some(entry=>entry.version.includes(fileVersion)));

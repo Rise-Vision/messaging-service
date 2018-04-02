@@ -76,6 +76,8 @@ describe("WATCH : Integration", ()=>{
         assert.ok(reply.token.hash);
         assert.ok(reply.token.data.timestamp);
         assert.equal(reply.version, knownGCSversion);
+        assert.equal(reply.watchlistLastChanged, fakeTimestamp);
+
         assert(gcs.version.called);
         return redis.getString(`meta:${validFilePath}:version`)
         .then(string=> assert.equal(string, knownGCSversion));
@@ -105,6 +107,8 @@ describe("WATCH : Integration", ()=>{
         assert(!reply.token);
         assert.equal(reply.msg, "ok");
         assert.equal(reply.version, knownGCSversion);
+        assert.equal(reply.watchlistLastChanged, fakeTimestamp);
+
         assert(!gcs.version.called);
 
         return watchList.lastChanged(displayId);

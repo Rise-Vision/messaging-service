@@ -14,6 +14,7 @@ describe("WATCH", ()=>{
     simple.mock(db.fileMetadata, "setMultipleFileVersions").resolveWith(true);
     simple.mock(db.watchList, "put").returnWith(true);
     simple.mock(db.watchList, "putFolder").returnWith(true);
+    simple.mock(db.watchList, "lastChanged").resolveWith("123456");
     simple.mock(db.folders, "addFileNames").returnWith([]);
     simple.mock(db.folders, "filePathsAndVersionsFor").returnWith([]);
     simple.mock(versionCompare, "compare").resolveWith({matched: true});
@@ -52,5 +53,23 @@ describe("WATCH", ()=>{
 
     return watch.doOnIncomingPod({displayId, filePath, version})
     .then(()=>assert(db.watchList.put.called));
+  });
+
+  it("sends WATCH-RESULT message", ()=>{
+    const displayId = "test";
+    const filePath = "bucket/object";
+    const version = "test";
+
+    return watch.doOnIncomingPod({displayId, filePath, version})
+    .then(() =>{
+      assert.equal(displayConnections.sendMessage.callCount, 1);
+      assert.equal(displayConnections.sendMessage.lastCall.args[0], displayId);
+
+      const message = displayConnections.sendMessage.lastCall.args[1];
+      assert.equal(message.msg, "ok");
+      assert.equal(message.topic, "watch-result");
+      assert.equal(message.filePath, filePath);
+      assert.equal(message.watchlistLastChanged, "123456");
+    });
   });
 });

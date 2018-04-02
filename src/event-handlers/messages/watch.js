@@ -37,13 +37,17 @@ module.exports = {
     return Promise.all(asyncTasks)
     .then(all=>{
       const finalResult = all[asyncTasks.length - 1];
-      displayConnections.sendMessage(newEntry.displayId, {
-        msg: "ok",
-        topic: "watch-result",
-        filePath,
-        version: finalResult.version,
-        token: finalResult.token
-      });
+
+      return db.watchList.lastChanged(displayId)
+      .then(watchlistLastChanged =>
+        displayConnections.sendMessage(displayId, {
+          msg: "ok",
+          topic: "watch-result",
+          filePath,
+          version: finalResult.version,
+          token: finalResult.token,
+          watchlistLastChanged
+        }));
     })
     .catch((err)=>{
       watchError(err, filePath, newEntry.displayId);
