@@ -1,3 +1,4 @@
+const NOT_FOUND = 404;
 const Storage = require("@google-cloud/storage");
 const logger = require("./logger.js");
 let storage = null;
@@ -15,10 +16,19 @@ module.exports = {
     const object = filePath.split("/").slice(1).join("/");
 
     logger.log(`Checking version for ${bucket}/${object}`);
+
     return storage.bucket(bucket)
     .file(object)
     .getMetadata({fields: "generation"})
-    .then(result=>result[0].generation);
+    .then(result=>result[0].generation)
+    .catch(err=>{
+      if (err && err.code === NOT_FOUND) {
+        logger.log(`Setting version "0" for not found object ${bucket}/${object}`);
+        return "0";
+      }
+
+      return Promise.reject(err);
+    });
   },
   getFiles(folder) {
     validate(folder);

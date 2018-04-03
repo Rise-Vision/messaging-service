@@ -48,14 +48,13 @@ describe("WATCH : Integration", ()=>{
     .then(lastChanged => assert.equal(lastChanged, fakeTimestamp));
   });
 
-  it("returns error if invalid filePath requested", ()=>{
-    const notFound = 404;
+  it("returns error if non-existent filePath requested", ()=>{
     simple.mock(displayConnections, "sendMessage");
 
     return watch.doOnIncomingPod({displayId, filePath: invalidFilePath, version})
     .then(()=>{
       const response = displayConnections.sendMessage.lastCall.args[1];
-      assert.equal(response.error, notFound);
+      assert.equal(response.version, "0");
     })
   });
 

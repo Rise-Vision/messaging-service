@@ -24,15 +24,11 @@ describe("GCS : Integration", ()=>{
       });
     });
 
-    it("throws on 404", ()=>{
-      const NOT_FOUND = 404;
+    it("Returns version 0 on 404", ()=>{
       const filePath = "messaging-service-test-bucket/nonexistent-file";
 
-      return version(filePath)
-      .then(()=>Promise.reject(Error("Should not have resolved here")))
-      .catch(err=>{
-        if (err.message.startsWith("Should not have")) {throw Error("Fail");}
-        assert.equal(err.code, NOT_FOUND);
+      return version(filePath).then(ver=>{
+        assert.equal(ver, "0");
       });
     });
   });
