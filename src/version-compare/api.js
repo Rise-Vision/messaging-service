@@ -9,7 +9,7 @@ module.exports = {
     .then(version=>version ||
       gcs.version(filePath).then(md.setFileVersion.bind(null, filePath)))
     .then((version)=>({
-      matched: version === checkVersion, version, filePath, displayId
+      matched: version === checkVersion || version === "0", version, filePath, displayId
     }));
   }
 };
