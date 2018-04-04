@@ -16,7 +16,9 @@ module.exports = {
         Promise.resolve({}) : db.watchList.get(displayId))
       .then(watchlist => {
         const message = {
-          topic: "watchlist-result", watchlist, lastChanged: msLastChanged
+          topic: "watchlist-result",
+          watchlist: watchlist || {},
+          lastChanged: msLastChanged
         };
 
         return displayConnections.sendMessage(displayId, message);
