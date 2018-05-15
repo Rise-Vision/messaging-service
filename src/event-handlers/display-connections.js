@@ -12,7 +12,7 @@ module.exports = {
     sparks.set(displayId, spark);
     db.connections.setConnected(displayId).catch(console.error);
 
-    logger.log(`Added spark for ${displayId}`);
+    logger.log(`Added spark for ${displayId} ${spark.id}`);
   },
   remove(spark) {
     if (!spark || !spark.query) {return;}
@@ -23,7 +23,7 @@ module.exports = {
     sparks.delete(displayId);
     db.connections.setDisconnected(displayId).catch(console.error);
 
-    logger.log(`Removed spark for ${displayId}`);
+    logger.log(`Removed spark for ${displayId} ${spark.id}`);
   },
   sendMessage(displayId, msg) {
     logger.log(`Sending ${JSON.stringify(msg)} to ${displayId}`);
