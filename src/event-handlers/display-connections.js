@@ -25,6 +25,14 @@ module.exports = {
 
     logger.log(`Removed spark for ${displayId} ${spark.id}`);
   },
+  recordHeartbeat(spark) {
+    if (!spark || !spark.query) {return;}
+    const displayId = spark.query.displayId === "apps" ?
+      spark.id :
+      spark.query.displayId;
+
+    db.connections.recordHeartbeat(displayId).catch(console.error);
+  },
   sendMessage(displayId, msg) {
     logger.log(`Sending ${JSON.stringify(msg)} to ${displayId}`);
 

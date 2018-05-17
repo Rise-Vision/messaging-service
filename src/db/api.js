@@ -142,7 +142,7 @@ module.exports = {
         [setStringCommand, `lastConnection:${displayId}`, Date.now()]
       ]);
     },
-    setHeartbeat(displayId) {
+    recordHeartbeat(displayId) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.setString(`connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds);
