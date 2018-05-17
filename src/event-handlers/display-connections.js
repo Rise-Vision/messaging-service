@@ -20,6 +20,8 @@ module.exports = {
       spark.id :
       spark.query.displayId;
 
+    if (sparks.get(displayId) !== spark) {return;}
+
     sparks.delete(displayId);
     db.connections.setLastConnected(displayId).catch(console.error);
 
