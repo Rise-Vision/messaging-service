@@ -147,7 +147,7 @@ module.exports = {
 
       return redis.setString(`connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds);
     },
-    setDisconnected(displayId) {
+    setLastConnected(displayId) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.setString(`lastConnection:${displayId}`, Date.now());
