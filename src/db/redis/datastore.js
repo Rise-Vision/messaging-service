@@ -51,8 +51,8 @@ module.exports = {
   getString(key) {
     return promisified.get(key);
   },
-  setString(key, str) {
-    return promisified.set(key, str);
+  setString(...args) {
+    return promisified.set(...args);
   },
   eraseEntireDb() {
     return promisified.flushall();
