@@ -9,6 +9,7 @@ let promisified = ["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hde
 module.exports = {
   initdb(dbclient = null) {
     client = dbclient || redis.createClient({host: redisHost});
+    if (!dbclient) {client.on("error", console.error);}
 
     if (!Array.isArray(promisified)) {return;}
 
