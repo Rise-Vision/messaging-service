@@ -13,6 +13,9 @@ function init() {
   pub = redis.createClient({host: redisHost});
   sub = redis.createClient({host: redisHost});
 
+  pub.on("error", console.error);
+  sub.on("error", console.error);
+
   sub.subscribe(channel);
   sub.on("message", (ch, msg)=>{
     logger.log(`Received from REDIS PUBSUB: ${msg}`);
