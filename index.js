@@ -29,6 +29,8 @@ app.get("/messaging", function(req, res) {
   res.send(`Messaging Service: ${podname} ${pkg.version}`);
 });
 
+app.get("/", (req, res)=>res.end());
+
 app.get("/messaging/core", coreGET);
 
 app.post("/messaging/pubsub", jsonParser, pubsubConnectorPOST);
