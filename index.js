@@ -14,16 +14,21 @@ const jsonParser = require("body-parser").json();
 const server = http.createServer(app);
 const redisPubsub = require("./src/redis-pubsub");
 const datastore = require("./src/db/redis/datastore");
+const dbApi = require("./src/db/api");
 const pkg = require("./package.json");
 const logger = require("./src/logger");
 const gcs = require("./src/gcs");
 const handlers = require("./src/event-handlers/messages");
+const heartbeatExpiryPingMultiple = 1.5;
+const MStoS = 1000;
 
 process.on("SIGUSR2", logger.debugToggle);
 Error.stackTraceLimit = 50;
 
 const primus = new Primus(server, {transformer: "uws", pathname: "messaging/primus"});
 primusSetup.init(primus);
+
+dbApi.setHeartbeatExpirySeconds(primus.options.pingInterval * heartbeatExpiryPingMultiple / MStoS);
 
 app.get("/messaging", function(req, res) {
   res.send(`Messaging Service: ${podname} ${pkg.version}`);
