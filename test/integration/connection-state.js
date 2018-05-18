@@ -3,6 +3,7 @@ const assert = require("assert");
 const gcs = require("../../src/gcs.js");
 const request = require("request-promise-native");
 const datastore = require("../../src/db/redis/datastore.js");
+const dbApi = require("../../src/db/api.js");
 const simple = require("simple-mock");
 const testPort = 9228;
 const Primus = require("primus");
@@ -17,6 +18,7 @@ let testMSConnections = null;
 describe("MS Connection State : Integration", ()=>{
   before(()=>{
     simple.mock(gcs, "init").returnWith();
+    dbApi.setHeartbeatExpirySeconds(1); // eslint-disable-line no-magic-numbers
     return datastore.eraseEntireDb();
   });
 
@@ -31,7 +33,7 @@ describe("MS Connection State : Integration", ()=>{
       return Promise.resolve()
       .then(confirmIdNotInDB(displayId))
       .then(()=>connectToMS([displayId]))
-      .then(waitRedisUpdate)
+      .then(waitRedisUpdate.bind(null, 300)) // eslint-disable-line no-magic-numbers
       .then(confirmIdInDB(displayId))
       .then(disconnectFromMS)
       .then(waitRedisUpdate)
@@ -50,15 +52,15 @@ describe("MS Connection State : Integration", ()=>{
       console.log(`Connecting to http with ${JSON.stringify(presenceCheck, null, 2)}`); // eslint-disable-line
 
       return connectToMS(testIds)
-      .then(waitRedisUpdate)
+      .then(waitRedisUpdate.bind(null, 300)) // eslint-disable-line no-magic-numbers
       .then(()=>request(presenceCheck))
       .then(resp=>{
         console.log("presence response:");
         console.dir(resp);
         assert(testIds.every(id=>resp[id].connected));
       })
-      .then(()=>disconnectFromMS(1))
-      .then(waitRedisUpdate)
+      .then(()=>connectToMS([testIds[0]]))
+      .then(waitRedisUpdate.bind(null, 900)) // eslint-disable-line no-magic-numbers
       .then(()=>request(presenceCheck))
       .then(resp=>{
         console.log("presence response:");
@@ -75,8 +77,10 @@ describe("MS Connection State : Integration", ()=>{
 
 function confirmIdNotInDB(displayId) {
   return function() {
-    return datastore.getSet("connections:id")
-    .then(ids=>assert(!ids.includes(displayId)));
+    console.log(`checking db for absence of ${displayId}`);
+
+    return datastore.getString(`connections:id:${displayId}`)
+    .then(val=>{console.log(val); assert(!val)});
   }
 }
 
@@ -91,15 +95,16 @@ function connectToMS(ids) {
   return Promise.resolve();
 }
 
-function waitRedisUpdate() {
-  const redisUpdateDelay = 200;
+function waitRedisUpdate(delay) {
+  const redisUpdateDelay = delay || 1200; // eslint-disable-line no-magic-numbers
   return new Promise(res=>setTimeout(res, redisUpdateDelay));
 }
 
 function confirmIdInDB(displayId) {
   return function() {
-    return datastore.getSet("connections:id")
-    .then(ids=>assert(ids.includes(displayId)));
+    console.log(`checking db for existence of ${displayId}`);
+    return datastore.getString(`connections:id:${displayId}`)
+    .then(val=>{console.log(val); assert(val);});
   }
 }
 

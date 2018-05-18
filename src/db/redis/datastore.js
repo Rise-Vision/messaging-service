@@ -9,6 +9,7 @@ let promisified = ["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hde
 module.exports = {
   initdb(dbclient = null) {
     client = dbclient || redis.createClient({host: redisHost});
+    if (!dbclient) {client.on("error", console.error);}
 
     if (!Array.isArray(promisified)) {return;}
 
@@ -51,8 +52,8 @@ module.exports = {
   getString(key) {
     return promisified.get(key);
   },
-  setString(key, str) {
-    return promisified.set(key, str);
+  setString(...args) {
+    return promisified.set(...args);
   },
   eraseEntireDb() {
     return promisified.flushall();

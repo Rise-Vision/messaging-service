@@ -30,6 +30,10 @@ module.exports = {
         displayConnections.remove(spark);
       });
 
+      spark.on("heartbeat", ()=>{
+        displayConnections.recordHeartbeat(spark);
+      });
+
       if (spark.query.displayId === "apps") {
         spark.write({"msg": "client-connected", "clientId": spark.id});
       }

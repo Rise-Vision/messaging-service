@@ -12,7 +12,7 @@ module.exports = {
     sparks.set(displayId, spark);
     db.connections.setConnected(displayId).catch(console.error);
 
-    logger.log(`Added spark for ${displayId}`);
+    logger.log(`Added spark for ${displayId} ${spark.id}`);
   },
   remove(spark) {
     if (!spark || !spark.query) {return;}
@@ -20,10 +20,20 @@ module.exports = {
       spark.id :
       spark.query.displayId;
 
-    sparks.delete(displayId);
-    db.connections.setDisconnected(displayId).catch(console.error);
+    if (sparks.get(displayId) !== spark) {return;}
 
-    logger.log(`Removed spark for ${displayId}`);
+    sparks.delete(displayId);
+    db.connections.setLastConnected(displayId).catch(console.error);
+
+    logger.log(`Removed spark for ${displayId} ${spark.id}`);
+  },
+  recordHeartbeat(spark) {
+    if (!spark || !spark.query) {return;}
+    const displayId = spark.query.displayId === "apps" ?
+      spark.id :
+      spark.query.displayId;
+
+    db.connections.recordHeartbeat(displayId).catch(console.error);
   },
   sendMessage(displayId, msg) {
     logger.log(`Sending ${JSON.stringify(msg)} to ${displayId}`);

@@ -1,14 +1,20 @@
 const {basename, dirname} = require("path");
+const logger = require("../logger");
 const redis = require("./redis/datastore.js");
 
 const getSetCommand = "getSet";
 const patchHashCommand = "patchHash";
 const removeHashFieldCommand = "removeHashField";
 const setAddCommand = "setAdd";
-const setRemoveCommand = "setRemove";
 const setStringCommand = "setString";
 
+let heartbeatExpirySeconds = null;
+
 module.exports = {
+  setHeartbeatExpirySeconds(seconds) {
+    heartbeatExpirySeconds = seconds;
+    logger.log(`Heartbeat records expire in ${heartbeatExpirySeconds} seconds`);
+  },
   fileMetadata: {
     addDisplayTo(filePath, displayId) {
       if (!filePath || !displayId) {throw Error("missing params");}
@@ -132,20 +138,22 @@ module.exports = {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.multi([
-        [setAddCommand, "connections:id", displayId],
+        [setStringCommand, `connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds],
         [setStringCommand, `lastConnection:${displayId}`, Date.now()]
       ]);
     },
-    setDisconnected(displayId) {
+    recordHeartbeat(displayId) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
-      return redis.multi([
-        [setRemoveCommand, "connections:id", displayId],
-        [setStringCommand, `lastConnection:${displayId}`, Date.now()]
-      ]);
+      return redis.setString(`connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds);
+    },
+    setLastConnected(displayId) {
+      if (!displayId) {return Promise.reject(Error("missing displayId"));}
+
+      return redis.setString(`lastConnection:${displayId}`, Date.now());
     },
     getPresence(ids) {
-      return redis.multi(ids.map(id=>["setIsMember", "connections:id", id]))
+      return redis.multi(ids.map(id=>["getString", `connections:id:${id}`]))
       .then(resp=>resp.reduce((obj, bool, idx)=>{
         return {
           ...obj,
