@@ -11,7 +11,11 @@ describe("FOLDER-WATCH : Integration", ()=>{
   const folderPath = "messaging-service-test-bucket/test-folder/"
   const filePath1 = "messaging-service-test-bucket/test-folder/test-file-for-update.txt";
   const filePath2 = "messaging-service-test-bucket/test-folder/test-file.txt";
+  const subfolderPath = "messaging-service-test-bucket/test-folder/sub-folder/"
+  const subfolderFilePath1 = "messaging-service-test-bucket/test-folder/sub-folder/test-file-in-subfolder-1.txt";
+  const subfolderFilePath2 = "messaging-service-test-bucket/test-folder/sub-folder/test-file-in-subfolder-2.txt";
   const fileVersion = "1509655894026319";
+  const subfolderFileVersion = "1527709322293602";
   const displayId = "test-display-id";
   const fakeTimestamp = 123456;
   const fakeTimestamp2 = 234567;
@@ -79,23 +83,55 @@ describe("FOLDER-WATCH : Integration", ()=>{
     .then(lastChanged=>{
       assert.equal(lastChanged, fakeTimestamp2);
     });
-
-    function verifyReply(id, replyCount, lastChanged) {
-      const [repliedTo, reply] = displayConnections.sendMessage.lastCall.args;
-
-      assert.equal(displayConnections.sendMessage.callCount, replyCount);
-      assert.equal(repliedTo, id);
-      assert.equal(reply.msg, "ok");
-      assert.equal(reply.topic, "watch-result");
-      assert.equal(reply.folderData.length, 2); // eslint-disable-line no-magic-numbers
-      assert.equal(reply.watchlistLastChanged, lastChanged);
-
-      assert(reply.folderData.some(entry=>entry.filePath.includes(filePath1)));
-      assert(reply.folderData.some(entry=>entry.filePath.includes(filePath2)));
-      assert(reply.folderData.some(entry=>entry.version.includes(fileVersion)));
-      assert(reply.folderData.some(entry=>!entry.version.includes(fileVersion)));
-      assert(reply.folderData.some(entry=>entry.token.data.filePath.includes(filePath1)));
-      assert(reply.folderData.some(entry=>entry.token.data.filePath.includes(filePath2)));
-    }
   });
+
+  it("works for subfolders", ()=>{
+    simple.mock(Date, "now").returnWith(fakeTimestamp);
+    simple.mock(gcs, "getFiles");
+    simple.mock(md, "addDisplayToMany");
+    simple.mock(md, "setMultipleFileVersions");
+    simple.mock(watchList, "putFolder");
+    simple.mock(displayConnections, "sendMessage");
+    simple.mock(folders, "addFileNames");
+    simple.mock(folders, "filePathsAndVersionsFor");
+
+    return folderWatch.doOnIncomingPod({displayId, filePath: subfolderPath})
+    .then(()=>{
+      assert(gcs.getFiles.called);
+      assert(md.setMultipleFileVersions.called);
+      assert(md.addDisplayToMany.called);
+      assert(watchList.putFolder.called);
+      assert(folders.addFileNames.called);
+      verifyReply(displayId, 1, fakeTimestamp, true);
+    });
+  });
+
+  function verifyReply(id, replyCount, lastChanged, folder = false) { // eslint-disable-line max-params
+    const [repliedTo, reply] = displayConnections.sendMessage.lastCall.args;
+
+    let file1 = filePath1;
+    let file2 = filePath2;
+    let version = fileVersion;
+
+    if (folder) {
+      file1 = subfolderFilePath1;
+      file2 = subfolderFilePath2;
+      version = subfolderFileVersion;
+    }
+
+    assert.equal(displayConnections.sendMessage.callCount, replyCount);
+    assert.equal(repliedTo, id);
+    assert.equal(reply.msg, "ok");
+    assert.equal(reply.topic, "watch-result");
+    assert.equal(reply.folderData.length, 2); // eslint-disable-line no-magic-numbers
+    assert.equal(reply.watchlistLastChanged, lastChanged);
+
+    console.dir(reply.folderData);
+    assert(reply.folderData.some(entry=>entry.filePath.includes(file1)));
+    assert(reply.folderData.some(entry=>entry.filePath.includes(file2)));
+    assert(reply.folderData.some(entry=>entry.version.includes(version)));
+    assert(reply.folderData.some(entry=>!entry.version.includes(version)));
+    assert(reply.folderData.some(entry=>entry.token.data.filePath.includes(file1)));
+    assert(reply.folderData.some(entry=>entry.token.data.filePath.includes(file2)));
+  }
 });

@@ -47,12 +47,14 @@ function existingFolder(folderPath) {
 }
 
 function newFolder(folderPath) {
+  const bucket = folderPath.split("/")[0];
+
   return gcs.getFiles(folderPath)
   .then(objectNamesAndVersions=>{
     const filePathsAndVersions = objectNamesAndVersions
     .map(({name, generation})=>{
       return {
-        filePath: `${folderPath}${name.split("/")[1]}`,
+        filePath: `${bucket}/${name}`,
         version: generation
       };
     });
