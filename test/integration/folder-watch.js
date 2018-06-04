@@ -14,6 +14,8 @@ describe("FOLDER-WATCH : Integration", ()=>{
   const subfolderPath = "messaging-service-test-bucket/test-folder/sub-folder/"
   const subfolderFilePath1 = "messaging-service-test-bucket/test-folder/sub-folder/test-file-in-subfolder-1.txt";
   const subfolderFilePath2 = "messaging-service-test-bucket/test-folder/sub-folder/test-file-in-subfolder-2.txt";
+  const missingFolderPath = "messaging-service-test-bucket/test-folder-not-exist/"
+  const emptyFolderPath = "messaging-service-test-bucket/test-folder-empty/"
   const fileVersion = "1509655894026319";
   const subfolderFileVersion = "1527709322293602";
   const displayId = "test-display-id";
@@ -103,6 +105,48 @@ describe("FOLDER-WATCH : Integration", ()=>{
       assert(watchList.putFolder.called);
       assert(folders.addFileNames.called);
       verifyReply(displayId, 1, fakeTimestamp, true);
+    });
+  });
+
+  it("indicates missing on watch for nonexistant folder", ()=>{
+    simple.mock(Date, "now").returnWith(fakeTimestamp);
+    simple.mock(gcs, "getFiles");
+    simple.mock(md, "addDisplayToMany");
+    simple.mock(md, "setMultipleFileVersions");
+    simple.mock(watchList, "putFolder");
+    simple.mock(displayConnections, "sendMessage");
+    simple.mock(folders, "addFileNames");
+    simple.mock(folders, "filePathsAndVersionsFor");
+
+    return folderWatch.doOnIncomingPod({displayId, filePath: missingFolderPath})
+    .then(()=>{
+      assert(gcs.getFiles.called);
+      assert(!md.setMultipleFileVersions.called);
+      assert(!md.addDisplayToMany.called);
+      assert(!watchList.putFolder.called);
+      assert(!folders.addFileNames.called);
+      assert(displayConnections.sendMessage.lastCall.args[1].errorMsg.includes("NOEXIST"));
+    });
+  });
+
+  it("indicates empty on watch for empty folder", ()=>{
+    simple.mock(Date, "now").returnWith(fakeTimestamp);
+    simple.mock(gcs, "getFiles");
+    simple.mock(md, "addDisplayToMany");
+    simple.mock(md, "setMultipleFileVersions");
+    simple.mock(watchList, "putFolder");
+    simple.mock(displayConnections, "sendMessage");
+    simple.mock(folders, "addFileNames");
+    simple.mock(folders, "filePathsAndVersionsFor");
+
+    return folderWatch.doOnIncomingPod({displayId, filePath: emptyFolderPath})
+    .then(()=>{
+      assert(gcs.getFiles.called);
+      assert(!md.setMultipleFileVersions.called);
+      assert(!md.addDisplayToMany.called);
+      assert(!watchList.putFolder.called);
+      assert(!folders.addFileNames.called);
+      assert(displayConnections.sendMessage.lastCall.args[1].errorMsg.includes("EMPTYFOLDER"));
     });
   });
 

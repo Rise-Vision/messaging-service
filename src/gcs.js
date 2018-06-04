@@ -40,9 +40,20 @@ module.exports = {
       delimiter: "/",
       fields: "items(name,generation)"
     })
-    .then(files=>files[0]
-    .filter(file=>!file.name.endsWith("/"))
-    .map(fileObject=>fileObject.metadata));
+    .then(files=>{
+      if (files[0].length === 0) {
+        return Promise.reject(Error("NOEXIST"))
+      }
+
+      const nonFolderFiles = files[0]
+      .filter(file=>!file.name.endsWith("/"));
+
+      if (nonFolderFiles.length === 0) {
+        return Promise.reject(Error("EMPTYFOLDER"));
+      }
+
+      return nonFolderFiles.map(fileObject=>fileObject.metadata);
+    });
   }
 };
 
