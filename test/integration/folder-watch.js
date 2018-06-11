@@ -37,8 +37,9 @@ describe("FOLDER-WATCH : Integration", ()=>{
 
   it("indicates whether a folder is being watched", ()=>{
     const mockFolderPath = "my-test-bucket/my-test-folder/";
+    const mockDisplayId = "ABC123";
 
-    return redis.setString(`folders:${mockFolderPath}`, "")
+    return redis.setAdd(`meta:${mockFolderPath}:displays`, [mockDisplayId])
     .then(()=>folders.watchingFolder(mockFolderPath))
     .then(watching=>assert.equal(watching, 1));
   });
