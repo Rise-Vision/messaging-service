@@ -16,6 +16,10 @@ module.exports = {
       return watching ? existingFolder(folderPath) : newFolder(folderPath);
     })
     .then(filePathsAndVersions=>{
+      if (!filePathsAndVersions.length) {
+        return Promise.reject(Error("EMPTYFOLDER"));
+      }
+
       return Promise.all([
         md.addDisplayToMany(filePathsAndVersions, displayId),
         watchList.putFolder(filePathsAndVersions, displayId)
