@@ -2,7 +2,6 @@ const {basename, dirname} = require("path");
 const logger = require("../logger");
 const redis = require("./redis/datastore.js");
 
-const getSetCommand = "getSet";
 const patchHashCommand = "patchHash";
 const removeHashFieldCommand = "removeHashField";
 const setAddCommand = "setAdd";
@@ -44,10 +43,10 @@ module.exports = {
 
       const folderPath = `${dirname(filePath)}/`;
 
-      return redis.multi([
-        [getSetCommand, `meta:${filePath}:displays`],
-        [getSetCommand, `meta:${folderPath}:displays`]
-      ]).then(resp=>resp[0].concat(resp[1]));
+      return redis.setUnion([
+        `meta:${filePath}:displays`,
+        `meta:${folderPath}:displays`
+      ]);
     },
     getFileVersion(filePath) {
       if (!filePath) {throw Error("missing params");}

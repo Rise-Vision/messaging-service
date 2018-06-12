@@ -4,7 +4,7 @@ const gkeHostname = "display-ms-redis-master";
 const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 
 let client = null;
-let promisified = ["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hdel", "smembers", "flushall", "sismember", "exists"];
+let promisified = ["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hdel", "smembers", "flushall", "sismember", "exists", "sunion"];
 
 module.exports = {
   initdb(dbclient = null) {
@@ -20,6 +20,10 @@ module.exports = {
   setAdd(key, vals) {
     if (!Array.isArray(vals)) {throw Error("expected array");}
     return promisified.sadd(key, ...vals);
+  },
+  setUnion(keys) {
+    if (!Array.isArray(keys)) {throw Error("expected array");}
+    return promisified.sunion(...keys);
   },
   setHas(key, val) {
     return promisified.sismember(key, val);
