@@ -207,7 +207,7 @@ module.exports = {
         filePathOrFolderPath :
         `${dirname(filePathOrFolderPath)}/`;
 
-      return redis.keyExists(`folders:${folderPath}`);
+      return redis.keyExists(`meta:${folderPath}:displays`);
     }
   }
 };

@@ -11,12 +11,12 @@ describe("WATCH (FOLDER)", ()=>{
   beforeEach(()=>{
     simple.mock(displayConnections, "sendMessage").returnWith(true);
     simple.mock(db.fileMetadata, "addDisplayTo").returnWith(true);
-    simple.mock(db.fileMetadata, "addDisplayToMany").callFn(input=>input);
-    simple.mock(db.fileMetadata, "setMultipleFileVersions").resolveWith(true);
+    simple.mock(db.fileMetadata, "addDisplayToMany").callFn(input=>Promise.resolve(input));
+    simple.mock(db.fileMetadata, "setMultipleFileVersions").callFn(input=>Promise.resolve(input));
     simple.mock(db.watchList, "put").returnWith(true);
-    simple.mock(db.watchList, "putFolder").returnWith(true);
+    simple.mock(db.watchList, "putFolder").callFn(input=>Promise.resolve(input));
     simple.mock(db.watchList, "lastChanged").resolveWith("123456");
-    simple.mock(db.folders, "addFileNames").returnWith([]);
+    simple.mock(db.folders, "addFileNames").callFn((path, input)=>Promise.resolve(input));
     simple.mock(db.folders, "filePathsAndVersionsFor").returnWith([]);
     simple.mock(versionCompare, "compare").resolveWith({matched: true});
   });
