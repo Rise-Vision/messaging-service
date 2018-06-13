@@ -75,7 +75,11 @@ workflows:
   version: 2
   workflow1:
     jobs:
-      - "test"
+      - "test":
+          filters:
+            branches:
+              ignore:
+                - /^doc\/.*/
       - "build_image":
           requires:
             - test
