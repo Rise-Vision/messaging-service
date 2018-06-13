@@ -3,6 +3,7 @@
 
 const assert = require("assert");
 const simple = require("simple-mock");
+const {dirname} = require("path");
 
 const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore");
@@ -58,4 +59,24 @@ describe("DB API : Integration", ()=>{
     });
   });
 
+  describe("getWatchersFor", ()=>{
+    it("gets watchers as a combination of folder watchers and file watchers", ()=>{
+      const filePath = "bucket/folder/file";
+      const testDisplayIds = ["ABCD", "EFGH", "IJKL"];
+
+      return setUpDBWithWatchEntries()
+      .then(()=>{
+        return dbApi.fileMetadata.getWatchersFor(filePath)
+        .then(watchers=>assert.deepEqual(watchers.sort, testDisplayIds.sort));
+      });
+
+      function setUpDBWithWatchEntries() {
+        const keyForFileWatchers = `meta:${filePath}:displays`;
+        const keyForFolderWatchers = `meta:${dirname(filePath)}/:displays`;
+
+        return datastore.setAdd(keyForFileWatchers, testDisplayIds)
+        .then(()=>datastore.setAdd(keyForFolderWatchers, testDisplayIds));
+      }
+    });
+  });
 });
