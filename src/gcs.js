@@ -19,8 +19,14 @@ module.exports = {
 
     return storage.bucket(bucket)
     .file(object)
-    .getMetadata({fields: "generation"})
-    .then(result=>result[0].generation)
+    .getMetadata({fields: "generation,metadata"})
+    .then(result=> {
+      const {generation, metadata} = result[0];
+      if (metadata && metadata.trashed === 'true') {
+        return Promise.reject(new Error("File is trashed"));
+      }
+      return generation;
+    })
     .catch(err=>{
       if (err && err.code === NOT_FOUND) {
         logger.log(`Setting version "0" for not found object ${bucket}/${object}`);

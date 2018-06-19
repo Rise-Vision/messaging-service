@@ -14,6 +14,16 @@ describe("GCS : Integration", ()=>{
       assert.throws(version.bind(null, "test-bucket-missing-file/"), /params/);
     });
 
+    it("rejects on trashed file", ()=>{
+      const filePath = "messaging-service-test-bucket/trashed-file.txt";
+
+      return version(filePath)
+      .then(() => assert.fail("should have been rejected"))
+      .catch(err=>{
+        assert.equal(err.message, "File is trashed");
+      });
+    });
+
     it("retrieves generation", ()=>{
       const filePath = "messaging-service-test-bucket/test-folder/test-file.txt";
       const expectedVersion = "1509655894026319";
