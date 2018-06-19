@@ -44,21 +44,25 @@ module.exports = {
     .getFiles({
       prefix: folder.split("/").slice(1).join("/"),
       delimiter: "/",
-      fields: "items(name,generation)"
+      fields: "items(name,generation,metadata)"
     })
     .then(files=>{
       if (files[0].length === 0) {
         return Promise.reject(Error("NOEXIST"))
       }
 
-      const nonFolderFiles = files[0]
-      .filter(file=>!file.name.endsWith("/"));
+      const folderFiles = files[0]
+      .filter(file=>!file.name.endsWith("/"))
+      .filter(file=>{
+        const metadata = file.metadata && file.metadata.metadata;
+        return !metadata || metadata.trashed !== 'true';
+      });
 
-      if (nonFolderFiles.length === 0) {
+      if (folderFiles.length === 0) {
         return Promise.reject(Error("EMPTYFOLDER"));
       }
 
-      return nonFolderFiles.map(fileObject=>fileObject.metadata);
+      return folderFiles.map(fileObject=>fileObject.metadata);
     });
   }
 };

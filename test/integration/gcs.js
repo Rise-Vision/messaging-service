@@ -44,9 +44,19 @@ describe("GCS : Integration", ()=>{
   });
 
   describe("Folder fetch", ()=>{
+
     it("retrieves a list of files from a folder", ()=>{
       return getFiles("messaging-service-test-bucket/test-folder/");
     });
+
+    it("should not include trashed files in the list of files from a folder", ()=>{
+      return getFiles("messaging-service-test-bucket/test-folder/")
+      .then(files => {
+        const trashed = files.find(file => file.name === 'test-folder/trashed-file.txt');
+        assert.equal(trashed, undefined); // eslint-disable-line no-undefined
+      });
+    });
+
     it("expects subfolders to be each individually requested", ()=>{
       return getFiles("messaging-service-test-bucket/test-folder/")
       .then(files=>{
