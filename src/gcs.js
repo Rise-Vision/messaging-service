@@ -51,18 +51,18 @@ module.exports = {
         return Promise.reject(Error("NOEXIST"))
       }
 
-      const folderFiles = files[0]
+      const regularFiles = files[0]
       .filter(file=>!file.name.endsWith("/"))
       .filter(file=>{
         const metadata = file.metadata && file.metadata.metadata;
         return !metadata || metadata.trashed !== 'true';
       });
 
-      if (folderFiles.length === 0) {
+      if (regularFiles.length === 0) {
         return Promise.reject(Error("EMPTYFOLDER"));
       }
 
-      return folderFiles.map(fileObject=>fileObject.metadata);
+      return regularFiles.map(fileObject=>fileObject.metadata);
     });
   }
 };
