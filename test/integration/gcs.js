@@ -14,6 +14,16 @@ describe("GCS : Integration", ()=>{
       assert.throws(version.bind(null, "test-bucket-missing-file/"), /params/);
     });
 
+    it("rejects on trashed file", ()=>{
+      const filePath = "messaging-service-test-bucket/trashed-file.txt";
+
+      return version(filePath)
+      .then(() => assert.fail("should have been rejected"))
+      .catch(err=>{
+        assert.equal(err.message, "File is trashed");
+      });
+    });
+
     it("retrieves generation", ()=>{
       const filePath = "messaging-service-test-bucket/test-folder/test-file.txt";
       const expectedVersion = "1509655894026319";
@@ -34,9 +44,19 @@ describe("GCS : Integration", ()=>{
   });
 
   describe("Folder fetch", ()=>{
+
     it("retrieves a list of files from a folder", ()=>{
       return getFiles("messaging-service-test-bucket/test-folder/");
     });
+
+    it("should not include trashed files in the list of files from a folder", ()=>{
+      return getFiles("messaging-service-test-bucket/test-folder/")
+      .then(files => {
+        const trashed = files.find(file => file.name === 'test-folder/trashed-file.txt');
+        assert.equal(trashed, undefined); // eslint-disable-line no-undefined
+      });
+    });
+
     it("expects subfolders to be each individually requested", ()=>{
       return getFiles("messaging-service-test-bucket/test-folder/")
       .then(files=>{

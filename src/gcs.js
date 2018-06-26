@@ -19,8 +19,14 @@ module.exports = {
 
     return storage.bucket(bucket)
     .file(object)
-    .getMetadata({fields: "generation"})
-    .then(result=>result[0].generation)
+    .getMetadata({fields: "generation,metadata"})
+    .then(result=> {
+      const {generation, metadata} = result[0];
+      if (metadata && metadata.trashed === 'true') {
+        return Promise.reject(new Error("File is trashed"));
+      }
+      return generation;
+    })
     .catch(err=>{
       if (err && err.code === NOT_FOUND) {
         logger.log(`Setting version "0" for not found object ${bucket}/${object}`);
@@ -38,21 +44,25 @@ module.exports = {
     .getFiles({
       prefix: folder.split("/").slice(1).join("/"),
       delimiter: "/",
-      fields: "items(name,generation)"
+      fields: "items(name,generation,metadata)"
     })
     .then(files=>{
       if (files[0].length === 0) {
         return Promise.reject(Error("NOEXIST"))
       }
 
-      const nonFolderFiles = files[0]
-      .filter(file=>!file.name.endsWith("/"));
+      const regularFiles = files[0]
+      .filter(file=>!file.name.endsWith("/"))
+      .filter(file=>{
+        const metadata = file.metadata && file.metadata.metadata;
+        return !metadata || metadata.trashed !== 'true';
+      });
 
-      if (nonFolderFiles.length === 0) {
+      if (regularFiles.length === 0) {
         return Promise.reject(Error("EMPTYFOLDER"));
       }
 
-      return nonFolderFiles.map(fileObject=>fileObject.metadata);
+      return regularFiles.map(fileObject=>fileObject.metadata);
     });
   }
 };

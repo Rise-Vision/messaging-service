@@ -1,5 +1,6 @@
 /* eslint-env mocha */
 const assert = require("assert");
+const redis = require("../../src/db/redis/datastore");
 const fileUpdateHandler = require("../../src/event-handlers/messages/gcs-file-update");
 const simple = require("simple-mock");
 const db = require("../../src/db/api");
@@ -15,6 +16,13 @@ describe("Pub/sub Update", ()=>{
   };
 
   const watchers = ["d1", "d2"];
+
+  before(() => {
+    redis.initdb(["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hdel", "smembers", "flushall", "sismember", "exists", "sunion"]
+    .reduce((obj, el)=>{
+      return Object.assign(obj, {[el]: simple.stub().callbackWith(null, "ok")});
+    }, {}));
+  });
 
   beforeEach(()=>{
     simple.mock(db.fileMetadata, "getWatchersFor").resolveWith(watchers);
@@ -32,16 +40,15 @@ describe("Pub/sub Update", ()=>{
 
   it("returns immediately if there is no metadata for the file", ()=>{
     simple.mock(db.fileMetadata, "hasMetadata").resolveWith(false);
+    simple.mock(db.folders, "addFileToFolder").callFn(input=>input);
     return fileUpdateHandler.doOnIncomingPod(testIncomingADDMessage)
     .then(()=>{
-      assert([
-        db.fileMetadata.getWatchersFor.callCount,
-        db.fileMetadata.deleteMetadata.callCount,
-        db.fileMetadata.setFileVersion.callCount,
-        db.watchList.removeEntry.callCount,
-        db.watchList.updateVersion.callCount,
-        displayConnections.sendMessage.callCount
-      ].every(callCount=>callCount === 0));
+      assert.equal(db.fileMetadata.getWatchersFor.callCount, 0);
+      assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
+      assert.equal(db.fileMetadata.setFileVersion.callCount, 0);
+      assert.equal(db.watchList.removeEntry.callCount, 0);
+      assert.equal(db.watchList.updateVersion.callCount, 0);
+      assert.equal(displayConnections.sendMessage.callCount, 0);
     });
   });
 
@@ -53,11 +60,9 @@ describe("Pub/sub Update", ()=>{
     return fileUpdateHandler.doOnIncomingPod(testIncomingADDMessage)
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
-      assert([
-        db.fileMetadata.deleteMetadata.callCount,
-        db.watchList.removeEntry.callCount,
-        displayConnections.sendMessage.callCount
-      ].every(callCount=>callCount === 0));
+      assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
+      assert.equal(db.watchList.removeEntry.callCount, 0);
+      assert.equal(displayConnections.sendMessage.callCount, 0);
     });
   });
 
@@ -90,12 +95,10 @@ describe("Pub/sub Update", ()=>{
         assert.equal(message.watchlistLastChanged, displayNumber);
       });
 
-      assert([
-        db.fileMetadata.deleteMetadata.callCount,
-        db.fileMetadata.setFileVersion.callCount,
-        db.watchList.removeEntry.callCount,
-        db.watchList.updateVersion.callCount
-      ].every(callCount=>callCount === 0));
+      assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
+      assert.equal(db.fileMetadata.setFileVersion.callCount, 0);
+      assert.equal(db.watchList.removeEntry.callCount, 0);
+      assert.equal(db.watchList.updateVersion.callCount, 0);
     });
   });
 
@@ -136,10 +139,8 @@ describe("Pub/sub Update", ()=>{
           assert.equal(message.watchlistLastChanged, lastChangedMap[displayId]);
         });
 
-        assert([
-          db.fileMetadata.setFileVersion.callCount,
-          db.watchList.updateVersion.callCount
-        ].every(callCount=>callCount === 0));
+        assert.equal(db.fileMetadata.setFileVersion.callCount, 0);
+        assert.equal(db.watchList.updateVersion.callCount, 0);
       });
     });
 
@@ -165,14 +166,14 @@ describe("Pub/sub Update", ()=>{
           assert.equal(message.watchlistLastChanged, lastChangedMap[displayId]);
         });
 
-        assert([
-          db.fileMetadata.deleteMetadata.callCount,
-          db.watchList.removeEntry.callCount
-        ].every(callCount=>callCount === 0));
+        assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
+        assert.equal(db.watchList.removeEntry.callCount, 0);
       });
     });
 
     it("updates db on ADD", () => {
+      simple.mock(db.folders, "addFileToFolder").callFn(input=>input);
+
       return fileUpdateHandler.doOnIncomingPod(testIncomingADDMessage)
       .then(()=>{
         assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
@@ -192,10 +193,8 @@ describe("Pub/sub Update", ()=>{
           assert.equal(message.watchlistLastChanged, lastChangedMap[displayId]);
         });
 
-        assert([
-          db.fileMetadata.deleteMetadata.callCount,
-          db.watchList.removeEntry.callCount
-        ].every(callCount=>callCount === 0));
+        assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
+        assert.equal(db.watchList.removeEntry.callCount, 0);
       });
     });
   });
