@@ -14,13 +14,13 @@ describe("GCS : Integration", ()=>{
       assert.throws(version.bind(null, "test-bucket-missing-file/"), /params/);
     });
 
-    it("rejects on trashed file", ()=>{
+    it("returns NOEXIST on trashed file", ()=>{
       const filePath = "messaging-service-test-bucket/trashed-file.txt";
 
       return version(filePath)
       .then(() => assert.fail("should have been rejected"))
       .catch(err=>{
-        assert.equal(err.message, "File is trashed");
+        assert.equal(err.message, "NOEXIST");
       });
     });
 
@@ -34,11 +34,13 @@ describe("GCS : Integration", ()=>{
       });
     });
 
-    it("Returns version 0 on 404", ()=>{
+    it("returns NOEXIST on 404", ()=>{
       const filePath = "messaging-service-test-bucket/nonexistent-file";
 
-      return version(filePath).then(ver=>{
-        assert.equal(ver, "0");
+      return version(filePath)
+      .then(() => assert.fail("should have been rejected"))
+      .catch(err=>{
+        assert.equal(err.message, "NOEXIST");
       });
     });
   });

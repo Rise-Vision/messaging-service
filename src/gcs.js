@@ -23,14 +23,15 @@ module.exports = {
     .then(result=> {
       const {generation, metadata} = result[0];
       if (metadata && metadata.trashed === 'true') {
-        return Promise.reject(new Error("File is trashed"));
+        logger.log(`File ${bucket}/${object} is trashed, returning NOEXIST error`);
+        return Promise.reject(Error("NOEXIST"));
       }
       return generation;
     })
     .catch(err=>{
       if (err && err.code === NOT_FOUND) {
-        logger.log(`Setting version "0" for not found object ${bucket}/${object}`);
-        return "0";
+        logger.log(`File ${bucket}/${object} not found, returning NOEXIST error`);
+        return Promise.reject(Error("NOEXIST"));
       }
 
       return Promise.reject(err);
