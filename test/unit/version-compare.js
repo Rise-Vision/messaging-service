@@ -94,4 +94,19 @@ describe("Version Compare", () => {
     });
   });
 
+  it("should reject with NOEXIST error when version is 0 in the database", () => {
+    const entry = {displayId: "OM2310SH3299", version: "1", filePath: "test-bucket/test-file.png"};
+
+    simple.mock(db.fileMetadata, "getFileVersion").resolveWith("0");
+    simple.mock(gcs, "version").rejectWith(new Error("NOEXIST"));
+    simple.mock(db.fileMetadata, "setFileVersion").resolveWith("0");
+
+    return versionCompare.compare(entry)
+    .then(() => assert.fail("should have been rejected"))
+    .catch(err => {
+      assert.equal(err.message, "NOEXIST");
+      assert.equal(db.fileMetadata.setFileVersion.called, false);
+    });
+  });
+
 });
