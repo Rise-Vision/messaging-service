@@ -54,7 +54,7 @@ describe("WATCH : Integration", ()=>{
     return watch.doOnIncomingPod({displayId, filePath: invalidFilePath, version})
     .then(()=>{
       const response = displayConnections.sendMessage.lastCall.args[1];
-      assert.equal(response.version, "0");
+      assert.equal(response.error, "NOEXIST");
     })
   });
 
