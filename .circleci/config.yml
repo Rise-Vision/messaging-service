@@ -76,10 +76,6 @@ workflows:
   workflow1:
     jobs:
       - "test":
-          filters:
-            branches:
-              ignore:
-                - /^doc\/.*/
       - "build_image":
           requires:
             - test
