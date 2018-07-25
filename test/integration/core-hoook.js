@@ -6,6 +6,7 @@ const simple = require("simple-mock");
 const BAD_REQUEST = 400;
 const NOT_AUTHORIZED = 403;
 const screenshotHandler = require("../../src/event-handlers/messages/screenshot-request");
+const debugDataRequest = require("../../src/event-handlers/messages/debug-data-request");
 
 describe("Webhooks : CORE : GET", ()=>{
   it("expects msg parameter", ()=>{
@@ -111,6 +112,18 @@ describe("Webhooks : CORE : GET", ()=>{
     })
     .then(()=>{
       assert(screenshotHandler.doOnIncomingPod.called)
+    });
+  });
+
+  it("responds ok and calls event handler for debug-data-request", ()=>{
+    simple.mock(debugDataRequest, "doOnIncomingPod").returnWith();
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/core?msg=debug-data-request&did=ABCDE&sk=TEST`,
+      json: true
+    })
+    .then(()=>{
+      assert(debugDataRequest.doOnIncomingPod.called)
     });
   });
 });
