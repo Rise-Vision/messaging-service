@@ -75,7 +75,7 @@ workflows:
   version: 2
   workflow1:
     jobs:
-      - "test":
+      - "test"
       - "build_image":
           requires:
             - test
