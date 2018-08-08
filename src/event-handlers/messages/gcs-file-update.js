@@ -49,7 +49,7 @@ module.exports = {
 };
 
 function addIntoFolder(data) {
-  if (data.type !== "ADD") {return Promise.resolve(data);}
+  if (!["ADD", "UPDATE"].includes(data.type)) {return Promise.resolve(data);}
 
   return db.folders.watchingFolder(data.filePath)
   .then(watching=>{
