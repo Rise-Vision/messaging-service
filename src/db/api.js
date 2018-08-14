@@ -75,7 +75,7 @@ module.exports = {
       }));
     },
     deleteMetadata(filePath) {
-      return redis.deleteKey([`meta:${filePath}:displays`, `meta:${filePath}:version`]);
+      return redis.deleteKeys([`meta:${filePath}:displays`, `meta:${filePath}:version`]);
     },
     hasMetadata(filePath) {
       return redis.hasKey(`meta:${filePath}:version`);
@@ -207,6 +207,14 @@ module.exports = {
         `${dirname(filePathOrFolderPath)}/`;
 
       return redis.keyExists(`meta:${folderPath}:displays`);
+    },
+    folderHasBeenReset(folderPath) {
+      return redis.setHas(`folders:cleared`, folderPath)
+    },
+    clearFolderFiles(folderPath) {
+      return redis.deleteKeys([`folders:${folderPath}`])
+      .then(()=>redis.setAdd(`folders:cleared`, [folderPath]))
+      .then(()=>folderPath)
     }
   }
 };
