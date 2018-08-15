@@ -28,7 +28,8 @@ module.exports = {
   setHas(key, val) {
     return promisified.sismember(key, val);
   },
-  deleteKey(keys) {
+  deleteKeys(keys) {
+    if (!Array.isArray(keys)) {throw Error("expected array");}
     return promisified.del(...keys);
   },
   removeHashField(key, field) {

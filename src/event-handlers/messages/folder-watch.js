@@ -47,13 +47,23 @@ module.exports = {
 };
 
 function existingFolder(folderPath) {
-  return folders.filePathsAndVersionsFor(folderPath);
+  return folders.folderHasBeenReset(folderPath)
+  .then(alreadyReset=>{
+    return alreadyReset ? folders.filePathsAndVersionsFor(folderPath) :
+    resetFolder(folderPath)
+  })
+}
+
+function resetFolder(folderPath) {
+  return folders.clearFolderFiles(folderPath)
+  .then(newFolder)
 }
 
 function newFolder(folderPath) {
   const bucket = folderPath.split("/")[0];
 
-  return gcs.getFiles(folderPath)
+  return folders.clearFolderFiles(folderPath)
+  .then(gcs.getFiles)
   .then(objectNamesAndVersions=>{
     const filePathsAndVersions = objectNamesAndVersions
     .map(({name, generation})=>{

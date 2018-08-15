@@ -44,6 +44,27 @@ describe("FOLDER-WATCH : Integration", ()=>{
     .then(watching=>assert.equal(watching, 1));
   });
 
+  it("indicates whether a folder has been reset", ()=>{
+    const mockFolderPath = "my-test-bucket/my-test-folder/";
+
+    return redis.setAdd(`folders:cleared`, [mockFolderPath])
+    .then(()=>folders.folderHasBeenReset(mockFolderPath))
+    .then(reset=>assert(reset))
+  });
+
+  it("clears folder files", ()=>{
+    const mockFolderPath = "my-test-bucket/my-test-folder/";
+
+    return redis.setAdd(`folders:${mockFolderPath}`, ['test-folder'])
+    .then(()=>redis.keyExists(`folders:${mockFolderPath}`))
+    .then(exists=>assert(exists))
+    .then(()=>folders.clearFolderFiles(mockFolderPath))
+    .then(()=>redis.keyExists(`folders:${mockFolderPath}`))
+    .then(exists=>assert(!exists))
+    .then(()=>redis.setHas(`folders:cleared`, mockFolderPath))
+    .then(has=>assert(has))
+  });
+
   it("saves a new folder, on subsequent call returns existing data without gcs fetch", ()=>{
     simple.mock(Date, "now").returnWith(fakeTimestamp);
     simple.mock(gcs, "getFiles");
