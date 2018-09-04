@@ -80,7 +80,11 @@ function getWatchers(data) {
 
 function deleteEntry(data) {
   logger.log(`Removing entry for ${JSON.stringify(data)}`);
-  return db.folders.removeFileFromFolder(data.filePath).then(()=>data);
+  return Promise.all([
+    db.folders.removeFileFromFolder(data.filePath),
+    db.fileMetadata.setFileVersion(data.filePath, "0")
+  ])
+  .then(()=>data);
 }
 
 function updateEntry(data) {

@@ -137,7 +137,7 @@ describe("Pub/sub Update", ()=>{
           assert.equal(message.watchlistLastChanged, lastChangedMap[displayId]);
         });
 
-        assert.equal(db.fileMetadata.setFileVersion.callCount, 0);
+        assert.equal(db.fileMetadata.setFileVersion.callCount, 1);
         assert.equal(db.watchList.updateVersion.callCount, 0);
       });
     });
