@@ -22,55 +22,6 @@ describe("GCS File Update : Integration", ()=>{
 
   afterEach(() => simple.restore());
 
-  it("deletes from watchlist and metadata on DELETE message type", ()=>{
-    const filePath = "my-bucket/my-file";
-    const version = "12345";
-    const displayId = "test-id";
-
-    return dbApi.watchList.updateLastChanged(displayId)
-    .then(() => {
-      simple.mock(Date, "now").returnWith(fakeTimestamp);
-
-      return dbApi.watchList.put({filePath, version, displayId});
-    })
-    .then(datastore.getHash.bind(null, `watch:${displayId}`))
-    .then(map=> {
-      assert.deepEqual(map, {[filePath]: version});
-
-      return dbApi.watchList.lastChanged(displayId);
-    })
-    .then(lastChanged => {
-      assert.equal(lastChanged, fakeTimestamp);
-
-      return dbApi.fileMetadata.addDisplayTo(filePath, displayId)
-      .then(dbApi.fileMetadata.setFileVersion.bind(null, filePath, version));
-    })
-    .then(datastore.getSet.bind(null, `meta:${filePath}:displays`))
-    .then(set=>assert(set.includes(displayId)))
-    .then(datastore.getString.bind(null, `meta:${filePath}:version`))
-    .then(dbVersion=>assert.equal(dbVersion, version))
-    .then(()=>{
-      simple.mock(Date, "now").returnWith(fakeTimestamp2);
-
-      return fileUpdateHandler.doOnIncomingPod({
-        filePath,
-        version,
-        type: "DELETE",
-        podname: process.env.podname
-      })
-    })
-    .then(()=>{
-      return datastore.getHash(`watch:${displayId}`)
-      .then(map=>assert.deepEqual(map, null))
-      .then(datastore.getSet.bind(null, `meta:${filePath}:displays`))
-      .then(set=>assert(!set.includes(displayId)))
-      .then(datastore.getString.bind(null, `meta:${filePath}:version`))
-      .then(dbVersion=>assert(!dbVersion));
-    })
-    .then(() => dbApi.watchList.lastChanged(displayId))
-    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp2));
-  });
-
   it("saves to watchlist and metadata on ADD/UPDATE message type", ()=>{
     const filePath = "my-bucket/my-file";
     const version = "12345";
@@ -181,11 +132,11 @@ describe("GCS File Update : Integration", ()=>{
     .then(map=>{
       assert.equal(map[preExistingGCSFile], preExistingGCSFileVersion);
       assert.equal(map[folderPathToWatch], "0");
-      assert(!map[newFile]);
+      assert.equal(map[newFile], "12345");
     })
     .then(datastore.getSet.bind(null, `meta:${newFile}:displays`))
-    .then(set=>assert(!set.includes(displayId)))
+    .then(set=>assert(set.includes(displayId)))
     .then(() => dbApi.watchList.lastChanged(displayId))
-    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp3));
+    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp2));
   });
 });

@@ -123,8 +123,6 @@ describe("Pub/sub Update", ()=>{
       return fileUpdateHandler.doOnIncomingPod(delPodMsg)
       .then(()=>{
         assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
-        assert.equal(db.fileMetadata.deleteMetadata.callCount, 1);
-        assert.equal(db.watchList.removeEntry.callCount, 1);
         assert.equal(displayConnections.sendMessage.callCount, watchers.length);
 
         displayConnections.sendMessage.calls.forEach(call => {
