@@ -81,7 +81,11 @@ function getWatchers(data) {
 function deleteEntry(data) {
   logger.log(`Removing entry for ${JSON.stringify(data)}`);
   return Promise.all([
-    db.folders.removeFileFromFolder(data.filePath),
+    db.folders.removeFileFromFolder(data.filePath).then(removeCount => {
+      if (removeCount > 0) {
+        return db.watchList.removeEntry(data.filePath, data.watchers);
+      }
+    }),
     db.fileMetadata.setFileVersion(data.filePath, "0")
   ])
   .then(()=>data);

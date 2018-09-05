@@ -132,11 +132,11 @@ describe("GCS File Update : Integration", ()=>{
     .then(map=>{
       assert.equal(map[preExistingGCSFile], preExistingGCSFileVersion);
       assert.equal(map[folderPathToWatch], "0");
-      assert.equal(map[newFile], "12345");
+      assert.ok(!map[newFile]);
     })
     .then(datastore.getSet.bind(null, `meta:${newFile}:displays`))
     .then(set=>assert(set.includes(displayId)))
     .then(() => dbApi.watchList.lastChanged(displayId))
-    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp2));
+    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp3));
   });
 });
