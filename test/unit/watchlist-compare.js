@@ -46,6 +46,7 @@ describe("watchlist-compare : Unit", ()=>{
     };
 
     beforeEach(() => {
+      simple.mock(db.watchList, "clearDeleted").resolveWith();
       simple.mock(db.watchList, "lastChanged").resolveWith("123456");
       simple.mock(db.watchList, "get").resolveWith(mockWatchlist);
 

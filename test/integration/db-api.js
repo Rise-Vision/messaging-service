@@ -57,6 +57,69 @@ describe("DB API : Integration", ()=>{
       .then(() => dbApi.watchList.lastChanged("ABC124"))
       .then(lastChanged => assert.equal(lastChanged, fakeTimestamp));
     });
+
+    it("clears deleted entries", () => {
+      const entries = [
+        {filePath: "bucket/file1", version: "1", displayId: "ABC124"},
+        {filePath: "bucket/file1", version: "1", displayId: "ABC123"},
+        {filePath: "bucket/file2", version: "0", displayId: "ABC124"},
+        {filePath: "bucket/file3", version: "0", displayId: "ABC124"},
+        {filePath: "bucket/file3", version: "0", displayId: "ABC123"}
+      ];
+
+      const displayId = "ABC124";
+
+      const addEntry = entry => Promise.all([
+        dbApi.watchList.put(entry),
+        dbApi.fileMetadata.addDisplayTo(entry.filePath, entry.displayId),
+        dbApi.fileMetadata.setFileVersion(entry.filePath, entry.version)
+      ]);
+
+      return Promise.all(entries.map(addEntry))
+      .then(() => dbApi.watchList.clearDeleted(displayId))
+      .then(() => dbApi.watchList.get(displayId))
+      .then(watchlist => {
+        assert.deepEqual(watchlist, {
+          "bucket/file1": "1"
+        })
+      });
+    });
+
+    it("clears deleted entries and file metadata entries when there is no watcher", () => {
+      const entries = [
+        {filePath: "bucket/file1", version: "1", displayId: "ABC124"},
+        {filePath: "bucket/file1", version: "1", displayId: "ABC123"},
+        {filePath: "bucket/file2", version: "0", displayId: "ABC124"},
+        {filePath: "bucket/file3", version: "0", displayId: "ABC124"},
+        {filePath: "bucket/file3", version: "0", displayId: "ABC123"}
+      ];
+
+      const displayId = "ABC124";
+
+      const addEntry = entry => Promise.all([
+        dbApi.watchList.put(entry),
+        dbApi.fileMetadata.addDisplayTo(entry.filePath, entry.displayId),
+        dbApi.fileMetadata.setFileVersion(entry.filePath, entry.version)
+      ]);
+
+      return Promise.all(entries.map(addEntry))
+      .then(() => dbApi.watchList.clearDeleted(displayId))
+      .then(() => {
+        return dbApi.fileMetadata.hasMetadata("bucket/file2").then(hasMetadata => assert.equal(hasMetadata, 0));
+      })
+      .then(() => {
+        return dbApi.fileMetadata.hasMetadata("bucket/file3").then(hasMetadata => assert.equal(hasMetadata, 1));
+      })
+      .then(() => {
+        return dbApi.fileMetadata.hasMetadata("bucket/file1").then(hasMetadata => assert.equal(hasMetadata, 1));
+      })
+      .then(() => {
+        return dbApi.fileMetadata.getWatchersFor("bucket/file2").then(watchers => assert.equal(watchers.length, 0));
+      })
+      .then(() => {
+        return dbApi.fileMetadata.getWatchersFor("bucket/file3").then(watchers => assert.deepEqual(watchers, ["ABC123"]));
+      });
+    });
   });
 
   describe("getWatchersFor", ()=>{

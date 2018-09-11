@@ -1,6 +1,6 @@
 const {basename, dirname} = require("path");
 const logger = require("../logger");
-const redis = require("./redis/datastore.js");
+const redis = require("./redis/datastore");
 
 const patchHashCommand = "patchHash";
 const removeHashFieldCommand = "removeHashField";
@@ -77,6 +77,19 @@ module.exports = {
     deleteMetadata(filePath) {
       return redis.deleteKeys([`meta:${filePath}:displays`, `meta:${filePath}:version`]);
     },
+    removeDisplay(filePath, displayId) {
+      console.log('fileMetadata remove display', filePath, displayId);
+      return redis.setRemove(`meta:${filePath}:displays`, [displayId])
+      .then(() => redis.setCount(`meta:${filePath}:displays`))
+      .then(count => {
+        console.log('fileMetadata remove display count', count);
+        if (count === 0) {
+          console.log(`deleting fileMetadata meta:${filePath}:displays, meta:${filePath}:version`);
+          return module.exports.fileMetadata.deleteMetadata(filePath);
+        }
+        return Promise.resolve();
+      });
+    },
     hasMetadata(filePath) {
       return redis.hasKey(`meta:${filePath}:version`);
     }
@@ -105,7 +118,7 @@ module.exports = {
       .then(()=>module.exports.watchList.updateLastChanged(displayId))
       .then(()=>filePathsAndVersions);
     },
-    removeEntry(filePath, displays) {
+    removeEntry(filePath, displays) { // eslint-disable TODO remove
       const lastChanged = Date.now();
 
       return redis.multi(displays.map(display=>{
@@ -113,6 +126,23 @@ module.exports = {
       }).concat(displays.map(display=>{
         return [setStringCommand, `last_changed:${display}`, lastChanged];
       })));
+    },
+    clearDeleted(displayId) {
+      return redis.getHash(`watch:${displayId}`)
+      .then(watchlist => {
+        const deletedEntries = Object.entries(watchlist).filter(([filePath, version]) => version === "0"); // eslint-disable-line no-unused-vars
+        const pathsToDelete = deletedEntries.map(([filePath]) => filePath);
+        return redis.removeHashFields(`watch:${displayId}`, pathsToDelete)
+        .then(removed => {
+          if (removed > 0) {
+            return redis.setString(`last_changed:${displayId}`, Date.now());
+          }
+        })
+        .then(() => deletedEntries);
+      })
+      .then(entries => {
+        return Promise.all(entries.map(([filePath]) => module.exports.fileMetadata.removeDisplay(filePath, displayId)));
+      });
     },
     updateVersion(filePath, version, displays) {
       const patch = {[filePath]: version};
