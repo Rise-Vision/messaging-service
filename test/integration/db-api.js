@@ -58,7 +58,7 @@ describe("DB API : Integration", ()=>{
       .then(lastChanged => assert.equal(lastChanged, fakeTimestamp));
     });
 
-    it("clears deleted entries", () => {
+    it("should unwatch entries", () => {
       const entries = [
         {filePath: "bucket/file1", version: "1", displayId: "ABC124"},
         {filePath: "bucket/file1", version: "1", displayId: "ABC123"},
@@ -76,16 +76,16 @@ describe("DB API : Integration", ()=>{
       ]);
 
       return Promise.all(entries.map(addEntry))
-      .then(() => dbApi.watchList.clearDeleted(displayId))
+      .then(() => dbApi.watchList.unwatch(displayId, ["bucket/file2", "bucket/file3"]))
       .then(() => dbApi.watchList.get(displayId))
       .then(watchlist => {
         assert.deepEqual(watchlist, {
           "bucket/file1": "1"
-        })
+        });
       });
     });
 
-    it("clears deleted entries and file metadata entries when there is no watcher", () => {
+    it("should delete file metadata entries on unwatch when there is no other watcher", () => {
       const entries = [
         {filePath: "bucket/file1", version: "1", displayId: "ABC124"},
         {filePath: "bucket/file1", version: "1", displayId: "ABC123"},
@@ -103,7 +103,7 @@ describe("DB API : Integration", ()=>{
       ]);
 
       return Promise.all(entries.map(addEntry))
-      .then(() => dbApi.watchList.clearDeleted(displayId))
+      .then(() => dbApi.watchList.unwatch(displayId, ["bucket/file2", "bucket/file3"]))
       .then(() => {
         return dbApi.fileMetadata.hasMetadata("bucket/file2").then(hasMetadata => assert.equal(hasMetadata, 0));
       })

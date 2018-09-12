@@ -124,23 +124,6 @@ module.exports = {
         return [setStringCommand, `last_changed:${display}`, lastChanged];
       })));
     },
-    clearDeleted(displayId) {
-      return redis.getHash(`watch:${displayId}`)
-      .then(watchlist => {
-        const deletedEntries = Object.entries(watchlist).filter(([filePath, version]) => version === "0"); // eslint-disable-line no-unused-vars
-        const pathsToDelete = deletedEntries.map(([filePath]) => filePath);
-        return redis.removeHashFields(`watch:${displayId}`, pathsToDelete)
-        .then(removed => {
-          if (removed > 0) {
-            return redis.setString(`last_changed:${displayId}`, Date.now());
-          }
-        })
-        .then(() => deletedEntries);
-      })
-      .then(entries => {
-        return Promise.all(entries.map(([filePath]) => module.exports.fileMetadata.removeDisplay(filePath, displayId)));
-      });
-    },
     unwatch(displayId, filePaths) {
       return redis.removeHashFields(`watch:${displayId}`, filePaths)
         .then(removed => {
