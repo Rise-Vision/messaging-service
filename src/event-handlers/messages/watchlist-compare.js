@@ -10,8 +10,7 @@ module.exports = {
   doOnIncomingPod(data) {
     const {displayId, lastChanged} = data;
 
-    return db.watchList.clearDeleted(displayId)
-    .then(() => db.watchList.lastChanged(displayId))
+    return db.watchList.lastChanged(displayId)
     .then(msLastChanged =>
       (lastChanged === msLastChanged ?
         Promise.resolve({}) : db.watchList.get(displayId))
