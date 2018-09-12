@@ -144,6 +144,17 @@ module.exports = {
         return Promise.all(entries.map(([filePath]) => module.exports.fileMetadata.removeDisplay(filePath, displayId)));
       });
     },
+    unwatch(displayId, filePaths) {
+      return redis.removeHashFields(`watch:${displayId}`, filePaths)
+        .then(removed => {
+          if (removed > 0) {
+            return redis.setString(`last_changed:${displayId}`, Date.now());
+          }
+        })
+        .then(() => {
+          return Promise.all(filePaths.map(filePath => module.exports.fileMetadata.removeDisplay(filePath, displayId)));
+        });
+    },
     updateVersion(filePath, version, displays) {
       const patch = {[filePath]: version};
       const lastChanged = Date.now();
