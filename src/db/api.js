@@ -3,7 +3,6 @@ const logger = require("../logger");
 const redis = require("./redis/datastore");
 
 const patchHashCommand = "patchHash";
-const removeHashFieldCommand = "removeHashField";
 const setAddCommand = "setAdd";
 const setStringCommand = "setString";
 
@@ -114,15 +113,6 @@ module.exports = {
       return redis.patchHash(`watch:${displayId}`, multipleEntryObj)
       .then(()=>module.exports.watchList.updateLastChanged(displayId))
       .then(()=>filePathsAndVersions);
-    },
-    removeEntry(filePath, displays) { // eslint-disable TODO remove
-      const lastChanged = Date.now();
-
-      return redis.multi(displays.map(display=>{
-        return [removeHashFieldCommand, `watch:${display}`, filePath];
-      }).concat(displays.map(display=>{
-        return [setStringCommand, `last_changed:${display}`, lastChanged];
-      })));
     },
     unwatch(displayId, filePaths) {
       return redis.removeHashFields(`watch:${displayId}`, filePaths)
