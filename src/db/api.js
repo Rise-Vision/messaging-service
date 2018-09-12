@@ -78,13 +78,10 @@ module.exports = {
       return redis.deleteKeys([`meta:${filePath}:displays`, `meta:${filePath}:version`]);
     },
     removeDisplay(filePath, displayId) {
-      console.log('fileMetadata remove display', filePath, displayId);
       return redis.setRemove(`meta:${filePath}:displays`, [displayId])
       .then(() => redis.setCount(`meta:${filePath}:displays`))
       .then(count => {
-        console.log('fileMetadata remove display count', count);
         if (count === 0) {
-          console.log(`deleting fileMetadata meta:${filePath}:displays, meta:${filePath}:version`);
           return module.exports.fileMetadata.deleteMetadata(filePath);
         }
         return Promise.resolve();
