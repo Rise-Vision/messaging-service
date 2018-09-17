@@ -28,7 +28,6 @@ describe("Pub/sub Update", ()=>{
     simple.mock(db.fileMetadata, "getWatchersFor").resolveWith(watchers);
     simple.mock(db.fileMetadata, "setFileVersion").resolveWith();
     simple.mock(db.fileMetadata, "deleteMetadata").resolveWith();
-    simple.mock(db.watchList, "removeEntry").resolveWith();
     simple.mock(db.watchList, "updateVersion").resolveWith();
     simple.mock(displayConnections, "sendMessage").returnWith();
     simple.mock(logger, "log").returnWith();
@@ -46,7 +45,6 @@ describe("Pub/sub Update", ()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 0);
       assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
       assert.equal(db.fileMetadata.setFileVersion.callCount, 0);
-      assert.equal(db.watchList.removeEntry.callCount, 0);
       assert.equal(db.watchList.updateVersion.callCount, 0);
       assert.equal(displayConnections.sendMessage.callCount, 0);
     });
@@ -61,7 +59,6 @@ describe("Pub/sub Update", ()=>{
     .then(()=>{
       assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
       assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
-      assert.equal(db.watchList.removeEntry.callCount, 0);
       assert.equal(displayConnections.sendMessage.callCount, 0);
     });
   });
@@ -97,7 +94,6 @@ describe("Pub/sub Update", ()=>{
 
       assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
       assert.equal(db.fileMetadata.setFileVersion.callCount, 0);
-      assert.equal(db.watchList.removeEntry.callCount, 0);
       assert.equal(db.watchList.updateVersion.callCount, 0);
     });
   });
@@ -123,8 +119,6 @@ describe("Pub/sub Update", ()=>{
       return fileUpdateHandler.doOnIncomingPod(delPodMsg)
       .then(()=>{
         assert.equal(db.fileMetadata.getWatchersFor.callCount, 1);
-        assert.equal(db.fileMetadata.deleteMetadata.callCount, 1);
-        assert.equal(db.watchList.removeEntry.callCount, 1);
         assert.equal(displayConnections.sendMessage.callCount, watchers.length);
 
         displayConnections.sendMessage.calls.forEach(call => {
@@ -139,7 +133,7 @@ describe("Pub/sub Update", ()=>{
           assert.equal(message.watchlistLastChanged, lastChangedMap[displayId]);
         });
 
-        assert.equal(db.fileMetadata.setFileVersion.callCount, 0);
+        assert.equal(db.fileMetadata.setFileVersion.callCount, 1);
         assert.equal(db.watchList.updateVersion.callCount, 0);
       });
     });
@@ -167,7 +161,6 @@ describe("Pub/sub Update", ()=>{
         });
 
         assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
-        assert.equal(db.watchList.removeEntry.callCount, 0);
       });
     });
 
@@ -194,7 +187,6 @@ describe("Pub/sub Update", ()=>{
         });
 
         assert.equal(db.fileMetadata.deleteMetadata.callCount, 0);
-        assert.equal(db.watchList.removeEntry.callCount, 0);
       });
     });
   });

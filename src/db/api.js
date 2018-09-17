@@ -1,9 +1,8 @@
 const {basename, dirname} = require("path");
 const logger = require("../logger");
-const redis = require("./redis/datastore.js");
+const redis = require("./redis/datastore");
 
 const patchHashCommand = "patchHash";
-const removeHashFieldCommand = "removeHashField";
 const setAddCommand = "setAdd";
 const setStringCommand = "setString";
 
@@ -77,6 +76,16 @@ module.exports = {
     deleteMetadata(filePath) {
       return redis.deleteKeys([`meta:${filePath}:displays`, `meta:${filePath}:version`]);
     },
+    removeDisplay(filePath, displayId) {
+      return redis.setRemove(`meta:${filePath}:displays`, [displayId])
+      .then(() => redis.setCount(`meta:${filePath}:displays`))
+      .then(count => {
+        if (count === 0) {
+          return module.exports.fileMetadata.deleteMetadata(filePath);
+        }
+        return Promise.resolve();
+      });
+    },
     hasMetadata(filePath) {
       return redis.hasKey(`meta:${filePath}:version`);
     }
@@ -105,14 +114,16 @@ module.exports = {
       .then(()=>module.exports.watchList.updateLastChanged(displayId))
       .then(()=>filePathsAndVersions);
     },
-    removeEntry(filePath, displays) {
-      const lastChanged = Date.now();
-
-      return redis.multi(displays.map(display=>{
-        return [removeHashFieldCommand, `watch:${display}`, filePath];
-      }).concat(displays.map(display=>{
-        return [setStringCommand, `last_changed:${display}`, lastChanged];
-      })));
+    unwatch(displayId, filePaths) {
+      return redis.removeHashFields(`watch:${displayId}`, filePaths)
+        .then(removed => {
+          if (removed > 0) {
+            return redis.setString(`last_changed:${displayId}`, Date.now());
+          }
+        })
+        .then(() => {
+          return Promise.all(filePaths.map(filePath => module.exports.fileMetadata.removeDisplay(filePath, displayId)));
+        });
     },
     updateVersion(filePath, version, displays) {
       const patch = {[filePath]: version};
