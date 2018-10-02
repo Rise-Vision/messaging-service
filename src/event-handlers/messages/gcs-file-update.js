@@ -82,6 +82,7 @@ function deleteEntry(data) {
   logger.log(`Removing entry for ${JSON.stringify(data)}`);
   return Promise.all([
     db.folders.removeFileFromFolder(data.filePath),
+    db.watchList.updateVersion(data.filePath, "0", data.watchers),
     db.fileMetadata.setFileVersion(data.filePath, "0")
   ])
   .then(()=>data);

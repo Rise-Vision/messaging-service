@@ -137,6 +137,6 @@ describe("GCS File Update : Integration", ()=>{
     .then(datastore.getSet.bind(null, `meta:${newFile}:displays`))
     .then(set=>assert(set.includes(displayId)))
     .then(() => dbApi.watchList.lastChanged(displayId))
-    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp2));
+    .then(lastChanged => assert.equal(lastChanged, fakeTimestamp3));
   });
 });
