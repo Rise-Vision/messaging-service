@@ -29,7 +29,7 @@ describe("WATCH : Integration", ()=>{
     .then(redis.getHash.bind(null, `watch:${displayId}`))
     .then((reply)=>{
       assert.deepEqual(reply, {
-        [invalidFilePath]: version
+        [invalidFilePath]: "existing-file-metadata-version"
       });
     });
   });
