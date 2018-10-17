@@ -37,8 +37,12 @@ module.exports = {
     return Promise.all(asyncTasks)
     .then(all=>{
       const finalResult = all[asyncTasks.length - 1];
+      const watchlistUpdate = finalResult.token ?
+        db.watchList.put({filePath, displayId, version: finalResult.version}) :
+        Promise.resolve();
 
-      return db.watchList.lastChanged(displayId)
+      return watchlistUpdate
+      .then(()=>db.watchList.lastChanged(displayId))
       .then(watchlistLastChanged =>
         displayConnections.sendMessage(displayId, {
           msg: "ok",
