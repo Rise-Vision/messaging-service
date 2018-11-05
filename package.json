@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/Rise-Vision/messaging-service#readme",
   "dependencies": {
-    "@google-cloud/storage": "^1.4.0",
+    "@google-cloud/storage": "^2.3.0",
     "body-parser": "^1.18.2",
     "express": "^4.15.5",
     "gcs-filepath-validator": "^1.0.0",

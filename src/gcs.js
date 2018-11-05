@@ -1,11 +1,11 @@
 const NOT_FOUND = 404;
-const Storage = require("@google-cloud/storage");
+const {Storage} = require("@google-cloud/storage");
 const logger = require("./logger.js");
 let storage = null;
 
 module.exports = {
   init() {
-    storage = Storage({
+    storage = new Storage({
       projectId: "avid-life-623"
     });
   },
