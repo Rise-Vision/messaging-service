@@ -4,9 +4,9 @@
   "description": "Rise Vision Messaging Service",
   "main": "index.js",
   "scripts": {
-    "test": "eslint . && mocha -t 15000 -r test/mocha-env.js test/**",
-    "test-unit": "eslint . && mocha -t 15000 -r test/mocha-env.js test/unit/**",
-    "test-integration": "eslint . && mocha -t 15000 -r test/mocha-env.js test/integration/**",
+    "test": "eslint . && mocha --bail -t 15000 -r test/mocha-env.js test/**",
+    "test-unit": "eslint . && mocha --bail -t 15000 -r test/mocha-env.js test/unit/**",
+    "test-integration": "eslint . && mocha --bail -t 15000 -r test/mocha-env.js test/integration/**",
     "start": "node index.js",
     "dev": "MS_PORT=9009 NODE_ENV=test node index.js"
   },
@@ -30,7 +30,7 @@
     "gcs-filepath-validator": "^1.0.0",
     "primus": "^7.1.0",
     "redis": "^2.8.0",
-    "uws": "^10.148.0"
+    "ws": "^3.3.3"
   },
   "devDependencies": {
     "eslint": "^4.9.0",
@@ -43,7 +43,6 @@
     "request": "^2.83.0",
     "request-promise-native": "^1.0.5",
     "simple-mock": "^0.8.0",
-    "websocket": "^1.0.25",
-    "ws": "^3.3.2"
+    "websocket": "^1.0.28"
   }
 }

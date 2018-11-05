@@ -36,7 +36,7 @@ describe("MS Connection State : Integration", ()=>{
       .then(waitRedisUpdate.bind(null, 300)) // eslint-disable-line no-magic-numbers
       .then(confirmIdInDB(displayId))
       .then(disconnectFromMS)
-      .then(waitRedisUpdate)
+      .then(waitRedisUpdate.bind(null, 1000)) // eslint-disable-line no-magic-numbers
       .then(confirmIdNotInDB(displayId));
     });
 
