@@ -25,7 +25,7 @@ const MStoS = 1000;
 process.on("SIGUSR2", logger.debugToggle);
 Error.stackTraceLimit = 50;
 
-const primus = new Primus(server, {transformer: "uws", pathname: "messaging/primus"});
+const primus = new Primus(server, {transformer: "websockets", pathname: "messaging/primus"});
 primusSetup.init(primus);
 
 dbApi.setHeartbeatExpirySeconds(primus.options.pingInterval * heartbeatExpiryPingMultiple / MStoS);
