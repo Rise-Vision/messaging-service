@@ -8,9 +8,9 @@ module.exports = {
   init(primus) {
     primus.authorize((req, done)=>{
       const {displayId, machineId} = querystring.parse(url.parse(req.url).query);
-      const invalidIds = ["undefined", "null"];
-
-      if (!displayId || !machineId || [displayId, machineId].some(id=>invalidIds.includes(id))) {
+      const invalidIds = [displayId, machineId].every(id=>["undefined", "null"].includes(id));
+      const absentIds = !machineId && !displayId;
+      if (absentIds || invalidIds) {
         logger.log(`Missing connection parameters (displayId: ${displayId}, machineId: ${machineId})`);
         return done({
           statusCode: 400,
