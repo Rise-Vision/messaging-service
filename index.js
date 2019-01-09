@@ -11,6 +11,7 @@ const coreGET = require("./src/webhooks/core/get-handler");
 const presencePOST = require("./src/webhooks/presence/post-handler");
 const presenceOPTIONS = require("./src/webhooks/presence/options-handler");
 const activationPOST = require("./src/webhooks/display-activation/post-handler");
+const activationOPTIONS = require("./src/webhooks/display-activation/options-handler");
 const jsonParser = require("body-parser").json();
 const server = http.createServer(app);
 const redisPubsub = require("./src/redis-pubsub");
@@ -45,7 +46,7 @@ app.post("/messaging/presence", jsonParser, presencePOST);
 app.options("/messaging/presence", jsonParser, presenceOPTIONS);
 
 app.post("/messaging/activation", jsonParser, activationPOST);
-app.options("/messaging/activation", jsonParser, presenceOPTIONS);
+app.options("/messaging/activation", jsonParser, activationOPTIONS);
 
 server.on("close", ()=>{logger.log("closed");});
 server.listen(port, (err) => {
