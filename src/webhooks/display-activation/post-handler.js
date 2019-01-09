@@ -1,6 +1,7 @@
 const logger = require("../../logger.js");
 const displayConnections = require("../../event-handlers/display-connections");
 const BAD_REQUEST = 400;
+const OK = 200;
 const setCorsHeaders = require("../presence/set-cors-headers");
 
 module.exports = (req, resp) => {
@@ -15,5 +16,5 @@ module.exports = (req, resp) => {
 
   displayConnections.sendMessage(req.body.machineId, {topic: "display-activation", displayId: req.body.displayId});
 
-  resp.send("Message processed");
+  resp.status(OK).json({});
 };
