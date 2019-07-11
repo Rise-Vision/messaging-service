@@ -18,10 +18,12 @@ describe("Pub/sub Update", ()=>{
   const watchers = ["d1", "d2"];
 
   before(() => {
-    redis.initdb(["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hdel", "smembers", "flushall", "sismember", "exists", "sunion"]
+    redis.initdb(["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hdel", "smembers", "flushall", "sismember", "exists", "sunion", "scard"]
     .reduce((obj, el)=>{
       return Object.assign(obj, {[el]: simple.stub().callbackWith(null, "ok")});
-    }, {}));
+    }, {
+      multi() {return {exec(cb) {cb(false, "OK")}}}
+    }));
   });
 
   beforeEach(()=>{

@@ -1,5 +1,6 @@
 const db = require("../../db/api.js");
 const displayConnections = require("../display-connections");
+const logObjectLimit = 300;
 
 module.exports = {
   canHandle(data) {
@@ -11,10 +12,20 @@ module.exports = {
     const {displayId, lastChanged} = data;
 
     return db.watchList.lastChanged(displayId)
-    .then(msLastChanged =>
-      (lastChanged === msLastChanged ?
-        Promise.resolve({}) : db.watchList.get(displayId))
+    .then(msLastChanged => {
+      let watchlistPromise = null;
+
+      if (lastChanged === msLastChanged) {
+        console.log(`Watchlist for ${displayId} last changed match on ${lastChanged}`);
+        watchlistPromise = Promise.resolve({});
+      } else {
+        watchlistPromise = db.watchList.get(displayId);
+      }
+
+      return watchlistPromise
       .then(watchlist => {
+        console.log(`Returning watchlist for ${displayId} with last changed ${lastChanged} and msLastChanged ${msLastChanged}: ${JSON.stringify(watchlist).substring(0, logObjectLimit)}`);
+
         const message = {
           topic: "watchlist-result",
           watchlist: watchlist || {},
@@ -22,7 +33,8 @@ module.exports = {
         };
 
         return displayConnections.sendMessage(displayId, message);
-      }))
+      })
+    })
     .catch(error => console.error(displayId, error));
   }
 };
