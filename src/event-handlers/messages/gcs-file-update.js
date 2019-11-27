@@ -17,7 +17,9 @@ module.exports = {
       if (["ADD", "UPDATE"].includes(data.type)) {return updateEntry(data);}
     })
     .then(data=>{
-      if (!data.watchers.length) {return;}
+      if (!data.watchers.length) {
+        return logger.log(`No watchers ${JSON.stringify(data)}`);
+      }
 
       return module.exports.doOnAllPods(data)
       .then(() => redisPubsub.publishToPods(data));
