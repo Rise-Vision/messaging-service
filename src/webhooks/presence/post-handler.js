@@ -12,7 +12,7 @@ module.exports = (req, resp) => {
     return resp.status(BAD_REQUEST).send({error: errMsg});
   }
 
-  logger.log(`Received presence request: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
+  logger.debug(`Received presence request: ${JSON.stringify(req.body, null, 2)}`); // eslint-disable-line
 
   return db.connections.getPresence(req.body)
   .then(state=>resp.send(state))
