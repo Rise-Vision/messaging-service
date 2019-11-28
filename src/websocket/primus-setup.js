@@ -22,7 +22,7 @@ module.exports = {
     });
 
     primus.on("connection", (spark) => {
-      logger.log(`Spark connection from ${JSON.stringify(spark.address)}`);
+      logger.debug(`Spark connection from ${JSON.stringify(spark.address)}`);
 
       displayConnections.put(spark);
 
