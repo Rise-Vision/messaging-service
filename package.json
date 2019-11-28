@@ -26,9 +26,9 @@
   "dependencies": {
     "@google-cloud/storage": "^2.3.0",
     "body-parser": "^1.18.2",
-    "express": "^4.15.5",
+    "express": "^4.17.1",
     "gcs-filepath-validator": "^1.0.0",
-    "primus": "^7.1.0",
+    "primus": "^7.3.4",
     "redis": "^2.8.0",
     "ws": "^3.3.3"
   },
@@ -40,7 +40,7 @@
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
     "mocha": "^4.0.1",
-    "request": "^2.83.0",
+    "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "simple-mock": "^0.8.0",
     "websocket": "^1.0.28"
