@@ -10,6 +10,6 @@ module.exports = {
     console.log(data ? `${str}${JSON.stringify(data, 2, null)}` : str); // eslint-disable-line
   },
   log(str, data) {
-    console.log(data ? `${str}${JSON.stringify(data, 2, null)}` : str); // eslint-disable-line
+    console.log(data ? `${str}${JSON.stringify(data)}` : str); // eslint-disable-line
   }
 };
