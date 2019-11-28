@@ -1,5 +1,6 @@
 const db = require("../../db/api");
 const displayConnections = require("../display-connections");
+const logger = require("../../logger");
 
 module.exports = {
   canHandle(data) {
@@ -9,6 +10,8 @@ module.exports = {
   },
   doOnIncomingPod(data) {
     const {displayId, filePaths} = data;
+
+    logger.log(`Unwatch ${displayId} ${filePaths.join(',')}`);
 
     return db.watchList.unwatch(displayId, filePaths)
       .then(() => {

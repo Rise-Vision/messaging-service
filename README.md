@@ -6,7 +6,7 @@ Rise Vision Messaging Service
 
  - Debug logging can be enabled via `kill -s SIGUSR2 [pid]`
 
- - Attach to GKE pod via `kubectl exec -t -i [podname] bash after `kubectl get pods`
+ - Attach to GKE pod via `kubectl exec -t -i [podname] bash` after `kubectl get pods`
 
 ## Development
 
