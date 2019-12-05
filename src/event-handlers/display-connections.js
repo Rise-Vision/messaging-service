@@ -36,7 +36,7 @@ module.exports = {
     db.connections.recordHeartbeat(displayId).catch(console.error);
   },
   sendMessage(displayId, msg) {
-    logger.debug(`Sending ${JSON.stringify(msg)} to ${displayId}`);
+    logger.log(`Sending ${JSON.stringify(msg)} to ${displayId}`);
 
     const spark = sparks.get(displayId);
     if (!spark) {
