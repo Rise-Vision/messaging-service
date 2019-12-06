@@ -132,11 +132,14 @@ module.exports = {
       return redis.multi(displays.map(display=>{
         return [patchHashCommand, `watch:${display}`, patch];
       }).concat(displays.map(display=>{
+        logger.log(`Update last changed for ${display} with ${lastChanged}`);
         return [setStringCommand, `last_changed:${display}`, lastChanged];
       })));
     },
     updateLastChanged(displayId) {
-      return redis.setString(`last_changed:${displayId}`, Date.now());
+      const lastChanged = Date.now();
+      logger.log(`Update last changed for ${displayId} with ${lastChanged}`);
+      return redis.setString(`last_changed:${displayId}`, lastChanged);
     },
     lastChanged(displayId) {
       return redis.getString(`last_changed:${displayId}`)
