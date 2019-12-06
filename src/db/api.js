@@ -81,6 +81,7 @@ module.exports = {
       .then(() => redis.setCount(`meta:${filePath}:displays`))
       .then(count => {
         if (count === 0) {
+          logger.log(`Delete metadata: ${filePath} ${displayId}`);
           return module.exports.fileMetadata.deleteMetadata(filePath);
         }
         return Promise.resolve();
