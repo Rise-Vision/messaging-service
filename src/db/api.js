@@ -97,6 +97,8 @@ module.exports = {
     put(entry) {
       if (!entry) {throw Error("missing params");}
 
+      logger.log(`Add entry ${entry.filePath} ${entry.version} to ${entry.displayId} watchlist`);
+
       return redis.patchHash(`watch:${entry.displayId}`, {
         [entry.filePath]: entry.version
       })
@@ -106,6 +108,9 @@ module.exports = {
       if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
 
       const folderPath = `${dirname(filePathsAndVersions[0].filePath)}/`;
+
+      logger.log(`Add folder ${folderPath} to ${displayId} watchlist`);
+
       const multipleEntryObj = filePathsAndVersions.reduce((obj, fileData)=>{
         return {...obj, [fileData.filePath]: fileData.version};
       }, {[folderPath]: "0"});
