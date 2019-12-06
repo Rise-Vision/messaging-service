@@ -118,7 +118,7 @@ module.exports = {
       return redis.removeHashFields(`watch:${displayId}`, filePaths)
         .then(removed => {
           if (removed > 0) {
-            return redis.setString(`last_changed:${displayId}`, Date.now());
+            return module.exports.watchList.updateLastChanged(displayId);
           }
         })
         .then(() => {
