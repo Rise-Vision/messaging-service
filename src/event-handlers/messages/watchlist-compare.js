@@ -16,8 +16,8 @@ module.exports = {
       let watchlistPromise = null;
 
       if (lastChanged === msLastChanged) {
-        console.log(`Watchlist for ${displayId} last changed match on ${lastChanged}`);
-        watchlistPromise = Promise.resolve({});
+        console.log(`Watchlist for ${displayId} last changed match on ${lastChanged} returning db watchlist`);
+        watchlistPromise = db.watchList.get(displayId);
       } else {
         watchlistPromise = db.watchList.get(displayId);
       }
