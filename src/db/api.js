@@ -81,6 +81,7 @@ module.exports = {
       .then(() => redis.setCount(`meta:${filePath}:displays`))
       .then(count => {
         if (count === 0) {
+          logger.log(`Delete metadata: ${filePath} ${displayId}`);
           return module.exports.fileMetadata.deleteMetadata(filePath);
         }
         return Promise.resolve();
@@ -97,6 +98,8 @@ module.exports = {
     put(entry) {
       if (!entry) {throw Error("missing params");}
 
+      logger.log(`Add entry ${entry.filePath} ${entry.version} to ${entry.displayId} watchlist`);
+
       return redis.patchHash(`watch:${entry.displayId}`, {
         [entry.filePath]: entry.version
       })
@@ -106,6 +109,9 @@ module.exports = {
       if (!filePathsAndVersions || !displayId) {throw Error("missing params");}
 
       const folderPath = `${dirname(filePathsAndVersions[0].filePath)}/`;
+
+      logger.log(`Add folder ${folderPath} to ${displayId} watchlist`);
+
       const multipleEntryObj = filePathsAndVersions.reduce((obj, fileData)=>{
         return {...obj, [fileData.filePath]: fileData.version};
       }, {[folderPath]: "0"});
@@ -118,7 +124,7 @@ module.exports = {
       return redis.removeHashFields(`watch:${displayId}`, filePaths)
         .then(removed => {
           if (removed > 0) {
-            return redis.setString(`last_changed:${displayId}`, Date.now());
+            return module.exports.watchList.updateLastChanged(displayId);
           }
         })
         .then(() => {
@@ -132,11 +138,14 @@ module.exports = {
       return redis.multi(displays.map(display=>{
         return [patchHashCommand, `watch:${display}`, patch];
       }).concat(displays.map(display=>{
+        logger.log(`Update last changed for ${display} with ${lastChanged}`);
         return [setStringCommand, `last_changed:${display}`, lastChanged];
       })));
     },
     updateLastChanged(displayId) {
-      return redis.setString(`last_changed:${displayId}`, Date.now());
+      const lastChanged = Date.now();
+      logger.log(`Update last changed for ${displayId} with ${lastChanged}`);
+      return redis.setString(`last_changed:${displayId}`, lastChanged);
     },
     lastChanged(displayId) {
       return redis.getString(`last_changed:${displayId}`)
