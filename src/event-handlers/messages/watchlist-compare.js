@@ -13,16 +13,7 @@ module.exports = {
 
     return db.watchList.lastChanged(displayId)
     .then(msLastChanged => {
-      let watchlistPromise = null;
-
-      if (lastChanged === msLastChanged) {
-        console.log(`Watchlist for ${displayId} last changed match on ${lastChanged} returning db watchlist`);
-        watchlistPromise = db.watchList.get(displayId);
-      } else {
-        watchlistPromise = db.watchList.get(displayId);
-      }
-
-      return watchlistPromise
+      return db.watchList.get(displayId)
       .then(watchlist => {
         console.log(`Returning watchlist for ${displayId} with last changed ${lastChanged} and msLastChanged ${msLastChanged}: ${JSON.stringify(watchlist).substring(0, logObjectLimit)}`);
 
