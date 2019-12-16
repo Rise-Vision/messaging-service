@@ -7,6 +7,7 @@ const BAD_REQUEST = 400;
 const NOT_AUTHORIZED = 403;
 const screenshotHandler = require("../../src/event-handlers/messages/screenshot-request");
 const debugDataRequest = require("../../src/event-handlers/messages/debug-data-request");
+const clearLocalStorageRequest = require("../../src/event-handlers/messages/clear-local-storage-request");
 
 describe("Webhooks : CORE : GET", ()=>{
   it("expects msg parameter", ()=>{
@@ -124,6 +125,18 @@ describe("Webhooks : CORE : GET", ()=>{
     })
     .then(()=>{
       assert(debugDataRequest.doOnIncomingPod.called)
+    });
+  });
+
+  it("responds ok and calls event handler for clear-local-storage-request", ()=>{
+    simple.mock(clearLocalStorageRequest, "doOnIncomingPod").returnWith();
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/core?msg=clear-local-storage-request&did=ABCDE&sk=TEST`,
+      json: true
+    })
+    .then(()=>{
+      assert(clearLocalStorageRequest.doOnIncomingPod.called)
     });
   });
 });
