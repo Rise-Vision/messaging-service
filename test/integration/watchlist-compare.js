@@ -52,19 +52,4 @@ describe("watchlist-compare : Integration", () => {
     });
   });
 
-  xit("sends back an empty watchlist if the lastChanged timestamp match", () => {
-    return handler.doOnIncomingPod({
-      displayId: "ABC1234", lastChanged: "123456"
-    })
-    .then(() => {
-      assert.equal(displayConnections.sendMessage.callCount, 1);
-      assert.equal(displayConnections.sendMessage.lastCall.args[0], "ABC1234");
-      assert.deepEqual(displayConnections.sendMessage.lastCall.args[1], {
-        topic: "watchlist-result",
-        watchlist: {},
-        lastChanged: "123456"
-      });
-    });
-  });
-
 });
