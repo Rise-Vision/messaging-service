@@ -3,7 +3,7 @@ version: 2
 jobs:
   "test":
     docker: &DOCKERIMAGE
-      - image: jenkinsrise/cci-v2-docker-gcloud:0.0.8
+      - image: jenkinsrise/gcloud-nodejs-npm-redis:latest
     steps:
       - checkout
       - restore_cache:

@@ -68,5 +68,6 @@ module.exports = {
   },
   kill() {
     server.close();
+    primus.end();
   }
 };

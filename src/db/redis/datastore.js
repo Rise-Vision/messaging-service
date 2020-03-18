@@ -8,7 +8,10 @@ let promisified = ["get", "del", "set", "sadd", "srem", "hmset", "hgetall", "hde
 
 module.exports = {
   initdb(dbclient = null) {
+    if (!dbclient && client) {return client;}
+
     client = dbclient || redis.createClient({host: redisHost});
+
     if (!dbclient) {client.on("error", console.error);}
 
     if (!Array.isArray(promisified)) {return;}
@@ -49,8 +52,8 @@ module.exports = {
   patchHash(key, patchObj) {
     return promisified.hmset(key, patchObj);
   },
-  ungracefulQuit() {
-    client.end(true);
+  quit(cb) {
+    client.quit(cb);
   },
   getHash(key) {
     return promisified.hgetall(key);

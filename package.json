@@ -1,10 +1,10 @@
 {
   "name": "messaging-service",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Rise Vision Messaging Service",
   "main": "index.js",
   "scripts": {
-    "test": "eslint . && mocha --bail -t 15000 -r test/mocha-env.js test/**",
+    "test": "npm run test-unit && npm run test-integration",
     "test-unit": "eslint . && mocha --bail -t 15000 -r test/mocha-env.js test/unit/**",
     "test-integration": "eslint . && mocha --bail -t 15000 -r test/mocha-env.js test/integration/**",
     "start": "node index.js",
@@ -33,13 +33,14 @@
     "ws": "^3.3.3"
   },
   "devDependencies": {
-    "eslint": "^4.9.0",
+    "mkdirp": "^0.5.3",
+    "eslint": "^6.8.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-plugin-import": "^2.8.0",
     "eslint-plugin-node": "^5.2.0",
     "eslint-plugin-promise": "^3.6.0",
     "eslint-plugin-standard": "^3.0.1",
-    "mocha": "^4.0.1",
+    "mocha": "^7.1.1",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.5",
     "simple-mock": "^0.8.0",

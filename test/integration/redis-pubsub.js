@@ -84,7 +84,7 @@ describe("Pubsub : Integration", ()=>{
         simple.restore(db.fileMetadata, "hasMetadata");
         simple.restore(db.fileMetadata, "getWatchersFor");
         console.log("Waiting for other pod subscription");
-        return otherPodSubscriberPromise.then(()=>otherPodSubscriber.quit());
+        return new Promise(res=>otherPodSubscriberPromise.then(()=>otherPodSubscriber.quit(res)));
       });
     });
 
@@ -102,6 +102,7 @@ describe("Pubsub : Integration", ()=>{
         assert.equal(fileUpdateHandler.doOnAllPods.callCount, 1);
         assert.deepEqual(fileUpdateHandler.doOnAllPods.lastCall.arg, JSON.parse(testMessage));
         simple.restore(fileUpdateHandler, "doOnAllPods");
+        return new Promise(res=>otherPodPublisher.quit(res));
       });
     });
   });
