@@ -1,6 +1,8 @@
 /* eslint-env mocha */
 const cp = require("child_process");
 const reasonableResponseTime = 1000;
+const db = require("../../src/db/redis/datastore");
+const ps = require("../../src/redis-pubsub");
 const testPort = 9228;
 let redisServer = null;
 let msServer = null;
@@ -16,9 +18,12 @@ before(()=>{
   })).then(startMS);
 });
 
-after(()=>{
-  msServer.kill();
-  redisServer.kill();
+after(done=>{
+  return ps.quit(()=>{
+    msServer.kill();
+    redisServer.kill();
+    db.quit(done);
+  });
 });
 
 function startMS() {

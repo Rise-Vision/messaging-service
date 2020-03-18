@@ -32,7 +32,8 @@ describe("MS Connection : Integration", ()=>{
       return new Promise((res, rej)=>{
         ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
         ms.on("error", (err)=>{console.error(err.message); res()});
-      });
+      })
+      .then(()=>ms.end());
     });
 
     it("prevents connections without a machineId", ()=>{
@@ -50,7 +51,8 @@ describe("MS Connection : Integration", ()=>{
       return new Promise((res, rej)=>{
         ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
         ms.on("error", (err)=>{console.error(err.message); res()});
-      });
+      })
+      .then(()=>ms.end());
     });
 
     it("prevents connections with string undefined as a displayId", ()=>{
@@ -68,7 +70,8 @@ describe("MS Connection : Integration", ()=>{
       return new Promise((res, rej)=>{
         ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
         ms.on("error", (err)=>{console.error(err.message); res()});
-      });
+      })
+      .then(()=>ms.end());
     });
 
     it("prevents connections with string null as a displayId", ()=>{
@@ -86,7 +89,8 @@ describe("MS Connection : Integration", ()=>{
       return new Promise((res, rej)=>{
         ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
         ms.on("error", (err)=>{console.error(err.message); res()});
-      });
+      })
+      .then(()=>ms.end());
     });
 
     it("prevents connections with string undefined as a machineId", ()=>{
@@ -104,7 +108,8 @@ describe("MS Connection : Integration", ()=>{
       return new Promise((res, rej)=>{
         ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
         ms.on("error", (err)=>{console.error(err.message); res()});
-      });
+      })
+      .then(()=>ms.end());
     });
 
     it("prevents connections with string null as a machineId", ()=>{
@@ -122,7 +127,8 @@ describe("MS Connection : Integration", ()=>{
       return new Promise((res, rej)=>{
         ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
         ms.on("error", (err)=>{console.error(err.message); res()});
-      });
+      })
+      .then(()=>ms.end());
     });
 
     it("allows a connection with proper display and machine ids", ()=>{
@@ -139,7 +145,8 @@ describe("MS Connection : Integration", ()=>{
       return new Promise((res, rej)=>{
         ms.on("open", res);
         ms.on("error", ()=>rej(Error("Should not have prevented the connection")));
-      });
+      })
+      .then(()=>ms.end());
     });
   });
 });

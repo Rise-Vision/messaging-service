@@ -86,7 +86,8 @@ describe("MS Display Id : Integration", ()=>{
         });
 
         ms.write(watchData);
-      });
+      })
+      .then(()=>ms.end());
     });
   });
 });

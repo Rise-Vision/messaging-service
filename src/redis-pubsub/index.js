@@ -35,8 +35,15 @@ function init() {
   });
 }
 
+function quit(cb) {
+  pub.quit(()=>{
+    sub.quit(cb);
+  });
+}
+
 module.exports = {
   init,
+  quit,
   publishToPods(data) {
     const pubData = {...data, podname};
     logger.log(`Redis publishing to ${channel}: `, pubData);

@@ -59,6 +59,7 @@ describe("MS Connection State : Integration", ()=>{
         console.dir(resp);
         assert(testIds.every(id=>resp[id].connected));
       })
+      .then(()=>disconnectFromMS())
       .then(()=>connectToMS([testIds[0]]))
       .then(waitRedisUpdate.bind(null, 900)) // eslint-disable-line no-magic-numbers
       .then(()=>request(presenceCheck))
@@ -69,7 +70,8 @@ describe("MS Connection State : Integration", ()=>{
         assert(!resp[testIds[0]].lastConnection);
         assert(!resp[testIds[1]].connected);
         assert(resp[testIds[1]].lastConnection);
-      });
+      })
+      .then(()=>disconnectFromMS());
     });
   });
 });
