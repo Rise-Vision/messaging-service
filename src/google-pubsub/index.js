@@ -2,10 +2,11 @@ const {PubSub} = require('@google-cloud/pubsub');
 const logger = require("../logger");
 const {
   PROJECT_ID: projectId = "default",
-  CONNECTION_STATUS_PUBSUB_TOPIC: defaultTopic = "default"
+  CONNECTION_STATUS_PUBSUB_TOPIC: defaultTopic = "default",
+  PUBSUB_PUBLISH_CREDENTIAL_PATH: keyFilename = "pubsub-publish-credential.json"
 } = process.env;
 
-const pubSubClient = new PubSub({projectId});
+const pubSubClient = new PubSub({projectId, keyFilename});
 
 const messageObject = (id, status)=>({
   id,
