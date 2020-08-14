@@ -1,6 +1,7 @@
 const sparks = new Map();
 const db = require("../db/api.js");
 const logger = require("../logger.js");
+const googlePubSub = require("../google-pubsub");
 
 module.exports = {
   put(spark) {
@@ -11,6 +12,7 @@ module.exports = {
 
     sparks.set(displayId, spark);
     db.connections.setConnected(displayId).catch(console.error);
+    googlePubSub.publishConnection(displayId);
 
     logger.debug(`Added spark for ${displayId} ${spark.id}`);
   },
