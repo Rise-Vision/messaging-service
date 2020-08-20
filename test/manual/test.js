@@ -7,7 +7,8 @@ const connection = new Socket(`https://services-stage.risevision.com/messaging?d
     max: 1800000,
     min: 5000,
     retries: Infinity
-  }
+  },
+  pingTimeout: 45000
 });
 
 connection.on("open", ()=>{
