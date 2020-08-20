@@ -25,7 +25,7 @@ module.exports = {
     if (sparks.get(displayId) !== spark) {return;}
 
     sparks.delete(displayId);
-    db.connections.setLastConnected(displayId).catch(console.error);
+    db.connections.setDisconnected(displayId).catch(console.error);
 
     logger.debug(`Removed spark for ${displayId} ${spark.id}`);
   },

@@ -5,6 +5,7 @@ const redis = require("./redis/datastore");
 const patchHashCommand = "patchHash";
 const setAddCommand = "setAdd";
 const setStringCommand = "setString";
+const deleteKeyCommand = "deleteKey";
 
 let heartbeatExpirySeconds = null;
 
@@ -153,6 +154,14 @@ module.exports = {
     }
   },
   connections: {
+    setDisconnected(displayId) {
+      if (!displayId) {return Promise.reject(Error("missing displayId"));}
+
+      return redis.multi([
+        [deleteKeyCommand, `connections:id:${displayId}`],
+        [setStringCommand, `lastConnection:${displayId}`, Date.now()]
+      ]);
+    },
     setConnected(displayId) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
@@ -165,11 +174,6 @@ module.exports = {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.setString(`connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds);
-    },
-    setLastConnected(displayId) {
-      if (!displayId) {return Promise.reject(Error("missing displayId"));}
-
-      return redis.setString(`lastConnection:${displayId}`, Date.now());
     },
     getPresence(ids) {
       return redis.multi(ids.map(id=>["getString", `connections:id:${id}`]))
