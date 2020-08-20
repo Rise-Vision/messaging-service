@@ -1,10 +1,12 @@
 const podname = process.env.podname;
 const logger = require("../logger");
-const channel = "inter-pod-publish";
+const podsChannel = "inter-pod-publish";
+const expiredKeyChannelPattern = "__keyevent*expired";
 const redis = require("redis");
 const gkeHostname = "display-ms-redis-master";
 const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 const handlers = require("../event-handlers/messages");
+const missedHeartbeat = require("../event-handlers/missed-heartbeat");
 
 let pub = null;
 let sub = null;
@@ -16,11 +18,12 @@ function init() {
   pub.on("error", console.error);
   sub.on("error", console.error);
 
-  sub.subscribe(channel);
+  pub.config("set", "notify-keyspace-events", "Ex");
+
+  sub.subscribe(podsChannel);
   sub.on("message", (ch, msg)=>{
     logger.log(`Received from REDIS PUBSUB: ${msg}`);
 
-    if (ch !== channel) {return;}
     if (msg.includes(podname)) {return;}
 
     const data = JSON.parse(msg);
@@ -32,6 +35,15 @@ function init() {
     }
 
     return handler.doOnAllPods(data);
+  });
+
+  sub.psubscribe(expiredKeyChannelPattern);
+  sub.on("pmessage", (pat, ch, msg)=>{
+    logger.log(`Received from REDIS PUBSUB (key event): ${msg}`);
+
+    if (!msg.startsWith("connections:id:")) {return;}
+
+    return missedHeartbeat.doOnAllPods(msg);
   });
 }
 
@@ -46,7 +58,7 @@ module.exports = {
   quit,
   publishToPods(data) {
     const pubData = {...data, podname};
-    logger.log(`Redis publishing to ${channel}: `, pubData);
-    pub.publish(channel, JSON.stringify(pubData));
+    logger.log(`Redis publishing to ${podsChannel}: `, pubData);
+    pub.publish(podsChannel, JSON.stringify(pubData));
   }
 }

@@ -17,11 +17,26 @@ describe("Google PubSub", ()=>{
   });
 
   it("publishes message on display connection", ()=>{
-    googlePubSub.publishConnection("test-id");
+    const expectedStatus = "connected"
+    const testId = "test-id";
 
-    assert(publishStub.called);
+    googlePubSub.publishConnection(testId);
 
-    const messageBuffer = publishStub.lastCall.args[0];
-    assert.deepEqual(JSON.parse(messageBuffer.toString()).id, "test-id");
+    const publishedMessage = JSON.parse(publishStub.lastCall.args[0].toString());
+
+    assert.deepEqual(publishedMessage.id, testId);
+    assert.deepEqual(publishedMessage.status, expectedStatus);
+  });
+
+  it("publishes message on display disconnection", ()=>{
+    const expectedStatus = "disconnected"
+    const testId = "test-id";
+
+    googlePubSub.publishDisconnection("test-id");
+
+    const publishedMessage = JSON.parse(publishStub.lastCall.args[0].toString());
+
+    assert.deepEqual(publishedMessage.id, testId);
+    assert.deepEqual(publishedMessage.status, expectedStatus);
   });
 });
