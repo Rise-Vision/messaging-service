@@ -1,8 +1,8 @@
 const {PubSub} = require('@google-cloud/pubsub');
 const logger = require("../logger");
 const {
-  PROJECT_ID: projectId = "default",
-  CONNECTION_STATUS_PUBSUB_TOPIC: defaultTopic = "default",
+  PROJECT_ID: projectId = "default-project-id",
+  CONNECTION_STATUS_PUBSUB_TOPIC: defaultTopic = "default-topic",
   PUBSUB_PUBLISH_CREDENTIAL_PATH: keyFilename = "pubsub-publish-credential.json"
 } = process.env;
 
@@ -15,6 +15,9 @@ const messageObject = (id, status)=>({
 });
 
 module.exports = {
+  publishDisconnection(displayId) {
+    module.exports.publish(messageObject(displayId, "disconnected"));
+  },
   publishConnection(displayId) {
     module.exports.publish(messageObject(displayId, "connected"));
   },

@@ -26,6 +26,7 @@ module.exports = {
 
     sparks.delete(displayId);
     db.connections.setDisconnected(displayId).catch(console.error);
+    googlePubSub.publishDisconnection(displayId);
 
     logger.debug(`Removed spark for ${displayId} ${spark.id}`);
   },
