@@ -80,6 +80,7 @@ module.exports = {
     const apiMap = {
       setRemove: "srem",
       setAdd: "sadd",
+      deleteKey: "del",
       setString: "set",
       getString: "get",
       getSet: "smembers",

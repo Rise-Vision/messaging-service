@@ -1,6 +1,7 @@
 const sparks = new Map();
 const db = require("../db/api.js");
 const logger = require("../logger.js");
+const googlePubSub = require("../google-pubsub");
 
 module.exports = {
   put(spark) {
@@ -11,6 +12,7 @@ module.exports = {
 
     sparks.set(displayId, spark);
     db.connections.setConnected(displayId).catch(console.error);
+    googlePubSub.publishConnection(displayId);
 
     logger.debug(`Added spark for ${displayId} ${spark.id}`);
   },
@@ -23,7 +25,8 @@ module.exports = {
     if (sparks.get(displayId) !== spark) {return;}
 
     sparks.delete(displayId);
-    db.connections.setLastConnected(displayId).catch(console.error);
+    db.connections.setDisconnected(displayId).catch(console.error);
+    googlePubSub.publishDisconnection(displayId);
 
     logger.debug(`Removed spark for ${displayId} ${spark.id}`);
   },
