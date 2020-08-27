@@ -26,3 +26,18 @@ npm install
 ```bash
 npm run test
 ```
+
+* Run locally
+
+Start redis and run with process environment variables
+
+```bash
+redis-server &
+PROJECT_ID=[] CONNECTION_STATUS_PUBSUB_TOPIC=[] PUBSUB_PUBLISH_CREDENTIAL_PATH=[] MS_PORT=[] node index.js
+```
+
+Connect to local instance
+
+```bash
+MS_PORT=[] node test/manual/test.js
+```
