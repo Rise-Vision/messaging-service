@@ -16,7 +16,7 @@ const connection = new Socket(`${endpoint}/messaging?displayId=test-manual&machi
 });
 
 connection.on("open", ()=>{
-  console.log(`messaging service connected`);
+  console.log(`messaging service connected`, endpoint);
 });
 
 connection.on("close", ()=>{
