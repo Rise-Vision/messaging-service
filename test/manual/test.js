@@ -8,7 +8,7 @@ const Socket = Primus.createSocket({transformer: "websockets", pathname: '/messa
 
 const connection = new Socket(`${endpoint}/messaging?displayId=test-manual&machineId=1234`, {
   reconnect: {
-    max: 1800000,
+    max: 600000,
     min: 5000,
     retries: Infinity
   },
