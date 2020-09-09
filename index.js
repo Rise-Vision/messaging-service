@@ -53,7 +53,7 @@ server.listen(port, (err) => {
   redisPubsub.init();
   gcs.init();
   handlers.init();
-  console.log(`server is listening on ${port}`);
+  console.log(`server process ${process.pid} is listening on port ${port}`);
 });
 
 module.exports = {

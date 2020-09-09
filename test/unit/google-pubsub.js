@@ -4,12 +4,10 @@ const assert = require("assert");
 const simple = require("simple-mock");
 
 describe("Google PubSub", ()=>{
-  const publishStub = simple.stub().returnWith(Promise.resolve("test-msg-id"));
+  let publishStub = null;
 
   beforeEach(()=>{
-    simple.mock(googlePubSub.getClient(), "topic").returnWith({
-      publish: publishStub
-    });
+    publishStub = simple.mock(googlePubSub.getClient(), "publish").returnWith(Promise.resolve("test-msg-id"));
   });
 
   afterEach(()=>{
@@ -22,7 +20,7 @@ describe("Google PubSub", ()=>{
 
     googlePubSub.publishConnection(testId);
 
-    const publishedMessage = JSON.parse(publishStub.lastCall.args[0].toString());
+    const publishedMessage = JSON.parse(publishStub.lastCall.args[0].messages[0].data.toString());
 
     assert.deepEqual(publishedMessage.id, testId);
     assert.deepEqual(publishedMessage.status, expectedStatus);
@@ -34,7 +32,7 @@ describe("Google PubSub", ()=>{
 
     googlePubSub.publishDisconnection("test-id");
 
-    const publishedMessage = JSON.parse(publishStub.lastCall.args[0].toString());
+    const publishedMessage = JSON.parse(publishStub.lastCall.args[0].messages[0].data.toString());
 
     assert.deepEqual(publishedMessage.id, testId);
     assert.deepEqual(publishedMessage.status, expectedStatus);
