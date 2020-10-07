@@ -49,8 +49,8 @@ module.exports = {
     const request = {topic, messages};
 
     pubSubClient.publish(request, {retry: retrySettings})
-    .then(resp=>{
-      logger.debug(`Message published`, JSON.stringify(resp));
+    .then(()=>{
+      logger.debug(`Message published`, msg);
     })
     .catch(console.error);
   },
