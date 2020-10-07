@@ -4,7 +4,7 @@
 const assert = require("assert");
 const simple = require("simple-mock");
 const {dirname} = require("path");
-
+const crypto = require("crypto");
 const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore");
 
@@ -141,5 +141,26 @@ describe("DB API : Integration", ()=>{
         .then(()=>datastore.setAdd(keyForFolderWatchers, testDisplayIds));
       }
     });
+  });
+
+  describe("recordHeartbeat", ()=>{
+    it("should call update function and set new key", ()=>{
+      return Promise.all([
+        new Promise(res=>simple.mock(datastore, "setString").callFn(res)),
+        new Promise(updateFn=>dbApi.connections.recordHeartbeat(randomHexString(), updateFn))
+      ]);
+    });
+
+    it("should not call update function when setting existing key", ()=>{
+      const testId = randomHexString();
+
+      return dbApi.connections.setConnected(testId)
+      .then(()=>dbApi.connections.recordHeartbeat(testId, ()=>{throw Error("should not call")}));
+    });
+
+    function randomHexString() {
+      const sufficientTestRandomBytes = 4;
+      return crypto.randomBytes(sufficientTestRandomBytes).toString("hex");
+    }
   });
 });
