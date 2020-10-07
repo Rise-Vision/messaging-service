@@ -36,7 +36,9 @@ module.exports = {
       spark.id :
       spark.query.displayId;
 
-    db.connections.recordHeartbeat(displayId).catch(console.error);
+    db.connections.recordHeartbeat(displayId, ()=>{
+      googlePubSub.publishConnection(displayId);
+    }).catch(console.error);
   },
   sendMessage(displayId, msg) {
     logger.log(`Sending ${JSON.stringify(msg)} to ${displayId}`);

@@ -21,15 +21,20 @@ describe("MISSED HEARTBEAT : Integration", ()=>{
   // and the key will expire. In this case, a keyevent is sent, and a
   // disconnect message should be sent to the google pubsub topic
   describe("Display heartbeat is missed (expired key)", ()=>{
-    it("Publishes disconnection if pod has spark for the display", ()=>{
+    it("Publishes disconnection and deletes key if pod has spark for the display", ()=>{
       simple.mock(displayConnections, "hasSparkFor").returnWith(true);
 
-      return new Promise(res=>{
-        simple.mock(googlePubSub, "publishDisconnection").callFn(res);
-        db.setHeartbeatExpirySeconds(1);
+      db.setHeartbeatExpirySeconds(1);
+      process.nextTick(()=>db.connections.setConnected("fake-id"));
 
-        db.connections.setConnected("fake-id");
-      });
+      return Promise.all([
+        new Promise(res=>{
+          simple.mock(googlePubSub, "publishDisconnection").callFn(res);
+        }),
+        new Promise(res=>{
+          simple.mock(db.connections, "setDisconnected").callFn(res);
+        })
+      ]);
     });
     it("Does not publish to google pubsub if pod does not have spark", ()=>{
       return new Promise(res=>{
