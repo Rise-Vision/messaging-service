@@ -14,6 +14,10 @@ describe("MISSED HEARTBEAT : Integration", ()=>{
     return redis.eraseEntireDb();
   });
 
+  after(()=>{
+    simple.restore();
+  });
+
   // A connections:id:[id] key is used to keep track of connected displays.
   // If a display disconnects cleanly, the key is deleted,
   // and google pubsub is notified via display-connections.js. No keyevent is sent.
@@ -25,17 +29,21 @@ describe("MISSED HEARTBEAT : Integration", ()=>{
       simple.mock(displayConnections, "hasSparkFor").returnWith(true);
 
       db.setHeartbeatExpirySeconds(1);
-      process.nextTick(()=>db.connections.setConnected("fake-id"));
+      process.nextTick(()=>db.connections.setConnected("fake-id", "pod-a"));
 
       return Promise.all([
         new Promise(res=>{
           simple.mock(googlePubSub, "publishDisconnection").callFn(res);
         }),
         new Promise(res=>{
-          simple.mock(db.connections, "setDisconnected").callFn(res);
+          simple.mock(db.connections, "setDisconnected").callFn(()=>{
+            res();
+            return Promise.resolve();
+          });
         })
       ]);
     });
+
     it("Does not publish to google pubsub if pod does not have spark", ()=>{
       return new Promise(res=>{
         simple.mock(displayConnections, "hasSparkFor").callFn(()=>{
@@ -45,7 +53,8 @@ describe("MISSED HEARTBEAT : Integration", ()=>{
 
         db.setHeartbeatExpirySeconds(1);
 
-        db.connections.setConnected("fake-id");
+        db.connections.setConnected("fake-id", "pod-a");
+        simple.mock(googlePubSub, "publishDisconnection").callFn(()=>{throw Error("should-not-have-called")})
       });
     });
   })

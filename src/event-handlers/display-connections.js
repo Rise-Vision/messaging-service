@@ -2,6 +2,8 @@ const sparks = new Map();
 const db = require("../db/api.js");
 const logger = require("../logger.js");
 const googlePubSub = require("../google-pubsub");
+const podName = process.env.podname.split("-").pop()
+  || require("crypto").randomBytes(4).toString("hex"); // eslint-disable-line no-magic-numbers
 
 module.exports = {
   put(spark) {
@@ -11,7 +13,7 @@ module.exports = {
       spark.query.displayId;
 
     sparks.set(displayId, spark);
-    db.connections.setConnected(displayId).catch(console.error);
+    db.connections.setConnected(displayId, podName).catch(console.error);
     googlePubSub.publishConnection(displayId);
 
     logger.debug(`Added spark for ${displayId} ${spark.id}`);
@@ -25,8 +27,9 @@ module.exports = {
     if (sparks.get(displayId) !== spark) {return;}
 
     sparks.delete(displayId);
-    db.connections.setDisconnected(displayId).catch(console.error);
-    googlePubSub.publishDisconnection(displayId);
+    db.connections.setDisconnected(displayId, podName, ()=>{
+      googlePubSub.publishDisconnection(displayId);
+    }).catch(console.error);
 
     logger.debug(`Removed spark for ${displayId} ${spark.id}`);
   },
@@ -36,7 +39,7 @@ module.exports = {
       spark.id :
       spark.query.displayId;
 
-    db.connections.recordHeartbeat(displayId, ()=>{
+    db.connections.recordHeartbeat(displayId, podName, ()=>{
       googlePubSub.publishConnection(displayId);
     }).catch(console.error);
   },

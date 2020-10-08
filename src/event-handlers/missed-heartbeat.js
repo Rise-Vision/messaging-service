@@ -12,6 +12,6 @@ module.exports = {
 
     if (!displayConnections.hasSparkFor(displayId)) {return;}
     googlePubSub.publishDisconnection(displayId);
-    db.connections.setDisconnected(displayId).catch(console.error);
+    db.connections.setDisconnected(displayId, "missed-heartbeat").catch(console.error);
   }
 };

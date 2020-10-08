@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 const assert = require("assert");
 const gcs = require("../../src/gcs.js");
+const googlePubSub = require("../../src/google-pubsub");
 const request = require("request-promise-native");
 const datastore = require("../../src/db/redis/datastore.js");
 const dbApi = require("../../src/db/api.js");
@@ -18,7 +19,8 @@ let testMSConnections = null;
 describe("MS Connection State : Integration", ()=>{
   before(()=>{
     simple.mock(gcs, "init").returnWith();
-    dbApi.setHeartbeatExpirySeconds(1); // eslint-disable-line no-magic-numbers
+    simple.mock(googlePubSub, "publish").returnWith();
+    dbApi.setHeartbeatExpirySeconds(5); // eslint-disable-line no-magic-numbers
     return datastore.eraseEntireDb();
   });
 
@@ -60,6 +62,7 @@ describe("MS Connection State : Integration", ()=>{
         assert(testIds.every(id=>resp[id].connected));
       })
       .then(()=>disconnectFromMS())
+      .then(waitRedisUpdate.bind(null, 500)) // eslint-disable-line no-magic-numbers
       .then(()=>connectToMS([testIds[0]]))
       .then(waitRedisUpdate.bind(null, 900)) // eslint-disable-line no-magic-numbers
       .then(()=>request(presenceCheck))
@@ -71,7 +74,8 @@ describe("MS Connection State : Integration", ()=>{
         assert(!resp[testIds[1]].connected);
         assert(resp[testIds[1]].lastConnection);
       })
-      .then(()=>disconnectFromMS());
+      .then(disconnectFromMS)
+      .then(waitRedisUpdate.bind(null, 200)) // eslint-disable-line no-magic-numbers
     });
   });
 });

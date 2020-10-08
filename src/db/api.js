@@ -154,30 +154,47 @@ module.exports = {
     }
   },
   connections: {
-    setDisconnected(displayId) {
+    setDisconnected(displayId, podName, updatePresenceFn = ()=>{}) {
+      if (!displayId) {return Promise.reject(Error("missing displayId"));}
+
+      return redis.getString(`connections:id:${displayId}`)
+      .then(pod=>{
+        if (shouldSkipDisconnectionUpdate(pod)) {return;}
+
+        return redis.multi([
+          [deleteKeyCommand, `connections:id:${displayId}`],
+          [setStringCommand, `lastConnection:${displayId}`, Date.now()]
+        ])
+        .then(updatePresenceFn);
+      });
+
+      function shouldSkipDisconnectionUpdate(pod) {
+        // Don't bother recording disconnection if key already deleted
+        if (!pod) {return true;}
+
+        // Missed heartbeats are always valid disconnections
+        if (podName === "missed-heartbeat") {return false;}
+
+        // Don't record disconnection if connected on a different pod
+        if (pod !== podName) {return true;}
+      }
+    },
+    setConnected(displayId, podName) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.multi([
-        [deleteKeyCommand, `connections:id:${displayId}`],
+        [setStringCommand, `connections:id:${displayId}`, podName, "EX", heartbeatExpirySeconds],
         [setStringCommand, `lastConnection:${displayId}`, Date.now()]
       ]);
     },
-    setConnected(displayId) {
-      if (!displayId) {return Promise.reject(Error("missing displayId"));}
-
-      return redis.multi([
-        [setStringCommand, `connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds],
-        [setStringCommand, `lastConnection:${displayId}`, Date.now()]
-      ]);
-    },
-    recordHeartbeat(displayId, updatePresenceFn = ()=>{}) {
+    recordHeartbeat(displayId, podName, updatePresenceFn = ()=>{}) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.getString(`connections:id:${displayId}`)
       .then(wasPresent=>{
         if (!wasPresent) {updatePresenceFn()}
       })
-      .then(()=>redis.setString(`connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds));
+      .then(()=>redis.setString(`connections:id:${displayId}`, podName, "EX", heartbeatExpirySeconds));
     },
     getPresence(ids) {
       return redis.multi(ids.map(id=>["getString", `connections:id:${id}`]))

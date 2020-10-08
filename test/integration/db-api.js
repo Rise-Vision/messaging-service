@@ -9,6 +9,11 @@ const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore");
 
 describe("DB API : Integration", ()=>{
+  function randomHexString() {
+    const sufficientTestRandomBytes = 4;
+    return crypto.randomBytes(sufficientTestRandomBytes).toString("hex");
+  }
+
   before(()=>{
     datastore.initdb();
   });
@@ -143,24 +148,32 @@ describe("DB API : Integration", ()=>{
     });
   });
 
-  describe("recordHeartbeat", ()=>{
+  describe("Record Heartbeat", ()=>{
     it("should call update function and set new key", ()=>{
       return Promise.all([
         new Promise(res=>simple.mock(datastore, "setString").callFn(res)),
-        new Promise(updateFn=>dbApi.connections.recordHeartbeat(randomHexString(), updateFn))
+        new Promise(updateFn=>dbApi.connections.recordHeartbeat(randomHexString(), "pod-a", updateFn))
       ]);
     });
 
     it("should not call update function when setting existing key", ()=>{
       const testId = randomHexString();
 
-      return dbApi.connections.setConnected(testId)
-      .then(()=>dbApi.connections.recordHeartbeat(testId, ()=>{throw Error("should not call")}));
+      return dbApi.connections.setConnected(testId, "pod-a")
+      .then(()=>dbApi.connections.recordHeartbeat(testId, "pod-a", ()=>{throw Error("should not call")}));
     });
+  });
 
-    function randomHexString() {
-      const sufficientTestRandomBytes = 4;
-      return crypto.randomBytes(sufficientTestRandomBytes).toString("hex");
-    }
+  describe("Delayed Disconnection", ()=>{
+    const testId = randomHexString();
+
+    it("should not record disconnect in connected on a different pod", ()=>{
+      return dbApi.connections.setConnected(testId, "pod-a")
+      .then(()=>dbApi.connections.setDisconnected(testId, "pod-b"))
+      .then(()=>datastore.getString(`connections:id:${testId}`))
+      .then(pod=>{
+        if (pod !== "pod-a") {return Promise.reject(Error("should not have deleted"));}
+      });
+    });
   });
 });
