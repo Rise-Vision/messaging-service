@@ -170,10 +170,14 @@ module.exports = {
         [setStringCommand, `lastConnection:${displayId}`, Date.now()]
       ]);
     },
-    recordHeartbeat(displayId) {
+    recordHeartbeat(displayId, updatePresenceFn = ()=>{}) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
-      return redis.setString(`connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds);
+      return redis.getString(`connections:id:${displayId}`)
+      .then(wasPresent=>{
+        if (!wasPresent) {updatePresenceFn()}
+      })
+      .then(()=>redis.setString(`connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds));
     },
     getPresence(ids) {
       return redis.multi(ids.map(id=>["getString", `connections:id:${id}`]))
