@@ -144,18 +144,22 @@ describe("DB API : Integration", ()=>{
   });
 
   describe("recordHeartbeat", ()=>{
-    it("should call update function and set new key", ()=>{
+    it("should call update function if spark is different and set new key", ()=>{
+      const displayId = randomHexString();
+      const sparkId = randomHexString();
+
       return Promise.all([
         new Promise(res=>simple.mock(datastore, "setString").callFn(res)),
-        new Promise(updateFn=>dbApi.connections.recordHeartbeat(randomHexString(), updateFn))
+        new Promise(updateFn=>dbApi.connections.recordHeartbeat(displayId, sparkId, updateFn))
       ]);
     });
 
-    it("should not call update function when setting existing key", ()=>{
-      const testId = randomHexString();
+    it("should not call update function when spark matches", ()=>{
+      const displayId = randomHexString();
+      const sparkId = randomHexString();
 
-      return dbApi.connections.setConnected(testId)
-      .then(()=>dbApi.connections.recordHeartbeat(testId, ()=>{throw Error("should not call")}));
+      return dbApi.connections.setConnected(displayId, sparkId)
+      .then(()=>dbApi.connections.recordHeartbeat(displayId, sparkId, ()=>{throw Error("should not call")}));
     });
 
     function randomHexString() {

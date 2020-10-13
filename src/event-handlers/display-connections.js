@@ -11,7 +11,7 @@ module.exports = {
       spark.query.displayId;
 
     sparks.set(displayId, spark);
-    db.connections.setConnected(displayId).catch(console.error);
+    db.connections.setConnected(displayId, spark.id).catch(console.error);
     googlePubSub.publishConnection(displayId);
 
     logger.debug(`Added spark for ${displayId} ${spark.id}`);
@@ -33,7 +33,10 @@ module.exports = {
   removeById(displayId) {
     if (!displayId) {return console.error("Missing display id");}
 
-    module.exports.remove(sparks.get(displayId));
+    const spark = sparks.get(displayId) || {};
+
+    return db.connections.sparkMatchesOrMissing(displayId, spark.id)
+    .then(()=>module.exports.remove(sparks.get(displayId)));
   },
   recordHeartbeat(spark) {
     if (!spark || !spark.query) {return;}
@@ -41,7 +44,7 @@ module.exports = {
       spark.id :
       spark.query.displayId;
 
-    db.connections.recordHeartbeat(displayId, ()=>{
+    db.connections.recordHeartbeat(displayId, spark.id, ()=>{
       googlePubSub.publishConnection(displayId);
     }).catch(console.error);
   },
