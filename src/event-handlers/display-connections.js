@@ -30,6 +30,11 @@ module.exports = {
 
     logger.debug(`Removed spark for ${displayId} ${spark.id}`);
   },
+  removeById(displayId) {
+    if (!displayId) {return console.error("Missing display id");}
+
+    module.exports.remove(sparks.get(displayId));
+  },
   recordHeartbeat(spark) {
     if (!spark || !spark.query) {return;}
     const displayId = spark.query.displayId === "apps" ?
