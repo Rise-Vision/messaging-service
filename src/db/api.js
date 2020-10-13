@@ -154,6 +154,10 @@ module.exports = {
     }
   },
   connections: {
+    sparkMatchesOrMissing(displayId, sparkId) {
+      return redis.getString(`connections:id:${displayId}`)
+      .then(sid=>sid === sparkId || !sid);
+    },
     setDisconnected(displayId) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
@@ -162,22 +166,22 @@ module.exports = {
         [setStringCommand, `lastConnection:${displayId}`, Date.now()]
       ]);
     },
-    setConnected(displayId) {
+    setConnected(displayId, sparkId = 1) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.multi([
-        [setStringCommand, `connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds],
+        [setStringCommand, `connections:id:${displayId}`, sparkId, "EX", heartbeatExpirySeconds],
         [setStringCommand, `lastConnection:${displayId}`, Date.now()]
       ]);
     },
-    recordHeartbeat(displayId, updatePresenceFn = ()=>{}) {
+    recordHeartbeat(displayId, sparkId, updatePresenceFn = ()=>{}) {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.getString(`connections:id:${displayId}`)
-      .then(wasPresent=>{
-        if (!wasPresent) {updatePresenceFn()}
+      .then(sId=>{
+        if (sId !== sparkId) {updatePresenceFn()}
       })
-      .then(()=>redis.setString(`connections:id:${displayId}`, 1, "EX", heartbeatExpirySeconds));
+      .then(()=>redis.setString(`connections:id:${displayId}`, sparkId, "EX", heartbeatExpirySeconds));
     },
     getPresence(ids) {
       return redis.multi(ids.map(id=>["getString", `connections:id:${id}`]))
