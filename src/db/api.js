@@ -178,8 +178,8 @@ module.exports = {
       if (!displayId) {return Promise.reject(Error("missing displayId"));}
 
       return redis.getString(`connections:id:${displayId}`)
-      .then(sId=>{
-        if (sId !== sparkId) {updatePresenceFn()}
+      .then(connectedSparkId=>{
+        if (!connectedSparkId) {updatePresenceFn()}
       })
       .then(()=>redis.setString(`connections:id:${displayId}`, sparkId, "EX", heartbeatExpirySeconds));
     },

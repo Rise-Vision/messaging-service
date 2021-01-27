@@ -1,5 +1,6 @@
 /* eslint-env mocha */
 const gcs = require("../../src/gcs.js");
+const googlePubSub = require("../../src/google-pubsub");
 const datastore = require("../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 const testPort = 9228;
@@ -10,6 +11,7 @@ describe("MS Connection : Integration", ()=>{
   before(()=>{
     simple.mock(gcs, "init").returnWith();
     simple.mock(datastore, "initdb").returnWith();
+    simple.mock(googlePubSub, "publish").returnWith(Promise.resolve());
   });
 
   after(()=>{

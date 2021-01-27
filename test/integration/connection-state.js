@@ -1,9 +1,9 @@
 /* eslint-env mocha */
 const assert = require("assert");
 const gcs = require("../../src/gcs.js");
+const googlePubSub = require("../../src/google-pubsub");
 const request = require("request-promise-native");
 const datastore = require("../../src/db/redis/datastore.js");
-const dbApi = require("../../src/db/api.js");
 const simple = require("simple-mock");
 const testPort = 9228;
 const Primus = require("primus");
@@ -18,7 +18,7 @@ let testMSConnections = null;
 describe("MS Connection State : Integration", ()=>{
   before(()=>{
     simple.mock(gcs, "init").returnWith();
-    dbApi.setHeartbeatExpirySeconds(1); // eslint-disable-line no-magic-numbers
+    simple.mock(googlePubSub, "publish").returnWith(Promise.resolve());
     return datastore.eraseEntireDb();
   });
 
