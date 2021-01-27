@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 const gcs = require("../../src/gcs.js");
 const datastore = require("../../src/db/redis/datastore.js");
+const googlePubSub = require("../../src/google-pubsub");
 const simple = require("simple-mock");
 const db = require("../../src/db/api.js");
 const versionCompare = require("../../src/version-compare/api.js");
@@ -11,6 +12,7 @@ const msEndpoint = `http://localhost:${testPort}/messaging/`;
 describe("MS Display Id : Integration", ()=>{
   before(()=>{
     simple.mock(gcs, "init").returnWith();
+    simple.mock(googlePubSub, "publish").returnWith(Promise.resolve());
     simple.mock(datastore, "initdb").returnWith();
     simple.mock(db.fileMetadata, "addDisplayTo").resolveWith();
     simple.mock(db.watchList, "put").resolveWith();

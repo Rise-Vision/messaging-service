@@ -14,6 +14,8 @@ describe("MISSED HEARTBEAT : Integration", ()=>{
     return redis.eraseEntireDb();
   });
 
+  afterEach(()=>simple.restore());
+
   // A connections:id:[id] key is used to keep track of connected displays.
   // If a display disconnects cleanly, the key is deleted,
   // and google pubsub is notified via display-connections.js. No keyevent is sent.
@@ -21,14 +23,18 @@ describe("MISSED HEARTBEAT : Integration", ()=>{
   // and the key will expire. In this case, a keyevent is sent, and a
   // disconnect message should be sent to the google pubsub topic
   describe("Display heartbeat is missed (expired key)", ()=>{
+    const fakeSpark = {id: "fake-spark-id", query: {displayId: "fake-display-id"}};
+
     it("Publishes disconnection if pod has spark for the display", ()=>{
       simple.mock(displayConnections, "hasSparkFor").returnWith(true);
+      simple.mock(db.connections, "sparkMatchesOrMissing").returnWith(Promise.resolve(true));
 
       return new Promise(res=>{
         simple.mock(googlePubSub, "publishDisconnection").callFn(res);
+        simple.mock(googlePubSub, "publishConnection").returnWith(Promise.resolve());
         db.setHeartbeatExpirySeconds(1);
 
-        db.connections.setConnected("fake-id");
+        displayConnections.put(fakeSpark);
       });
     });
     it("Does not publish to google pubsub if pod does not have spark", ()=>{

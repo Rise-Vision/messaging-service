@@ -20,6 +20,7 @@ before(()=>{
 
 after(done=>{
   return ps.quit(()=>{
+    console.log("Stopping suite-level redis server");
     msServer.kill();
     redisServer.kill();
     db.quit(done);
