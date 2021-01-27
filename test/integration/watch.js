@@ -5,6 +5,7 @@ const redis = require("../../src/db/redis/datastore.js");
 const displayConnections = require("../../src/event-handlers/display-connections");
 const simple = require("simple-mock");
 const gcs = require("../../src/gcs.js");
+const googlePubSub = require("../../src/google-pubsub");
 const {fileMetadata: md, watchList} = require("../../src/db/api.js");
 
 describe("WATCH : Integration", ()=>{
@@ -18,7 +19,10 @@ describe("WATCH : Integration", ()=>{
     return redis.eraseEntireDb();
   });
 
-  beforeEach(() => watchList.updateLastChanged(displayId));
+  beforeEach(()=>{
+    simple.mock(googlePubSub, "publish").returnWith(Promise.resolve());
+    watchList.updateLastChanged(displayId);
+  });
 
   afterEach(()=>{simple.restore();});
 

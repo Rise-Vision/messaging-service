@@ -29,7 +29,7 @@ describe("MS Display Id : Integration", ()=>{
   describe("With the messaging server under test running it...", ()=>{
     it("does not allow messages containing displayId", ()=>{
       const BAD_REQUEST = 400;
-      const displayId = "testId";
+      const displayId = "test-id-msdid-1";
       const machineId = "testMachineId";
       const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
       console.log(`Connecting to websocket with ${msUrl}`);
@@ -57,11 +57,12 @@ describe("MS Display Id : Integration", ()=>{
         });
 
         ms.write(watchData);
-      });
+      })
+      .then(()=>ms.end());
     });
 
     it("allows messages if they do not contain displayId", ()=>{
-      const displayId = "testId";
+      const displayId = "test-id-msdid-2";
       const machineId = "testMachineId";
       const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
       console.log(`Connecting to websocket with ${msUrl}`);

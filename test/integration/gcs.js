@@ -1,10 +1,20 @@
 /* eslint-env mocha */
+const simple = require("simple-mock");
 const assert = require("assert");
 const {version, init, getFiles} = require("../../src/gcs.js");
+const googlePubSub = require("../../src/google-pubsub");
 
 describe("GCS : Integration", ()=>{
   before(()=>{
     init();
+  });
+
+  beforeEach(()=>{
+    simple.mock(googlePubSub, "publish").returnWith(Promise.resolve());
+  });
+
+  afterEach(()=>{
+    simple.restore();
   });
 
   describe("Single file version", ()=>{
