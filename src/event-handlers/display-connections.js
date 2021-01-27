@@ -36,7 +36,7 @@ module.exports = {
     const spark = sparks.get(displayId) || {};
 
     return db.connections.sparkMatchesOrMissing(displayId, spark.id)
-    .then(()=>module.exports.remove(sparks.get(displayId)));
+    .then(matchedOrMissing=>matchedOrMissing && module.exports.remove(sparks.get(displayId)));
   },
   recordHeartbeat(spark) {
     if (!spark || !spark.query) {return;}
