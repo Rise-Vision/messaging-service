@@ -1,6 +1,7 @@
 const logger = require("../logger");
 const querystring = require("querystring");
 const url = require("url");
+const dbApi = require("../db/api");
 const displayConnections = require("../event-handlers/display-connections");
 const handlers = require("../event-handlers/messages");
 
@@ -18,7 +19,18 @@ module.exports = {
         });
       }
 
-      done();
+      dbApi.validation.isValidDisplayId(displayId)
+      .then(isValid => {
+        if (!isValid) {
+          logger.log(`Invalid display id (displayId: ${displayId})`);
+          return done({
+            statusCode: 404,
+            message: "displayId not valid"
+          });
+        }
+
+        done();
+      });
     });
 
     primus.on("connection", (spark) => {

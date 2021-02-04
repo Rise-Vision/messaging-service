@@ -3,6 +3,7 @@ const assert = require("assert");
 const gcs = require("../../src/gcs.js");
 const googlePubSub = require("../../src/google-pubsub");
 const request = require("request-promise-native");
+const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 const testPort = 9228;
@@ -19,6 +20,8 @@ describe("MS Connection State : Integration", ()=>{
   before(()=>{
     simple.mock(gcs, "init").returnWith();
     simple.mock(googlePubSub, "publish").returnWith(Promise.resolve());
+    simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(true);
+
     return datastore.eraseEntireDb();
   });
 

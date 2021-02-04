@@ -1,6 +1,7 @@
 /* eslint-env mocha */
 const gcs = require("../../src/gcs.js");
 const googlePubSub = require("../../src/google-pubsub");
+const dbApi = require("../../src/db/api");
 const datastore = require("../../src/db/redis/datastore.js");
 const simple = require("simple-mock");
 const testPort = 9228;
@@ -134,6 +135,8 @@ describe("MS Connection : Integration", ()=>{
     });
 
     it("allows a connection with proper display and machine ids", ()=>{
+      simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(true);
+
       const displayId = "testId";
       const machineId = "testMachineId";
       const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
