@@ -248,5 +248,13 @@ module.exports = {
       .then(()=>redis.setAdd(`folders:cleared`, [folderPath]))
       .then(()=>folderPath)
     }
+  },
+  validation: {
+    isValidDisplayId(displayId) {
+      return redis.setHas('valid-displays', displayId)
+    },
+    isValidScheduleId(scheduleId) {
+      return redis.setHas('valid-schedules', scheduleId)
+    }
   }
 };
