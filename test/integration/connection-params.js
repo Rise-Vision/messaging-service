@@ -153,5 +153,25 @@ describe("MS Connection : Integration", ()=>{
       })
       .then(()=>ms.end());
     });
+
+    it("rejects a connection if display id is not valid", ()=>{
+      simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(false);
+
+      const displayId = "testId";
+      const machineId = "testMachineId";
+      const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
+      console.log(`Connecting to websocket with ${msUrl}`);
+
+      const ms = new (Primus.createSocket({
+        transformer: "websockets",
+        pathname: "messaging/primus/"
+      }))(msUrl);
+
+      return new Promise((res, rej)=>{
+        ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
+        ms.on("error", err=>{console.error(err.message); res()});
+      })
+      .then(()=>ms.end());
+    });
   });
 });
