@@ -167,4 +167,42 @@ describe("DB API : Integration", ()=>{
       return crypto.randomBytes(sufficientTestRandomBytes).toString("hex");
     }
   });
+
+  describe("isValidDisplayId", ()=>{
+    it("identifies a valid display id", ()=>{
+      return datastore.setAdd('valid-displays', ['ABCD'])
+      .then(()=>
+        dbApi.validation.isValidDisplayId('ABCD')
+        .then(isValid=>{
+          assert(isValid);
+        })
+      );
+    });
+
+    it("identifies an invalid display id", ()=>{
+      return dbApi.validation.isValidDisplayId('XHYZ')
+      .then(isValid=>{
+        assert(!isValid);
+      })
+    });
+  });
+
+  describe("isValidScheduleId", ()=>{
+    it("identifies a valid schedule id", ()=>{
+      return datastore.setAdd('valid-schedules', ['ABCD'])
+      .then(()=>
+        dbApi.validation.isValidScheduleId('ABCD')
+        .then(isValid=>{
+          assert(isValid);
+        })
+      );
+    });
+
+    it("identifies an invalid schedule id", ()=>{
+      return dbApi.validation.isValidScheduleId('XHYZ')
+      .then(isValid=>{
+        assert(!isValid);
+      })
+    });
+  });
 });
