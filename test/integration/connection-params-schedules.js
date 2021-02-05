@@ -8,7 +8,7 @@ const testPort = 9228;
 const Primus = require("primus");
 const msEndpoint = `http://localhost:${testPort}/messaging/`;
 
-describe("MS Connection : Integration", ()=>{
+describe("MS Connection : Schedules : Integration", ()=>{
   before(()=>{
     simple.mock(gcs, "init").returnWith();
     simple.mock(datastore, "initdb").returnWith();
@@ -20,10 +20,11 @@ describe("MS Connection : Integration", ()=>{
   });
 
   describe("With the messaging server under test running it...", ()=>{
-    it("prevents connections without a displayId", ()=>{
-      const displayId = "testId";
-      const machineId = "testMachineId";
-      const msUrl = `${msEndpoint}?XXXXdisplayId=${displayId}&machineId=${machineId}`;
+
+    it("prevents connections with scheduleId but without an endpointId", ()=>{
+      const scheduleId = "testId";
+      const endpointId = "testEndpointId";
+      const msUrl = `${msEndpoint}?scheduleId=${scheduleId}&XXXXXXendpointId=${endpointId}`;
       console.log(`Connecting to websocket with ${msUrl}`);
 
       const ms = new (Primus.createSocket({
@@ -39,10 +40,10 @@ describe("MS Connection : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    it("prevents connections without a machineId", ()=>{
-      const displayId = "testId";
-      const machineId = "testMachineId";
-      const msUrl = `${msEndpoint}?displayId=${displayId}&XXXXXXmachineId=${machineId}`;
+    it("prevents connections with string undefined as a scheduleId", ()=>{
+      const scheduleId = "undefined";
+      const endpointId = "testEndpointId";
+      const msUrl = `${msEndpoint}?scheduleId=${scheduleId}&endpointId=${endpointId}`;
       console.log(`Connecting to websocket with ${msUrl}`);
 
       const ms = new (Primus.createSocket({
@@ -58,10 +59,10 @@ describe("MS Connection : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    it("prevents connections with string undefined as a displayId", ()=>{
-      const displayId = "undefined";
-      const machineId = "testMachineId";
-      const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
+    it("prevents connections with string null as a scheduleId", ()=>{
+      const scheduleId = "null";
+      const endpointId = "testEndpointId";
+      const msUrl = `${msEndpoint}?scheduleId=${scheduleId}&endpointId=${endpointId}`;
       console.log(`Connecting to websocket with ${msUrl}`);
 
       const ms = new (Primus.createSocket({
@@ -77,10 +78,10 @@ describe("MS Connection : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    it("prevents connections with string null as a displayId", ()=>{
-      const displayId = "null";
-      const machineId = "testMachineId";
-      const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
+    it("prevents connections with string undefined as an endpointId", ()=>{
+      const scheduleId = "testId";
+      const endpointId = "undefined";
+      const msUrl = `${msEndpoint}?scheduleId=${scheduleId}&endpointId=${endpointId}`;
       console.log(`Connecting to websocket with ${msUrl}`);
 
       const ms = new (Primus.createSocket({
@@ -96,10 +97,10 @@ describe("MS Connection : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    it("prevents connections with string undefined as a machineId", ()=>{
-      const displayId = "testId";
-      const machineId = "undefined";
-      const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
+    it("prevents connections with string null as an endpointId", ()=>{
+      const scheduleId = "testId";
+      const endpointId = "null";
+      const msUrl = `${msEndpoint}?scheduleId=${scheduleId}&endpointId=${endpointId}`;
       console.log(`Connecting to websocket with ${msUrl}`);
 
       const ms = new (Primus.createSocket({
@@ -115,31 +116,12 @@ describe("MS Connection : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    it("prevents connections with string null as a machineId", ()=>{
-      const displayId = "testId";
-      const machineId = "null";
-      const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
-      console.log(`Connecting to websocket with ${msUrl}`);
+    it("allows a connection with proper schedule and endpoint ids", ()=>{
+      simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(true);
 
-      const ms = new (Primus.createSocket({
-        transformer: "websockets",
-        pathname: "messaging/primus/",
-        reconnect: {retries: 0}
-      }))(msUrl);
-
-      return new Promise((res, rej)=>{
-        ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
-        ms.on("error", (err)=>{console.error(err.message); res()});
-      })
-      .then(()=>ms.end());
-    });
-
-    it("allows a connection with proper display and machine ids", ()=>{
-      simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(true);
-
-      const displayId = "testId";
-      const machineId = "testMachineId";
-      const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
+      const scheduleId = "testId";
+      const endpointId = "testEndpointId";
+      const msUrl = `${msEndpoint}?scheduleId=${scheduleId}&endpointId=${endpointId}`;
       console.log(`Connecting to websocket with ${msUrl}`);
 
       const ms = new (Primus.createSocket({
@@ -154,12 +136,12 @@ describe("MS Connection : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    it("rejects a connection if display id is not valid", ()=>{
-      simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(false);
+    it("rejects a connection if schedule id is not valid", ()=>{
+      simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(false);
 
-      const displayId = "testId";
-      const machineId = "testMachineId";
-      const msUrl = `${msEndpoint}?displayId=${displayId}&machineId=${machineId}`;
+      const scheduleId = "testId";
+      const endpointId = "testEndpointId";
+      const msUrl = `${msEndpoint}?scheduleId=${scheduleId}&endpointId=${endpointId}`;
       console.log(`Connecting to websocket with ${msUrl}`);
 
       const ms = new (Primus.createSocket({
