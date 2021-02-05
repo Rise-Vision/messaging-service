@@ -168,41 +168,69 @@ describe("DB API : Integration", ()=>{
     }
   });
 
-  describe("isValidDisplayId", ()=>{
-    it("identifies a valid display id", ()=>{
-      return datastore.setAdd('valid-displays', ['ABCD'])
-      .then(()=>
-        dbApi.validation.isValidDisplayId('ABCD')
+  describe("validation", () => {
+    it("should add displayId", ()=>{
+      return dbApi.validation.addDisplayId('DISPLAY_ID')
+      .then(() => datastore.setHas('valid-displays', 'DISPLAY_ID'))
+      .then(exists => assert(exists));
+    });
+
+    it("should remove displayId", ()=>{
+      return dbApi.validation.addDisplayId('DISPLAY_ID')
+      .then(() => dbApi.validation.removeDisplayId('DISPLAY_ID'))
+      .then(() => datastore.setHas('valid-displays', 'DISPLAY_ID'))
+      .then(exists => assert(!exists));
+    });
+
+    it("should add scheduleId", ()=>{
+      return dbApi.validation.addScheduleId('SCHEDULE_ID')
+      .then(() => datastore.setHas('valid-schedules', 'SCHEDULE_ID'))
+      .then(exists => assert(exists));
+    });
+
+    it("should remove scheduleId", ()=>{
+      return dbApi.validation.addScheduleId('DISPLAY_ID')
+      .then(() => dbApi.validation.removeScheduleId('SCHEDULE_ID'))
+      .then(() => datastore.setHas('valid-schedules', 'SCHEDULE_ID'))
+      .then(exists => assert(!exists));
+    });
+
+    describe("isValidDisplayId", ()=>{
+      it("identifies a valid display id", ()=>{
+        return datastore.setAdd('valid-displays', ['ABCD'])
+        .then(()=>
+          dbApi.validation.isValidDisplayId('ABCD')
+          .then(isValid=>{
+            assert(isValid);
+          })
+        );
+      });
+
+      it("identifies an invalid display id", ()=>{
+        return dbApi.validation.isValidDisplayId('XHYZ')
         .then(isValid=>{
-          assert(isValid);
+          assert(!isValid);
         })
-      );
+      });
     });
 
-    it("identifies an invalid display id", ()=>{
-      return dbApi.validation.isValidDisplayId('XHYZ')
-      .then(isValid=>{
-        assert(!isValid);
-      })
-    });
-  });
+    describe("isValidScheduleId", ()=>{
+      it("identifies a valid schedule id", ()=>{
+        return datastore.setAdd('valid-schedules', ['ABCD'])
+        .then(()=>
+          dbApi.validation.isValidScheduleId('ABCD')
+          .then(isValid=>{
+            assert(isValid);
+          })
+        );
+      });
 
-  describe("isValidScheduleId", ()=>{
-    it("identifies a valid schedule id", ()=>{
-      return datastore.setAdd('valid-schedules', ['ABCD'])
-      .then(()=>
-        dbApi.validation.isValidScheduleId('ABCD')
+      it("identifies an invalid schedule id", ()=>{
+        return dbApi.validation.isValidScheduleId('XHYZ')
         .then(isValid=>{
-          assert(isValid);
+          assert(!isValid);
         })
-      );
-    });
-
-    it("identifies an invalid schedule id", ()=>{
-      return dbApi.validation.isValidScheduleId('XHYZ')
-      .then(isValid=>{
-        assert(!isValid);
-      })
+      });
     });
   });
 });

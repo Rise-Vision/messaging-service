@@ -35,13 +35,13 @@ function handleNotification({kind, action, id} = {}) {
   switch (kind) {
     case 'Display':
       return action === 'Added' ?
-        dbApi.validations.addDisplayId(id) :
-        dbApi.validations.removeDisplayId(id);
+        dbApi.validation.addDisplayId(id) :
+        dbApi.validation.removeDisplayId(id);
     default:
     case 'Schedule':
       return action === 'Added' ?
-        dbApi.validations.addScheduleId(id) :
-        dbApi.validations.removeScheduleId(id);
+        dbApi.validation.addScheduleId(id) :
+        dbApi.validation.removeScheduleId(id);
   }
 }
 
