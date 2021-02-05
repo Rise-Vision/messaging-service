@@ -69,6 +69,10 @@ module.exports = {
     primus.on("connection", (spark) => {
       logger.debug(`Spark connection from ${JSON.stringify(spark.address)}`);
 
+      if (spark.query && !spark.query.displayId && spark.query.scheduleId) {
+        spark.query.displayId = spark.query.scheduleId;
+      }
+
       displayConnections.put(spark);
 
       spark.on("end", ()=>{
