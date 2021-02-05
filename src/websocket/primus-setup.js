@@ -5,32 +5,65 @@ const dbApi = require("../db/api");
 const displayConnections = require("../event-handlers/display-connections");
 const handlers = require("../event-handlers/messages");
 
+const invalidIds = ["undefined", "null"];
+
+const authorizeSchedule = (scheduleId, endpointId, done) => {
+  if (!scheduleId || !endpointId || [scheduleId, endpointId].some(id=>invalidIds.includes(id))) {
+    logger.log(`Missing connection parameters (scheduleId: ${scheduleId}, endpointId: ${endpointId})`);
+    return done({
+      statusCode: 400,
+      message: "scheduleId/endpointId required"
+    });
+  }
+
+  dbApi.validation.isValidScheduleId(scheduleId)
+  .then(isValid => {
+    if (!isValid) {
+      logger.log(`Invalid schedule id (scheduleId: ${scheduleId})`);
+      return done({
+        statusCode: 404,
+        message: "scheduleId not valid"
+      });
+    }
+
+    done();
+  });
+}
+
+const authorizeDisplay = (displayId, machineId, done) => {
+  if (!displayId || !machineId || [displayId, machineId].some(id=>invalidIds.includes(id))) {
+    logger.log(`Missing connection parameters (displayId: ${displayId}, machineId: ${machineId})`);
+    return done({
+      statusCode: 400,
+      message: "displayId/machineId required"
+    });
+  }
+
+  dbApi.validation.isValidDisplayId(displayId)
+  .then(isValid => {
+    if (!isValid) {
+      logger.log(`Invalid display id (displayId: ${displayId})`);
+      return done({
+        statusCode: 404,
+        message: "displayId not valid"
+      });
+    }
+
+    done();
+  });
+}
+
 module.exports = {
   init(primus) {
     primus.authorize((req, done)=>{
-      const {displayId, machineId} = querystring.parse(url.parse(req.url).query);
-      const invalidIds = ["undefined", "null"];
+      const {displayId, machineId, scheduleId, endpointId} =
+        querystring.parse(url.parse(req.url).query);
 
-      if (!displayId || !machineId || [displayId, machineId].some(id=>invalidIds.includes(id))) {
-        logger.log(`Missing connection parameters (displayId: ${displayId}, machineId: ${machineId})`);
-        return done({
-          statusCode: 400,
-          message: "displayId/machineId required"
-        });
+      if (scheduleId) {
+        authorizeSchedule(scheduleId, endpointId, done);
+      } else {
+        authorizeDisplay(displayId, machineId, done);
       }
-
-      dbApi.validation.isValidDisplayId(displayId)
-      .then(isValid => {
-        if (!isValid) {
-          logger.log(`Invalid display id (displayId: ${displayId})`);
-          return done({
-            statusCode: 404,
-            message: "displayId not valid"
-          });
-        }
-
-        done();
-      });
     });
 
     primus.on("connection", (spark) => {
