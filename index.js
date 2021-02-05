@@ -8,6 +8,7 @@ const port = process.env.MS_PORT || defaultPort;
 const app = express();
 const pubsubConnectorPOST = require("./src/webhooks/pubsub-connector/post-handler.js");
 const coreGET = require("./src/webhooks/core/get-handler");
+const coreNotify = require("./src/webhooks/core/notify-handler");
 const presencePOST = require("./src/webhooks/presence/post-handler");
 const presenceOPTIONS = require("./src/webhooks/presence/options-handler");
 const jsonParser = require("body-parser").json();
@@ -37,6 +38,7 @@ app.get("/messaging", function(req, res) {
 app.get("/", (req, res)=>res.end());
 
 app.get("/messaging/core", coreGET);
+app.get("/notify", coreNotify);
 
 app.post("/messaging/pubsub", jsonParser, pubsubConnectorPOST);
 

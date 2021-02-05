@@ -250,6 +250,18 @@ module.exports = {
     }
   },
   validation: {
+    addDisplayId(id) {
+      return redis.setAdd('valid-displays', [id])
+    },
+    removeDisplayId(id) {
+      return redis.setRemove('valid-displays', [id])
+    },
+    addScheduleId(id) {
+      return redis.setAdd('valid-schedules', [id])
+    },
+    removeScheduleId(id) {
+      return redis.setRemove('valid-schedules', [id])
+    },
     isValidDisplayId(displayId) {
       return redis.setHas('valid-displays', displayId)
     },
