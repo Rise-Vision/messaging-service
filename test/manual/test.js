@@ -13,7 +13,7 @@ const urlParams = SCHEDULE_ID ?
   `displayId=${DISPLAY_ID}&machineId=1234`;
 const url = `${endpoint}/messaging?${urlParams}`;
 
-console.log(`Connecting to ${ url }`);
+console.log(`Connecting to ${url}`);
 
 const connection = new Socket(url, {
   reconnect: {
