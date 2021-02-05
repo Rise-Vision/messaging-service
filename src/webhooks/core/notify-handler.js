@@ -14,7 +14,7 @@ function invalidInput({sk, kind, action, id} = {}, resp) { // eslint-disable-lin
   if (sk !== serverKey) {return invalid(paramErrors.wrongServerKey);}
   if (!kind) {return invalid(paramErrors.missingKind);}
   if (!action) {return invalid(paramErrors.missingAction);}
-  if (!id) {return invalid(paramErrors.invalidId);}
+  if (!id) {return invalid(paramErrors.missingId);}
 
   if (kind !== 'Display' && kind !== 'Schedule') {
     return invalid(paramErrors.invalidKind);
