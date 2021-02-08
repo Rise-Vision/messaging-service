@@ -38,7 +38,7 @@ app.get("/messaging", function(req, res) {
 app.get("/", (req, res)=>res.end());
 
 app.get("/messaging/core", coreGET);
-app.get("/messaging/notify", coreNotify);
+app.get("/messaging/core/idUpdate", coreNotify);
 
 app.post("/messaging/pubsub", jsonParser, pubsubConnectorPOST);
 
