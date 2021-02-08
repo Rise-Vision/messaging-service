@@ -3,11 +3,13 @@ const paramErrors = require("./param-errors");
 const dbApi = require("../../db/api");
 const logger = require("../../logger");
 
+const serviceKey = 'TEST';
 const SERVER_ERROR = 500;
 
-function invalidInput({id} = {}, resp) {
+function invalidInput({id, sk} = {}, resp) {
   const invalid = invalidHandler.bind(null, resp);
 
+  if (sk !== serviceKey) {return invalid(paramErrors.wrongServiceKey);}
   if (!id) {return invalid(paramErrors.missingId);}
 
   return false;
