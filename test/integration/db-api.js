@@ -201,7 +201,7 @@ describe("DB API : Integration", ()=>{
       .then(exists => assert(exists));
     });
 
-    it("should unban and endpointId", ()=>{
+    it("should unban an endpointId", ()=>{
       return dbApi.validation.banEndpointId('ENDPOINT_ID', 'REASON')
       .then(() => dbApi.validation.unbanEndpointId('ENDPOINT_ID'))
       .then(() => datastore.hashFieldExists('banned-endpoints', 'ENDPOINT_ID'))
