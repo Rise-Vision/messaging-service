@@ -9,7 +9,7 @@ module.exports = {
   },
   missingMsg: {
     code: 400,
-    msg: "Message (msg) is required"
+    msg: "Message (msg) is requireds"
   },
   noHandler: {
     code: 400,

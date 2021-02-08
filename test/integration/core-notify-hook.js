@@ -15,7 +15,7 @@ describe("Webhooks : CORE : notify", ()=>{
   it("expects server key", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify`,
+      uri: `http://localhost:${testPort}/messaging/notify`,
       json: true
     })
     .then(()=>{
@@ -31,7 +31,7 @@ describe("Webhooks : CORE : notify", ()=>{
   it("expects kind parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST`,
       json: true
     })
     .then(()=>{
@@ -46,7 +46,7 @@ describe("Webhooks : CORE : notify", ()=>{
   it("expects action parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST&kind=Display`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST&kind=Display`,
       json: true
     })
     .then(()=>{
@@ -61,7 +61,7 @@ describe("Webhooks : CORE : notify", ()=>{
   it("expects id parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST&kind=Display&action=Added`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST&kind=Display&action=Added`,
       json: true
     })
     .then(()=>{
@@ -76,7 +76,7 @@ describe("Webhooks : CORE : notify", ()=>{
   it("expects valid kind parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST&kind=X&action=Added&id=1234`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST&kind=X&action=Added&id=1234`,
       json: true
     })
     .then(()=>{
@@ -91,7 +91,7 @@ describe("Webhooks : CORE : notify", ()=>{
   it("expects valid action parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST&kind=Display&action=Z&id=1234`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST&kind=Display&action=Z&id=1234`,
       json: true
     })
     .then(()=>{
@@ -108,7 +108,7 @@ describe("Webhooks : CORE : notify", ()=>{
 
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST&kind=Display&action=Added&id=1234`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST&kind=Display&action=Added&id=1234`,
       json: true
     })
     .then(()=>{
@@ -124,7 +124,7 @@ describe("Webhooks : CORE : notify", ()=>{
 
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST&kind=Display&action=Removed&id=1234`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST&kind=Display&action=Removed&id=1234`,
       json: true
     })
     .then(()=>{
@@ -140,7 +140,7 @@ describe("Webhooks : CORE : notify", ()=>{
 
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST&kind=Schedule&action=Added&id=1234`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST&kind=Schedule&action=Added&id=1234`,
       json: true
     })
     .then(()=>{
@@ -156,7 +156,7 @@ describe("Webhooks : CORE : notify", ()=>{
 
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/notify?sk=TEST&kind=Schedule&action=Removed&id=1234`,
+      uri: `http://localhost:${testPort}/messaging/notify?sk=TEST&kind=Schedule&action=Removed&id=1234`,
       json: true
     })
     .then(()=>{
