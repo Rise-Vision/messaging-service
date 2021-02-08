@@ -4,7 +4,7 @@ const dbApi = require("../../db/api");
 const logger = require("../../logger");
 
 // const serverKey = process.env.NODE_ENV === "test" ?
-//  "TEST" : process.env.CORE_SENDER_KEY || String(Math.random());
+// "TEST" : process.env.CORE_SENDER_KEY || String(Math.random());
 const serverKey = 'TEST'
 const SERVER_ERROR = 500;
 
