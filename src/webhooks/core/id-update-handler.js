@@ -1,11 +1,9 @@
 const paramErrors = require("./param-errors");
+const {serverKey} = require("./server-key");
 
 const dbApi = require("../../db/api");
 const logger = require("../../logger");
 
-// const serverKey = process.env.NODE_ENV === "test" ?
-// "TEST": process.env.CORE_SENDER_NOTIFICATION_KEY || String(Math.random());
-const serverKey = 'TEST'
 const SERVER_ERROR = 500;
 
 function invalidInput({sk, kind, action, id} = {}, resp) { // eslint-disable-line max-statements

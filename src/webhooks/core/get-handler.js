@@ -1,8 +1,6 @@
 const logger = require("../../logger");
-const serverKey = process.env.NODE_ENV === "test" ?
-  "TEST" :
-  process.env.CORE_SENDER_KEY || String(Math.random());
 const paramErrors = require("./param-errors");
+const {serverKey} = require("./server-key");
 const handlers = require("../../event-handlers/messages");
 
 module.exports = (req, resp) => {
