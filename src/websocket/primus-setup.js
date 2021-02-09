@@ -41,7 +41,7 @@ const authorizeSchedule = (scheduleId, endpointId, done) => {
       });
     }
 
-    return checkBanned('endpoint', endpointId, done);
+    checkBanned('endpoint', endpointId, done);
   });
 }
 
@@ -64,7 +64,7 @@ const authorizeDisplay = (displayId, machineId, done) => {
       });
     }
 
-    return checkBanned('display', displayId, done);
+    checkBanned('display', displayId, done);
   });
 }
 
