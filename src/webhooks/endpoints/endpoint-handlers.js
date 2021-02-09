@@ -28,7 +28,9 @@ function invalidInput(req, resp) {
   if (!isAuthorized(req)) {
     return invalid(paramErrors.wrongAuthorization);
   }
-  if (!req.query.id) {return invalid(paramErrors.missingId);}
+  if (!req.query.id) {
+    return invalid(paramErrors.missingId);
+  }
 
   return false;
 }
