@@ -26,7 +26,10 @@ function isAuthorized(req) {
 }
 
 function invalidInput(req, resp) {
-  const invalid = invalidHandler.bind(null, resp);
+  const invalid = paramError => {
+    resp.status(paramError.code).send(paramError.msg);
+    return true;
+  }
 
   if (!isAuthorized(req)) {
     return invalid(paramErrors.wrongAuthorization);
@@ -36,11 +39,6 @@ function invalidInput(req, resp) {
   }
 
   return false;
-}
-
-function invalidHandler(resp, paramError) {
-  resp.status(paramError.code).send(paramError.msg);
-  return true;
 }
 
 function handleError(resp, error) {
