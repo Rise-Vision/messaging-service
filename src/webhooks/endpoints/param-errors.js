@@ -1,7 +1,7 @@
 module.exports = {
-  wrongServiceKey: {
+  wrongAuthorization: {
     code: 403,
-    msg: "Incorrect service key (sk)"
+    msg: "Not authorized"
   },
   missingId: {
     code: 400,

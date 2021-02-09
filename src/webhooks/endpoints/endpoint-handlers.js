@@ -3,14 +3,32 @@ const paramErrors = require("./param-errors");
 const dbApi = require("../../db/api");
 const logger = require("../../logger");
 
-const serviceKey = 'TEST';
+const expectedAuthorizationKey = 'TEST';
 const SERVER_ERROR = 500;
 
-function invalidInput({id, sk} = {}, resp) {
+function isAuthorized(req) {
+  const header = req.header('Authorization');
+  if (!header) {
+    return false;
+  }
+
+  const fragments = header.split(' ');
+  if (fragments.length !== 2) { // eslint-disable-line no-magic-numbers
+    return false;
+  }
+
+  const authorizationKey = Buffer.from(fragments[1], 'base64').toString();
+
+  return authorizationKey === expectedAuthorizationKey;
+}
+
+function invalidInput(req, resp) {
   const invalid = invalidHandler.bind(null, resp);
 
-  if (sk !== serviceKey) {return invalid(paramErrors.wrongServiceKey);}
-  if (!id) {return invalid(paramErrors.missingId);}
+  if (!isAuthorized(req)) {
+    return invalid(paramErrors.wrongAuthorization);
+  }
+  if (!req.query.id) {return invalid(paramErrors.missingId);}
 
   return false;
 }
@@ -29,7 +47,7 @@ function handleBan(req, resp) {
 
   logger.log(`Received ${id} ban request`);
 
-  if (invalidInput(req.query, resp)) {
+  if (invalidInput(req, resp)) {
     return;
   }
 
@@ -43,7 +61,7 @@ function handleUnban(req, resp) {
 
   logger.log(`Received ${id} unban request`);
 
-  if (invalidInput(req.query, resp)) {
+  if (invalidInput(req, resp)) {
     return;
   }
 

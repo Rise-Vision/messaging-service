@@ -10,10 +10,12 @@ const testPort = 9228;
 const BAD_REQUEST = 400;
 const NOT_AUTHORIZED = 403;
 
+const TEST_AUTHORIZATION = {Authorization: 'BASIC VEVTVA=='}
+
 describe("Webhooks : enpoints", ()=>{
 
   describe("ban", ()=>{
-    it("expects sk parameter", ()=>{
+    it("expects Basic header", ()=>{
       return rp({
         method: "GET",
         uri: `http://localhost:${testPort}/messaging/ban`,
@@ -23,7 +25,7 @@ describe("Webhooks : enpoints", ()=>{
         assert.fail("Should have rejected");
       })
       .catch(err=>{
-        assert(err.message.includes("sk"));
+        assert(err.message.includes("Not authorized"));
         assert(err.statusCode === NOT_AUTHORIZED);
       });
     });
@@ -31,7 +33,8 @@ describe("Webhooks : enpoints", ()=>{
     it("expects id parameter", ()=>{
       return rp({
         method: "GET",
-        uri: `http://localhost:${testPort}/messaging/ban?sk=TEST`,
+        headers: TEST_AUTHORIZATION,
+        uri: `http://localhost:${testPort}/messaging/ban`,
         json: true
       })
       .then(()=>{
@@ -48,7 +51,8 @@ describe("Webhooks : enpoints", ()=>{
 
       return rp({
         method: "GET",
-        uri: `http://localhost:${testPort}/messaging/ban?sk=TEST&id=1234`,
+        headers: TEST_AUTHORIZATION,
+        uri: `http://localhost:${testPort}/messaging/ban?id=1234`,
         json: true
       })
       .then(()=>{
@@ -65,7 +69,8 @@ describe("Webhooks : enpoints", ()=>{
 
       return rp({
         method: "GET",
-        uri: `http://localhost:${testPort}/messaging/ban?sk=TEST&id=1234&reason=Abuse`,
+        headers: TEST_AUTHORIZATION,
+        uri: `http://localhost:${testPort}/messaging/ban?id=1234&reason=Abuse`,
         json: true
       })
       .then(()=>{
@@ -79,7 +84,7 @@ describe("Webhooks : enpoints", ()=>{
   });
 
   describe("unban", ()=>{
-    it("expects sk parameter", ()=>{
+    it("expects Basic header", ()=>{
       return rp({
         method: "GET",
         uri: `http://localhost:${testPort}/messaging/unban`,
@@ -89,7 +94,7 @@ describe("Webhooks : enpoints", ()=>{
         assert.fail("Should have rejected");
       })
       .catch(err=>{
-        assert(err.message.includes("sk"));
+        assert(err.message.includes("Not authorized"));
         assert(err.statusCode === NOT_AUTHORIZED);
       });
     });
@@ -97,7 +102,8 @@ describe("Webhooks : enpoints", ()=>{
     it("expects id parameter", ()=>{
       return rp({
         method: "GET",
-        uri: `http://localhost:${testPort}/messaging/unban?sk=TEST`,
+        headers: TEST_AUTHORIZATION,
+        uri: `http://localhost:${testPort}/messaging/unban`,
         json: true
       })
       .then(()=>{
@@ -114,7 +120,8 @@ describe("Webhooks : enpoints", ()=>{
 
       return rp({
         method: "GET",
-        uri: `http://localhost:${testPort}/messaging/unban?sk=TEST&id=1234`,
+        headers: TEST_AUTHORIZATION,
+        uri: `http://localhost:${testPort}/messaging/unban?id=1234`,
         json: true
       })
       .then(()=>{
