@@ -30,6 +30,22 @@ describe("Webhooks : enpoints", ()=>{
       });
     });
 
+    it("fails on invalid authorization", ()=>{
+      return rp({
+        method: "GET",
+        headers: {Authorization: 'Basic XXX'},
+        uri: `http://localhost:${testPort}/messaging/ban`,
+        json: true
+      })
+      .then(()=>{
+        assert.fail("Should have rejected");
+      })
+      .catch(err=>{
+        assert(err.message.includes("Not authorized"));
+        assert(err.statusCode === NOT_AUTHORIZED);
+      });
+    });
+
     it("expects id parameter", ()=>{
       return rp({
         method: "GET",
@@ -87,6 +103,22 @@ describe("Webhooks : enpoints", ()=>{
     it("expects Basic header", ()=>{
       return rp({
         method: "GET",
+        uri: `http://localhost:${testPort}/messaging/unban`,
+        json: true
+      })
+      .then(()=>{
+        assert.fail("Should have rejected");
+      })
+      .catch(err=>{
+        assert(err.message.includes("Not authorized"));
+        assert(err.statusCode === NOT_AUTHORIZED);
+      });
+    });
+
+    it("fails on invalid authorization", ()=>{
+      return rp({
+        method: "GET",
+        headers: {Authorization: 'Basic XXX'},
         uri: `http://localhost:${testPort}/messaging/unban`,
         json: true
       })
