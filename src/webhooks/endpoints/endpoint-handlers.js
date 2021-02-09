@@ -3,7 +3,7 @@ const paramErrors = require("./param-errors");
 const dbApi = require("../../db/api");
 const logger = require("../../logger");
 
-const expectedAuthorizationKey = 'TEST';
+const expectedAuthorizationKey = 'TEST:';
 const SERVER_ERROR = 500;
 
 function isAuthorized(req) {

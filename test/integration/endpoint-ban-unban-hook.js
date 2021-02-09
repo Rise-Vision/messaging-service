@@ -10,7 +10,7 @@ const testPort = 9228;
 const BAD_REQUEST = 400;
 const NOT_AUTHORIZED = 403;
 
-const TEST_AUTHORIZATION = {Authorization: 'BASIC VEVTVA=='}
+const TEST_AUTHORIZATION = {Authorization: 'BASIC VEVTVDo='}
 
 describe("Webhooks : enpoints", ()=>{
 
