@@ -3,7 +3,10 @@ const paramErrors = require("./param-errors");
 const dbApi = require("../../db/api");
 const logger = require("../../logger");
 
-const expectedAuthorizationKey = 'TEST:';
+const authorizationUser = process.env.NODE_ENV === "test" ?
+  "TEST" : process.env.WEBHOOK_AUTHORIZATION_KEY || String(Math.random());
+const expectedAuthorizationKey = `${authorizationUser}:`;
+
 const SERVER_ERROR = 500;
 
 function isAuthorized(req) {
