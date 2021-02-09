@@ -136,6 +136,7 @@ describe("MS Connection : displays : Integration", ()=>{
 
     it("allows a connection with proper display and machine ids", ()=>{
       simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(true);
+      simple.mock(dbApi.validation, "isBannedEndpointId").resolveWith(false);
 
       const displayId = "testId";
       const machineId = "testMachineId";

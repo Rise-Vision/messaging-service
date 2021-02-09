@@ -118,6 +118,7 @@ describe("MS Connection : Schedules : Integration", ()=>{
 
     it("allows a connection with proper schedule and endpoint ids", ()=>{
       simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(true);
+      simple.mock(dbApi.validation, "isBannedEndpointId").resolveWith(false);
 
       const scheduleId = "testId";
       const endpointId = "testEndpointId";

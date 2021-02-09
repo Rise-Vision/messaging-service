@@ -7,6 +7,21 @@ const handlers = require("../event-handlers/messages");
 
 const invalidIds = ["undefined", "null"];
 
+const checkBanned = (type, id, done) => {
+  dbApi.validation.isBannedEndpointId(id)
+  .then(isBanned => {
+    if (isBanned) {
+      logger.log(`Banned ${type} id (${type}Id: ${id})`);
+      return done({
+        statusCode: 403,
+        message: "banned"
+      });
+    }
+
+    done();
+  });
+}
+
 const authorizeSchedule = (scheduleId, endpointId, done) => {
   if (!scheduleId || !endpointId || [scheduleId, endpointId].some(id=>invalidIds.includes(id))) {
     logger.log(`Missing connection parameters (scheduleId: ${scheduleId}, endpointId: ${endpointId})`);
@@ -26,7 +41,7 @@ const authorizeSchedule = (scheduleId, endpointId, done) => {
       });
     }
 
-    done();
+    return checkBanned('endpoint', endpointId, done);
   });
 }
 
@@ -49,7 +64,7 @@ const authorizeDisplay = (displayId, machineId, done) => {
       });
     }
 
-    done();
+    return checkBanned('display', displayId, done);
   });
 }
 
