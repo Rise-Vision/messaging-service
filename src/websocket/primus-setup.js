@@ -14,7 +14,7 @@ const checkBanned = (type, id, done) => {
       logger.log(`Banned ${type} id (${type}Id: ${id})`);
       return done({
         statusCode: 403,
-        message: "banned"
+        message: "Unauthorized"
       });
     }
 
