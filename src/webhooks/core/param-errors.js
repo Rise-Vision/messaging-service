@@ -22,5 +22,25 @@ module.exports = {
   missingUrl: {
     code: 400,
     msg: "Url (url) is required"
+  },
+  missingId: {
+    code: 400,
+    msg: "Display or schedule id (id) is required"
+  },
+  missingKind: {
+    code: 400,
+    msg: "Kind (kind) is required"
+  },
+  missingAction: {
+    code: 400,
+    msg: "Action (action) is required"
+  },
+  invalidKind: {
+    code: 400,
+    msg: "Kind (kind) should be one of 'Display' or 'Schedule'"
+  },
+  invalidAction: {
+    code: 400,
+    msg: "Action (action) should be one of 'Added' or 'Removed'"
   }
 };
