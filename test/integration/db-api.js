@@ -195,6 +195,19 @@ describe("DB API : Integration", ()=>{
       .then(exists => assert(!exists));
     });
 
+    it("should ban an endpointId", ()=>{
+      return dbApi.validation.banEndpointId('ENDPOINT_ID', 'REASON')
+      .then(() => datastore.hashFieldExists('banned-endpoints', 'ENDPOINT_ID'))
+      .then(exists => assert(exists));
+    });
+
+    it("should unban an endpointId", ()=>{
+      return dbApi.validation.banEndpointId('ENDPOINT_ID', 'REASON')
+      .then(() => dbApi.validation.unbanEndpointId('ENDPOINT_ID'))
+      .then(() => datastore.hashFieldExists('banned-endpoints', 'ENDPOINT_ID'))
+      .then(exists => assert(!exists));
+    });
+
     describe("isValidDisplayId", ()=>{
       it("identifies a valid display id", ()=>{
         return datastore.setAdd('valid-displays', ['ABCD'])
@@ -229,6 +242,25 @@ describe("DB API : Integration", ()=>{
         return dbApi.validation.isValidScheduleId('XHYZ')
         .then(isValid=>{
           assert(!isValid);
+        })
+      });
+    });
+
+    describe("isBannedEndpointId", ()=>{
+      it("identifies a banned endpoint id", ()=>{
+        return dbApi.validation.banEndpointId('ABCD')
+        .then(()=>
+          dbApi.validation.isBannedEndpointId('ABCD')
+          .then(isBanned=>{
+            assert(isBanned);
+          })
+        );
+      });
+
+      it("identifies a not banned endpoint id", ()=>{
+        return dbApi.validation.isBannedEndpointId('XHYZ')
+        .then(isBanned=>{
+          assert(!isBanned);
         })
       });
     });

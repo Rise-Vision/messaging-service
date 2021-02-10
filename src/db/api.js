@@ -262,11 +262,20 @@ module.exports = {
     removeScheduleId(id) {
       return redis.setRemove('valid-schedules', [id])
     },
+    banEndpointId(id, reason) {
+      return redis.patchHash('banned-endpoints', {[id]: reason})
+    },
+    unbanEndpointId(id) {
+      return redis.removeHashField('banned-endpoints', id)
+    },
     isValidDisplayId(displayId) {
       return redis.setHas('valid-displays', displayId)
     },
     isValidScheduleId(scheduleId) {
       return redis.setHas('valid-schedules', scheduleId)
+    },
+    isBannedEndpointId(endpointId) {
+      return redis.hashFieldExists('banned-endpoints', endpointId)
     }
   }
 };
