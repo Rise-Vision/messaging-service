@@ -154,7 +154,7 @@ describe("MS Connection : displays : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    it("rejects a connection if display id is not valid", ()=>{
+    xit("rejects a connection if display id is not valid", ()=>{
       simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(false);
 
       const displayId = "testId";

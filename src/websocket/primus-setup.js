@@ -39,7 +39,7 @@ const authorizeDisplay = (displayId, machineId, done) => {
     });
   }
 
-  dbApi.validation.isValidDisplayId(displayId)
+  /* dbApi.validation.isValidDisplayId(displayId)
   .then(isValid => {
     if (!isValid) {
       logger.log(`Invalid display id (displayId: ${displayId})`);
@@ -50,7 +50,8 @@ const authorizeDisplay = (displayId, machineId, done) => {
     }
 
     done();
-  });
+  }); */
+  done();
 }
 
 module.exports = {
