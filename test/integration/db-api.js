@@ -167,4 +167,102 @@ describe("DB API : Integration", ()=>{
       return crypto.randomBytes(sufficientTestRandomBytes).toString("hex");
     }
   });
+
+  describe("validation", () => {
+    it("should add displayId", ()=>{
+      return dbApi.validation.addDisplayId('DISPLAY_ID')
+      .then(() => datastore.setHas('valid-displays', 'DISPLAY_ID'))
+      .then(exists => assert(exists));
+    });
+
+    it("should remove displayId", ()=>{
+      return dbApi.validation.addDisplayId('DISPLAY_ID')
+      .then(() => dbApi.validation.removeDisplayId('DISPLAY_ID'))
+      .then(() => datastore.setHas('valid-displays', 'DISPLAY_ID'))
+      .then(exists => assert(!exists));
+    });
+
+    it("should add scheduleId", ()=>{
+      return dbApi.validation.addScheduleId('SCHEDULE_ID')
+      .then(() => datastore.setHas('valid-schedules', 'SCHEDULE_ID'))
+      .then(exists => assert(exists));
+    });
+
+    it("should remove scheduleId", ()=>{
+      return dbApi.validation.addScheduleId('DISPLAY_ID')
+      .then(() => dbApi.validation.removeScheduleId('SCHEDULE_ID'))
+      .then(() => datastore.setHas('valid-schedules', 'SCHEDULE_ID'))
+      .then(exists => assert(!exists));
+    });
+
+    it("should ban an endpointId", ()=>{
+      return dbApi.validation.banEndpointId('ENDPOINT_ID', 'REASON')
+      .then(() => datastore.hashFieldExists('banned-endpoints', 'ENDPOINT_ID'))
+      .then(exists => assert(exists));
+    });
+
+    it("should unban an endpointId", ()=>{
+      return dbApi.validation.banEndpointId('ENDPOINT_ID', 'REASON')
+      .then(() => dbApi.validation.unbanEndpointId('ENDPOINT_ID'))
+      .then(() => datastore.hashFieldExists('banned-endpoints', 'ENDPOINT_ID'))
+      .then(exists => assert(!exists));
+    });
+
+    describe("isValidDisplayId", ()=>{
+      it("identifies a valid display id", ()=>{
+        return datastore.setAdd('valid-displays', ['ABCD'])
+        .then(()=>
+          dbApi.validation.isValidDisplayId('ABCD')
+          .then(isValid=>{
+            assert(isValid);
+          })
+        );
+      });
+
+      it("identifies an invalid display id", ()=>{
+        return dbApi.validation.isValidDisplayId('XHYZ')
+        .then(isValid=>{
+          assert(!isValid);
+        })
+      });
+    });
+
+    describe("isValidScheduleId", ()=>{
+      it("identifies a valid schedule id", ()=>{
+        return datastore.setAdd('valid-schedules', ['ABCD'])
+        .then(()=>
+          dbApi.validation.isValidScheduleId('ABCD')
+          .then(isValid=>{
+            assert(isValid);
+          })
+        );
+      });
+
+      it("identifies an invalid schedule id", ()=>{
+        return dbApi.validation.isValidScheduleId('XHYZ')
+        .then(isValid=>{
+          assert(!isValid);
+        })
+      });
+    });
+
+    describe("isBannedEndpointId", ()=>{
+      it("identifies a banned endpoint id", ()=>{
+        return dbApi.validation.banEndpointId('ABCD')
+        .then(()=>
+          dbApi.validation.isBannedEndpointId('ABCD')
+          .then(isBanned=>{
+            assert(isBanned);
+          })
+        );
+      });
+
+      it("identifies a not banned endpoint id", ()=>{
+        return dbApi.validation.isBannedEndpointId('XHYZ')
+        .then(isBanned=>{
+          assert(!isBanned);
+        })
+      });
+    });
+  });
 });

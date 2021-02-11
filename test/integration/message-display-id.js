@@ -16,6 +16,7 @@ describe("MS Display Id : Integration", ()=>{
     simple.mock(datastore, "initdb").returnWith();
     simple.mock(db.fileMetadata, "addDisplayTo").resolveWith();
     simple.mock(db.watchList, "put").resolveWith();
+    simple.mock(db.validation, "isValidDisplayId").resolveWith(true);
     simple.mock(versionCompare, "compare").resolveWith({
       matched: true,
       version: -1

@@ -248,5 +248,34 @@ module.exports = {
       .then(()=>redis.setAdd(`folders:cleared`, [folderPath]))
       .then(()=>folderPath)
     }
+  },
+  validation: {
+    addDisplayId(id) {
+      return redis.setAdd('valid-displays', [id])
+    },
+    removeDisplayId(id) {
+      return redis.setRemove('valid-displays', [id])
+    },
+    addScheduleId(id) {
+      return redis.setAdd('valid-schedules', [id])
+    },
+    removeScheduleId(id) {
+      return redis.setRemove('valid-schedules', [id])
+    },
+    banEndpointId(id, reason) {
+      return redis.patchHash('banned-endpoints', {[id]: reason})
+    },
+    unbanEndpointId(id) {
+      return redis.removeHashField('banned-endpoints', id)
+    },
+    isValidDisplayId(displayId) {
+      return redis.setHas('valid-displays', displayId)
+    },
+    isValidScheduleId(scheduleId) {
+      return redis.setHas('valid-schedules', scheduleId)
+    },
+    isBannedEndpointId(endpointId) {
+      return redis.hashFieldExists('banned-endpoints', endpointId)
+    }
   }
 };
