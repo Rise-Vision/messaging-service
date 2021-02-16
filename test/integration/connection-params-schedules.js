@@ -118,6 +118,7 @@ describe("MS Connection : Schedules : Integration", ()=>{
 
     it("allows a connection with proper schedule and endpoint ids", ()=>{
       simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(true);
+      simple.mock(dbApi.validation, "isBannedEndpointId").resolveWith(false);
 
       const scheduleId = "testId";
       const endpointId = "testEndpointId";
@@ -138,6 +139,27 @@ describe("MS Connection : Schedules : Integration", ()=>{
 
     it("rejects a connection if schedule id is not valid", ()=>{
       simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(false);
+
+      const scheduleId = "testId";
+      const endpointId = "testEndpointId";
+      const msUrl = `${msEndpoint}?scheduleId=${scheduleId}&endpointId=${endpointId}`;
+      console.log(`Connecting to websocket with ${msUrl}`);
+
+      const ms = new (Primus.createSocket({
+        transformer: "websockets",
+        pathname: "messaging/primus/"
+      }))(msUrl);
+
+      return new Promise((res, rej)=>{
+        ms.on("open", ()=>rej(Error("Should not have allowed the connection")));
+        ms.on("error", err=>{console.error(err.message); res()});
+      })
+      .then(()=>ms.end());
+    });
+
+    it("rejects a connection if and endpoint id is banned", ()=>{
+      simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(true);
+      simple.mock(dbApi.validation, "isBannedEndpointId").resolveWith(true);
 
       const scheduleId = "testId";
       const endpointId = "testEndpointId";

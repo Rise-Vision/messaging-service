@@ -7,6 +7,21 @@ const handlers = require("../event-handlers/messages");
 
 const invalidIds = ["undefined", "null"];
 
+const checkBanned = (type, id, done) => {
+  dbApi.validation.isBannedEndpointId(id)
+  .then(isBanned => {
+    if (isBanned) {
+      logger.log(`Banned ${type} id (${type}Id: ${id})`);
+      return done({
+        statusCode: 403,
+        message: "Unauthorized"
+      });
+    }
+
+    done();
+  });
+}
+
 const authorizeSchedule = (scheduleId, endpointId, done) => {
   if (!scheduleId || !endpointId || [scheduleId, endpointId].some(id=>invalidIds.includes(id))) {
     logger.log(`Missing connection parameters (scheduleId: ${scheduleId}, endpointId: ${endpointId})`);
@@ -26,7 +41,7 @@ const authorizeSchedule = (scheduleId, endpointId, done) => {
       });
     }
 
-    done();
+    checkBanned('endpoint', endpointId, done);
   });
 }
 
@@ -39,7 +54,7 @@ const authorizeDisplay = (displayId, machineId, done) => {
     });
   }
 
-  /* dbApi.validation.isValidDisplayId(displayId)
+  dbApi.validation.isValidDisplayId(displayId)
   .then(isValid => {
     if (!isValid) {
       logger.log(`Invalid display id (displayId: ${displayId})`);
@@ -49,9 +64,8 @@ const authorizeDisplay = (displayId, machineId, done) => {
       });
     }
 
-    done();
-  }); */
-  done();
+    checkBanned('display', displayId, done);
+  });
 }
 
 module.exports = {
