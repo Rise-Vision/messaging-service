@@ -155,7 +155,7 @@ describe("MS Connection : displays : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    xit("rejects a connection if display id is not valid", ()=>{
+    it("rejects a connection if displayid is not valid", ()=>{
       simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(false);
 
       const displayId = "testId";
@@ -175,7 +175,7 @@ describe("MS Connection : displays : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    xit("rejects a connection if display id is banned", ()=>{
+    it("rejects a connection if display id is banned", ()=>{
       simple.mock(dbApi.validation, "isValidDisplayId").resolveWith(true);
       simple.mock(dbApi.validation, "isBannedEndpointId").resolveWith(true);
 
