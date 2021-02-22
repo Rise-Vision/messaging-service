@@ -1,13 +1,13 @@
 const logger = require("../logger");
 const querystring = require("querystring");
 const url = require("url");
-const dbApi = require("../db/api");
+// const dbApi = require("../db/api");
 const displayConnections = require("../event-handlers/display-connections");
 const handlers = require("../event-handlers/messages");
 
 const invalidIds = ["undefined", "null"];
 
-const checkBanned = (type, id, done) => {
+/* const checkBanned = (type, id, done) => {
   dbApi.validation.isBannedEndpointId(id)
   .then(isBanned => {
     if (isBanned) {
@@ -20,7 +20,7 @@ const checkBanned = (type, id, done) => {
 
     done();
   });
-}
+} */
 
 const authorizeSchedule = (scheduleId, endpointId, done) => {
   if (!scheduleId || !endpointId || [scheduleId, endpointId].some(id=>invalidIds.includes(id))) {
@@ -31,7 +31,7 @@ const authorizeSchedule = (scheduleId, endpointId, done) => {
     });
   }
 
-  dbApi.validation.isValidScheduleId(scheduleId)
+  /* dbApi.validation.isValidScheduleId(scheduleId)
   .then(isValid => {
     if (!isValid) {
       logger.log(`Invalid schedule id (scheduleId: ${scheduleId})`);
@@ -42,7 +42,8 @@ const authorizeSchedule = (scheduleId, endpointId, done) => {
     }
 
     checkBanned('endpoint', endpointId, done);
-  });
+  }); */
+  done();
 }
 
 const authorizeDisplay = (displayId, machineId, done) => {
@@ -54,7 +55,7 @@ const authorizeDisplay = (displayId, machineId, done) => {
     });
   }
 
-  dbApi.validation.isValidDisplayId(displayId)
+  /* dbApi.validation.isValidDisplayId(displayId)
   .then(isValid => {
     if (!isValid) {
       logger.log(`Invalid display id (displayId: ${displayId})`);
@@ -65,7 +66,8 @@ const authorizeDisplay = (displayId, machineId, done) => {
     }
 
     checkBanned('display', displayId, done);
-  });
+  }); */
+  done();
 }
 
 module.exports = {
