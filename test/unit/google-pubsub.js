@@ -31,7 +31,7 @@ describe("Google PubSub", ()=>{
 
       googlePubSub.publishConnection(testId);
 
-      assert(!publishStub.lastCall.args[0]);
+      assert(!publishStub.callCount);
   });
 
   it("publishes message on display disconnection", ()=>{
@@ -51,6 +51,6 @@ describe("Google PubSub", ()=>{
 
       googlePubSub.publishDisconnection(testId);
 
-      assert(!publishStub.lastCall.args[0]);
+      assert(!publishStub.callCount);
   });
 });
