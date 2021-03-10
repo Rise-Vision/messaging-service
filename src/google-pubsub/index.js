@@ -38,9 +38,11 @@ const retrySettings = {
 }; /* eslint no-magic-numbers: "off", no-multi-spaces: "off" */
 module.exports = {
   publishDisconnection(displayId) {
+    if (displayId && displayId.startsWith("content-sentinel-")) {return;}
     module.exports.publish(messageObject(displayId, "disconnected"));
   },
   publishConnection(displayId) {
+    if (displayId && displayId.startsWith("content-sentinel-")) {return;}
     module.exports.publish(messageObject(displayId, "connected"));
   },
   publish(msg = {}, topic = topicPath) {
