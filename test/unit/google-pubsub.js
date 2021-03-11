@@ -26,15 +26,31 @@ describe("Google PubSub", ()=>{
     assert.deepEqual(publishedMessage.status, expectedStatus);
   });
 
+  it("does not publish message on display connection with prefix", ()=>{
+      const testId = "content-sentinel-test-id";
+
+      googlePubSub.publishConnection(testId);
+
+      assert(!publishStub.callCount);
+  });
+
   it("publishes message on display disconnection", ()=>{
     const expectedStatus = "disconnected"
     const testId = "test-id";
 
-    googlePubSub.publishDisconnection("test-id");
+    googlePubSub.publishDisconnection(testId);
 
     const publishedMessage = JSON.parse(publishStub.lastCall.args[0].messages[0].data.toString());
 
     assert.deepEqual(publishedMessage.id, testId);
     assert.deepEqual(publishedMessage.status, expectedStatus);
+  });
+
+  it("does not publish message on display disconnection with prefix", ()=>{
+      const testId = "content-sentinel-test-id";
+
+      googlePubSub.publishDisconnection(testId);
+
+      assert(!publishStub.callCount);
   });
 });
