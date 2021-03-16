@@ -8,7 +8,7 @@ module.exports = {
       data.topic && data.topic.toUpperCase() === "WATCHLIST-COMPARE" &&
       data.lastChanged;
   },
-  doOnIncomingPod(data) {
+  doOnIncomingPod(data, resp) {
     const {displayId, lastChanged} = data;
 
     return db.watchList.lastChanged(displayId)
@@ -23,7 +23,7 @@ module.exports = {
           lastChanged: msLastChanged
         };
 
-        return displayConnections.sendMessage(displayId, message);
+        return resp ? resp.send(message) : displayConnections.sendMessage(displayId, message);
       })
     })
     .catch(error => console.error(displayId, error));

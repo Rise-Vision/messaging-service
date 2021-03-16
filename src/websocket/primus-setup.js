@@ -117,7 +117,7 @@ module.exports = {
         const fullData = {...data, ...spark.query};
         const dataHandler = handlers.getHandler(fullData);
 
-        return dataHandler && dataHandler.doOnIncomingPod(fullData);
+        return dataHandler && dataHandler.doOnIncomingPod(fullData, null);
       });
     });
   }

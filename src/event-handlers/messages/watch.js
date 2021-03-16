@@ -12,17 +12,19 @@ module.exports = {
       data.topic && data.topic.toUpperCase() === "WATCH" &&
       data.filePath && !data.filePath.endsWith("/");
   },
-  doOnIncomingPod(newEntry) {
+  doOnIncomingPod(newEntry, resp) {
     if (newEntry && newEntry.version) {newEntry.version = String(newEntry.version)}
 
     if (!watchListEntry.validate(newEntry)) {
 
       logger.log(`Invalid entry ${JSON.stringify(newEntry)}`);
 
-      return newEntry && displayConnections.sendMessage(newEntry.displayId, {
+      const errorMessage = {
         error: 400,
         msg: `invalid watchlist entry ${JSON.stringify(newEntry)}`
-      });
+      };
+
+      return newEntry && (resp ? resp.send(errorMessage) : displayConnections.sendMessage(newEntry.displayId, errorMessage));
     }
 
     const {filePath, displayId} = newEntry;
@@ -43,15 +45,18 @@ module.exports = {
 
       return watchlistUpdate
       .then(()=>db.watchList.lastChanged(displayId))
-      .then(watchlistLastChanged =>
-        displayConnections.sendMessage(displayId, {
+      .then(watchlistLastChanged => {
+        const message = {
           msg: "ok",
           topic: "watch-result",
           filePath,
           version: finalResult.version,
           token: finalResult.token,
           watchlistLastChanged
-        }));
+        };
+
+        return resp ? resp.send(message) : displayConnections.sendMessage(displayId, message);
+      });
     })
     .catch((err)=>{
       watchError(err, filePath, newEntry.displayId);
