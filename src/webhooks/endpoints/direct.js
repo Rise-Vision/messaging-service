@@ -3,7 +3,7 @@ const paramErrors = require("./param-errors");
 const handlers = require("../../event-handlers/messages");
 // const dbApi = require("../db/api");
 
-const validTopics = ["watch", "unwatch", "watchlist-compare"];
+const validTopics = ["WATCH", "UNWATCH", "WATCHLIST-COMPARE"];
 
 module.exports = (req, resp) => {
   const {topic, endpointId} = req.query;
@@ -27,7 +27,7 @@ function invalidInput({topic, endpointId, scheduleId, displayId} = {}, resp) { /
   const invalid = invalidHandler.bind(null, resp);
 
   if (!topic) {return invalid(paramErrors.missingTopic);}
-  if (!validTopics.includes(topic)) {return invalid(paramErrors.invalidTopic);}
+  if (!validTopics.includes(topic.toUpperCase())) {return invalid(paramErrors.invalidTopic);}
   if (!endpointId) {return invalid(paramErrors.missingEndpointId);}
   if (!scheduleId) {return invalid(paramErrors.missingScheduleId);}
   if (displayId) {return invalid(paramErrors.displaysNotAllowed);}
