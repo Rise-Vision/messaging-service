@@ -10,13 +10,14 @@ const watchlistCompareRequest = require("../../src/event-handlers/messages/watch
 
 const testPort = 9228;
 const BAD_REQUEST = 400;
+const FORBIDDEN = 403;
 
 describe("Direct HTTP request", ()=>{
 
   it("expects topic parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?displayId=xxx`,
+      uri: `http://localhost:${testPort}/messaging/direct?endpointId=xxx&scheduleId=yyy`,
       json: true
     })
     .then(()=>{
@@ -28,18 +29,48 @@ describe("Direct HTTP request", ()=>{
     });
   });
 
-  it("expects displayId parameter", ()=>{
+  it("expects endpointId parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?topic=xxx`,
+      uri: `http://localhost:${testPort}/messaging/direct?topic=xxx&scheduleId=yyy`,
       json: true
     })
     .then(()=>{
       assert.fail("Should have rejected");
     })
     .catch(err=>{
-      assert(err.message.includes("displayId"));
+      assert(err.message.includes("endpointId"));
       assert(err.statusCode === BAD_REQUEST);
+    });
+  });
+
+  it("expects scheduleId parameter", ()=>{
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=xxx&endpointId=ABCDE`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("scheduleId"));
+      assert(err.statusCode === BAD_REQUEST);
+    });
+  });
+
+  it("does not expect displayId parameter", ()=>{
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=xxx&endpointId=ABCDE&displayId=yyy&scheduleId=zzz`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("Displays are not allowed"));
+      assert(err.statusCode === FORBIDDEN);
     });
   });
 
@@ -49,7 +80,7 @@ describe("Direct HTTP request", ()=>{
     });
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&displayId=ABCDE&filePath=xxx.yyy`,
+      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&endpointId=ABCDE&filePath=xxx.yyy&scheduleId=zzz`,
       json: true
     })
     .then(()=>{
@@ -63,7 +94,7 @@ describe("Direct HTTP request", ()=>{
     });
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?topic=unwatch&displayId=ABCDE&filePaths=xxx.yyy`,
+      uri: `http://localhost:${testPort}/messaging/direct?topic=unwatch&endpointId=ABCDE&filePaths=xxx.yyy&scheduleId=zzz`,
       json: true
     })
     .then(()=>{
@@ -77,7 +108,7 @@ describe("Direct HTTP request", ()=>{
     });
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&displayId=ABCDE&filePath=xxx.yyy/`,
+      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&endpointId=ABCDE&filePath=xxx.yyy/&scheduleId=zzz`,
       json: true
     })
     .then(()=>{
@@ -91,7 +122,7 @@ describe("Direct HTTP request", ()=>{
       });
       return rp({
         method: "GET",
-        uri: `http://localhost:${testPort}/messaging/direct?topic=watchlist-compare&displayId=ABCDE&lastChanged=xxx`,
+        uri: `http://localhost:${testPort}/messaging/direct?topic=watchlist-compare&endpointId=ABCDE&lastChanged=xxx&scheduleId=zzz`,
         json: true
       })
       .then(()=>{
