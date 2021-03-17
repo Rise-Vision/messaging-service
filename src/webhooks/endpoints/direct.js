@@ -12,8 +12,8 @@ module.exports = (req, resp) => {
   const eventHandler = handlers.getHandler(req.query);
   if (!eventHandler) {return invalidHandler(resp, paramErrors.noHandler);}
 
-  eventHandler.doOnIncomingPod(req.query, resp);
-  logger.log(`Request from Viewer id=${displayId} processed.`);
+  return eventHandler.doOnIncomingPod(req.query, resp)
+  .then(()=>logger.log(`Request from Viewer id=${displayId} processed.`));
 }
 
 function invalidInput({topic, displayId} = {}, resp) { // eslint-disable-line max-statements

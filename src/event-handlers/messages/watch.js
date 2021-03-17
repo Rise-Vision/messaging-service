@@ -59,7 +59,7 @@ module.exports = {
       });
     })
     .catch((err)=>{
-      watchError(err, filePath, newEntry.displayId);
+      return watchError(err, filePath, newEntry.displayId, resp);
     });
   }
 };

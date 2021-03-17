@@ -44,7 +44,9 @@ describe("Direct HTTP request", ()=>{
   });
 
   it("responds ok and calls event handler for watch", ()=>{
-    simple.mock(watchRequest, "doOnIncomingPod").returnWith();
+    simple.mock(watchRequest, "doOnIncomingPod").callFn((query, resp)=>{
+      resp.send();
+    });
     return rp({
       method: "GET",
       uri: `http://localhost:${testPort}/messaging/direct?topic=watch&displayId=ABCDE&filePath=xxx.yyy`,
@@ -56,7 +58,9 @@ describe("Direct HTTP request", ()=>{
   });
 
   it("responds ok and calls event handler for unwatch", ()=>{
-    simple.mock(unwatchRequest, "doOnIncomingPod").returnWith();
+    simple.mock(unwatchRequest, "doOnIncomingPod").callFn((query, resp)=>{
+      resp.send();
+    });
     return rp({
       method: "GET",
       uri: `http://localhost:${testPort}/messaging/direct?topic=unwatch&displayId=ABCDE&filePaths=xxx.yyy`,
@@ -68,10 +72,12 @@ describe("Direct HTTP request", ()=>{
   });
 
   it("responds ok and calls event handler for folder-watch", ()=>{
-    simple.mock(folderWatchRequest, "doOnIncomingPod").returnWith();
+    simple.mock(folderWatchRequest, "doOnIncomingPod").callFn((query, resp)=>{
+      resp.send();
+    });
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&displayId=ABCDE&filePaths=xxx.yyy/`,
+      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&displayId=ABCDE&filePath=xxx.yyy/`,
       json: true
     })
     .then(()=>{
@@ -80,7 +86,9 @@ describe("Direct HTTP request", ()=>{
   });
 
   it("responds ok and calls event handler for watchlist-compare", ()=>{
-      simple.mock(watchlistCompareRequest, "doOnIncomingPod").returnWith();
+      simple.mock(watchlistCompareRequest, "doOnIncomingPod").callFn((query, resp)=>{
+        resp.send();
+      });
       return rp({
         method: "GET",
         uri: `http://localhost:${testPort}/messaging/direct?topic=watchlist-compare&displayId=ABCDE&lastChanged=xxx`,
