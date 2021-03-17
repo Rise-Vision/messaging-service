@@ -35,6 +35,10 @@ module.exports = {
     code: 403,
     msg: "Endpoint is banned"
   },
+  invalidTopic: {
+    code: 403,
+    msg: "Topic is not valid"
+  },
   noHandler: {
     code: 400,
     msg: "Request has no handler"

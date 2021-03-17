@@ -32,7 +32,7 @@ describe("Direct HTTP request", ()=>{
   it("expects endpointId parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?topic=xxx&scheduleId=yyy`,
+      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&filePath=xxx.yyy&scheduleId=zzz`,
       json: true
     })
     .then(()=>{
@@ -47,7 +47,7 @@ describe("Direct HTTP request", ()=>{
   it("expects scheduleId parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?topic=xxx&endpointId=ABCDE`,
+      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&endpointId=ABCDE&filePath=xxx.yyy`,
       json: true
     })
     .then(()=>{
@@ -62,7 +62,7 @@ describe("Direct HTTP request", ()=>{
   it("does not expect displayId parameter", ()=>{
     return rp({
       method: "GET",
-      uri: `http://localhost:${testPort}/messaging/direct?topic=xxx&endpointId=ABCDE&displayId=yyy&scheduleId=zzz`,
+      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&endpointId=ABCDE&filePath=xxx.yyy&scheduleId=zzz&displayId=yyy`,
       json: true
     })
     .then(()=>{
@@ -70,6 +70,51 @@ describe("Direct HTTP request", ()=>{
     })
     .catch(err=>{
       assert(err.message.includes("Displays are not allowed"));
+      assert(err.statusCode === FORBIDDEN);
+    });
+  });
+
+  it("does not allow reboot", ()=>{
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=reboot&endpointId=ABCDE`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("Topic is not valid"));
+      assert(err.statusCode === FORBIDDEN);
+    });
+  });
+
+  it("does not allow restart", ()=>{
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=restart&endpointId=ABCDE`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("Topic is not valid"));
+      assert(err.statusCode === FORBIDDEN);
+    });
+  });
+
+  it("does not allow screenshot", ()=>{
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=screenshot&endpointId=ABCDE`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("Topic is not valid"));
       assert(err.statusCode === FORBIDDEN);
     });
   });
