@@ -10,7 +10,7 @@ module.exports = {
       data.topic && data.topic.toUpperCase() === "WATCH" &&
       data.filePath && data.filePath.endsWith("/");
   },
-  doOnIncomingPod({filePath: folderPath, displayId} = {}) {
+  doOnIncomingPod({filePath: folderPath, displayId} = {}, resp) {
     return folders.watchingFolder(folderPath)
     .then(watching=>{
       return watching ? existingFolder(folderPath) : newFolder(folderPath);
@@ -32,13 +32,16 @@ module.exports = {
     })
     .then((folderData)=>{
       return watchList.lastChanged(displayId)
-      .then(watchlistLastChanged =>
-        displayConnections.sendMessage(displayId, {
+      .then(watchlistLastChanged => {
+        const message = {
           msg: "ok",
           topic: "watch-result",
           folderData,
           watchlistLastChanged
-        }));
+        };
+
+        return resp ? resp.send(message) : displayConnections.sendMessage(displayId, message);
+      })
     })
     .catch((err)=>{
       watchError(err, folderPath, displayId);

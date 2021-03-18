@@ -10,6 +10,7 @@ const pubsubConnectorPOST = require("./src/webhooks/pubsub-connector/post-handle
 const coreGET = require("./src/webhooks/core/get-handler");
 const coreIdUpdate = require("./src/webhooks/core/id-update-handler");
 const endpoints = require("./src/webhooks/endpoints/endpoint-handlers");
+const direct = require("./src/webhooks/endpoints/direct");
 const presencePOST = require("./src/webhooks/presence/post-handler");
 const presenceOPTIONS = require("./src/webhooks/presence/options-handler");
 const jsonParser = require("body-parser").json();
@@ -42,6 +43,7 @@ app.get("/messaging/core", coreGET);
 app.get("/messaging/core/idUpdate", coreIdUpdate);
 app.get("/messaging/ban", endpoints.handleBan);
 app.get("/messaging/unban", endpoints.handleUnban);
+app.get("/messaging/direct", direct);
 
 app.post("/messaging/pubsub", jsonParser, pubsubConnectorPOST);
 

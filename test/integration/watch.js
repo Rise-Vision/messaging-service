@@ -72,7 +72,7 @@ describe("WATCH : Integration", ()=>{
 
       return redis.getString(`meta:${validFilePath}:version`)
       .then((resp)=>assert(!resp))
-      .then(watch.doOnIncomingPod.bind(null, {displayId, filePath: validFilePath, version}))
+      .then(watch.doOnIncomingPod.bind(null, {displayId, filePath: validFilePath, version}, null))
       .then(()=>{
         const reply = displayConnections.sendMessage.lastCall.args[1];
         assert.equal(reply.token.data.displayId, displayId);
@@ -103,7 +103,7 @@ describe("WATCH : Integration", ()=>{
         displayId,
         filePath: validFilePath,
         version: knownGCSversion
-      }))
+      }, null))
       .then(()=>{
         const reply = displayConnections.sendMessage.lastCall.args[1];
         console.log(reply);

@@ -8,7 +8,7 @@ module.exports = {
       data.topic && data.topic.toUpperCase() === "UNWATCH" &&
       data.filePaths;
   },
-  doOnIncomingPod(data) {
+  doOnIncomingPod(data, resp) {
     const {displayId, filePaths} = data;
 
     logger.log(`Unwatch ${displayId} ${filePaths.join(',')}`);
@@ -19,7 +19,7 @@ module.exports = {
           topic: "unwatch-result"
         };
 
-        return displayConnections.sendMessage(displayId, message);
+        return resp ? resp.send(message) : displayConnections.sendMessage(displayId, message);
       })
     .catch(error => console.error(displayId, error));
   }

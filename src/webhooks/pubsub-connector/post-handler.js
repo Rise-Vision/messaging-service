@@ -9,6 +9,6 @@ module.exports = (req, resp) => {
     return resp.send("");
   }
 
-  fileUpdateHandler.doOnIncomingPod(req.body);
+  fileUpdateHandler.doOnIncomingPod(req.body, null);
   resp.send("");
 }
