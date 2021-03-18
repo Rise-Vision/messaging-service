@@ -2,7 +2,7 @@ const logger = require("../../logger.js");
 const db = require("../../db/api.js");
 const SERVER_ERROR = 500;
 const BAD_REQUEST = 400;
-const setCorsHeaders = require("./set-cors-headers");
+const setCorsHeaders = require("../set-cors-headers");
 
 module.exports = (req, resp) => {
   setCorsHeaders(req, resp);
