@@ -1,11 +1,13 @@
 const logger = require("../../logger");
 const paramErrors = require("./param-errors");
 const handlers = require("../../event-handlers/messages");
-// const dbApi = require("../db/api");
+const setCorsHeaders = require("../set-cors-headers");
 
 const validTopics = ["WATCH", "UNWATCH", "WATCHLIST-COMPARE"];
 
 module.exports = (req, resp) => {
+  setCorsHeaders(req, resp);
+
   const {topic, endpointId} = req.query;
 
   logger.log(`Received ${topic} request from Viewer id=${endpointId}`);
