@@ -27,6 +27,10 @@ module.exports = {
     code: 400,
     msg: "Topic (topic) is required"
   },
+  missingFilePaths: {
+    code: 400,
+    msg: "File paths (filePaths) are required"
+  },
   invalidSchedule: {
     code: 404,
     msg: "Schedule is not valid"
