@@ -5,7 +5,7 @@ const setCorsHeaders = require("../set-cors-headers");
 
 const validTopics = ["WATCH", "UNWATCH", "WATCHLIST-COMPARE"];
 
-module.exports = (req, resp) => {
+module.exports = (req, resp) => { // eslint-disable-line max-statements
   setCorsHeaders(req, resp);
 
   const {topic, endpointId} = req.query;
@@ -13,6 +13,9 @@ module.exports = (req, resp) => {
   logger.log(`Received ${topic} request from Viewer id=${endpointId}`);
 
   if (invalidInput(req.query, resp)) {return;}
+  if (topic.toUpperCase() === "UNWATCH") {
+    req.query.filePaths = req.query.filePaths.split(",");
+  }
 
 //  checkAuthorization(req.query, endpointId, resp);
 
@@ -25,7 +28,7 @@ module.exports = (req, resp) => {
   .then(()=>logger.log(`Request from Viewer id=${endpointId} processed.`));
 }
 
-function invalidInput({topic, endpointId, scheduleId, displayId} = {}, resp) { // eslint-disable-line max-statements
+function invalidInput({topic, endpointId, scheduleId, displayId, filePaths} = {}, resp) { // eslint-disable-line max-statements
   const invalid = invalidHandler.bind(null, resp);
 
   if (!topic) {return invalid(paramErrors.missingTopic);}
@@ -33,6 +36,9 @@ function invalidInput({topic, endpointId, scheduleId, displayId} = {}, resp) { /
   if (!endpointId) {return invalid(paramErrors.missingEndpointId);}
   if (!scheduleId) {return invalid(paramErrors.missingScheduleId);}
   if (displayId) {return invalid(paramErrors.displaysNotAllowed);}
+  if (topic.toUpperCase() === "UNWATCH" && !filePaths) {
+    return invalid(paramErrors.missingFilePaths);
+  }
 
   return false;
 }

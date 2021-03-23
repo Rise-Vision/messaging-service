@@ -133,6 +133,36 @@ describe("Direct HTTP request", ()=>{
     });
   });
 
+  it("does not allow unwatch if no filePaths param is provided", ()=>{
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=unwatch&endpointId=ABCDE&scheduleId=zzz`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("File paths"));
+      assert(err.statusCode === BAD_REQUEST);
+    });
+  });
+
+  it("does not allow unwatch if empty filePaths param is provided", ()=>{
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=unwatch&endpointId=ABCDE&filePaths=&scheduleId=zzz`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("File paths"));
+      assert(err.statusCode === BAD_REQUEST);
+    });
+  });
+
   it("responds ok and calls event handler for unwatch", ()=>{
     simple.mock(unwatchRequest, "doOnIncomingPod").callFn((query, resp)=>{
       resp.send();
@@ -144,6 +174,28 @@ describe("Direct HTTP request", ()=>{
     })
     .then(()=>{
       assert(unwatchRequest.doOnIncomingPod.called)
+
+      const data = unwatchRequest.doOnIncomingPod.lastCall.arg
+      assert(data)
+      assert.deepEqual(data.filePaths, ["xxx.yyy"])
+    });
+  });
+
+  it("responds ok and calls event handler for unwatch over multiple filePaths", ()=>{
+    simple.mock(unwatchRequest, "doOnIncomingPod").callFn((query, resp)=>{
+      resp.send();
+    });
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=unwatch&endpointId=ABCDE&filePaths=xxx.yyy%2Caaaa.bbbb%2Cssss.rrrr&scheduleId=zzz`,
+      json: true
+    })
+    .then(()=>{
+      assert(unwatchRequest.doOnIncomingPod.called)
+
+      const data = unwatchRequest.doOnIncomingPod.lastCall.arg
+      assert(data)
+      assert.deepEqual(data.filePaths, ["xxx.yyy", "aaaa.bbbb", "ssss.rrrr"])
     });
   });
 
