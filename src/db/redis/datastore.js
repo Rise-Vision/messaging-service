@@ -1,6 +1,6 @@
 const util = require("util");
 const redis = require("redis");
-const gkeHostname = "display-ms-redis-master";
+const gkeHostname = "display-ms-redis-primary";
 const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 
 let client = null;
