@@ -3,6 +3,8 @@
 const assert = require("assert");
 const rp = require("request-promise-native");
 const simple = require("simple-mock");
+
+const dbApi = require("../../src/db/api");
 const watchRequest = require("../../src/event-handlers/messages/watch");
 const folderWatchRequest = require("../../src/event-handlers/messages/folder-watch");
 const unwatchRequest = require("../../src/event-handlers/messages/unwatch");
@@ -10,9 +12,15 @@ const watchlistCompareRequest = require("../../src/event-handlers/messages/watch
 
 const testPort = 9228;
 const BAD_REQUEST = 400;
+const NOT_FOUND = 404;
 const FORBIDDEN = 403;
 
 describe("Direct HTTP request", ()=>{
+
+  beforeEach(() => {
+    simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(true);
+    simple.mock(dbApi.validation, "isBannedEndpointId").resolveWith(false);
+  });
 
   it("expects topic parameter", ()=>{
     return rp({
@@ -226,4 +234,39 @@ describe("Direct HTTP request", ()=>{
         assert(watchlistCompareRequest.doOnIncomingPod.called)
       });
     });
+
+  it("rejects a connection if schedule id is not valid", ()=>{
+    simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(false);
+
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&endpointId=ABCDE&filePath=xxx.yyy&scheduleId=zzz`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("Schedule is not valid"));
+      assert(err.statusCode === NOT_FOUND);
+    });
+  });
+
+  it("rejects a connection if endpoint id is banned", ()=>{
+    simple.mock(dbApi.validation, "isBannedEndpointId").resolveWith(true);
+
+    return rp({
+      method: "GET",
+      uri: `http://localhost:${testPort}/messaging/direct?topic=watch&endpointId=ABCDE&filePath=xxx.yyy&scheduleId=zzz`,
+      json: true
+    })
+    .then(()=>{
+      assert.fail("Should have rejected");
+    })
+    .catch(err=>{
+      assert(err.message.includes("Endpoint is banned"));
+      assert(err.statusCode === FORBIDDEN);
+    });
+  });
+
 });
