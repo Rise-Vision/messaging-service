@@ -137,7 +137,7 @@ describe("MS Connection : Schedules : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    xit("rejects a connection if schedule id is not valid", ()=>{
+    it("rejects a connection if schedule id is not valid", ()=>{
       simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(false);
 
       const scheduleId = "testId";
@@ -157,7 +157,7 @@ describe("MS Connection : Schedules : Integration", ()=>{
       .then(()=>ms.end());
     });
 
-    xit("rejects a connection if and endpoint id is banned", ()=>{
+    it("rejects a connection if and endpoint id is banned", ()=>{
       simple.mock(dbApi.validation, "isValidScheduleId").resolveWith(true);
       simple.mock(dbApi.validation, "isBannedEndpointId").resolveWith(true);
 
