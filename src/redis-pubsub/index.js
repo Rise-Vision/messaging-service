@@ -3,7 +3,7 @@ const logger = require("../logger");
 const podsChannel = "inter-pod-publish";
 const expiredKeyChannelPattern = "__keyevent*expired";
 const redis = require("redis");
-const gkeHostname = "display-ms-redis-master";
+const gkeHostname = "display-ms-redis-primary";
 const redisHost = process.env.NODE_ENV === "test" ? "127.0.0.1" : gkeHostname;
 const handlers = require("../event-handlers/messages");
 const missedHeartbeat = require("../event-handlers/missed-heartbeat");
