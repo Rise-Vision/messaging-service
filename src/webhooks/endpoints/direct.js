@@ -1,3 +1,4 @@
+const dbApi = require("../../db/api");
 const logger = require("../../logger");
 const paramErrors = require("./param-errors");
 const handlers = require("../../event-handlers/messages");
@@ -13,19 +14,23 @@ module.exports = (req, resp) => { // eslint-disable-line max-statements
   logger.log(`Received ${topic} request from Viewer id=${endpointId}`);
 
   if (invalidInput(req.query, resp)) {return;}
-  if (topic.toUpperCase() === "UNWATCH") {
-    req.query.filePaths = req.query.filePaths.split(",");
-  }
 
-//  checkAuthorization(req.query, endpointId, resp);
+  return checkAuthorization(req.query, resp).then(invalid =>
+  {
+    if (invalid) {return;}
 
-  req.query.displayId = req.query.endpointId;
+    if (topic.toUpperCase() === "UNWATCH") {
+      req.query.filePaths = req.query.filePaths.split(",");
+    }
 
-  const eventHandler = handlers.getHandler(req.query);
-  if (!eventHandler) {return invalidHandler(resp, paramErrors.noHandler);}
+    req.query.displayId = req.query.endpointId;
 
-  return eventHandler.doOnIncomingPod(req.query, resp)
-  .then(()=>logger.log(`Request from Viewer id=${endpointId} processed.`));
+    const eventHandler = handlers.getHandler(req.query);
+    if (!eventHandler) {return invalidHandler(resp, paramErrors.noHandler);}
+
+    return eventHandler.doOnIncomingPod(req.query, resp)
+    .then(()=>logger.log(`Request from Viewer id=${endpointId} processed.`));
+  })
 }
 
 function invalidInput({topic, endpointId, scheduleId, displayId, filePaths} = {}, resp) { // eslint-disable-line max-statements
@@ -47,25 +52,28 @@ function invalidHandler(resp, paramError) {
   resp.status(paramError.code).send(paramError.msg);
   return true;
 }
-/*
+
 function checkAuthorization({endpointId, scheduleId} = {}, resp) {
 
   const invalid = invalidHandler.bind(null, resp);
 
-  dbApi.validation.isValidScheduleId(scheduleId)
+  return dbApi.validation.isValidScheduleId(scheduleId)
   .then(isValid => {
     if (!isValid) {
       logger.log(`Invalid schedule id (scheduleId: ${scheduleId})`);
       return invalid(paramErrors.invalidSchedule);
     }
+
+    return dbApi.validation.isBannedEndpointId(endpointId)
+    .then(isBanned => {
+      if (isBanned) {
+        logger.log(`Banned endpoint (id: ${endpointId})`);
+        return invalid(paramErrors.bannedEndpoint);
+      }
+
+      return false;
+    });
   });
 
-  dbApi.validation.isBannedEndpointId(endpointId)
-  .then(isBanned => {
-    if (isBanned) {
-      logger.log(`Banned endpoint (id: ${endpointId})`);
-      return invalid(paramErrors.bannedEndpoint);
-    }
-  });
+
 }
-*/
