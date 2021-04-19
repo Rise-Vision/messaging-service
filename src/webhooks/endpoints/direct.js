@@ -15,8 +15,7 @@ module.exports = (req, resp) => { // eslint-disable-line max-statements
 
   if (invalidInput(req.query, resp)) {return;}
 
-  return checkAuthorization(req.query, resp).then(invalid =>
-  {
+  return checkAuthorization(req.query, resp).then(invalid => {
     if (invalid) {return;}
 
     if (topic.toUpperCase() === "UNWATCH") {
@@ -28,8 +27,8 @@ module.exports = (req, resp) => { // eslint-disable-line max-statements
     const eventHandler = handlers.getHandler(req.query);
     if (!eventHandler) {return invalidHandler(resp, paramErrors.noHandler);}
 
-    return eventHandler.doOnIncomingPod(req.query, resp)
-    .then(()=>logger.log(`Request from Viewer id=${endpointId} processed.`));
+    eventHandler.doOnIncomingPod(req.query, resp);
+    logger.log(`Request from Viewer id=${endpointId} processed.`);
   })
 }
 
