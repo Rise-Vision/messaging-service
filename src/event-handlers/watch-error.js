@@ -1,6 +1,7 @@
 const displayConnections = require("./display-connections");
 
 const SERVER_ERROR = 500;
+const OK = 200;
 
 module.exports = function(err = {}, filePath, displayId, resp) { // eslint-disable-line max-params
   console.error(`[${err.message}] [${filePath}] [${displayId}]`);
@@ -14,6 +15,8 @@ module.exports = function(err = {}, filePath, displayId, resp) { // eslint-disab
     msg: `There was an error processing WATCH:${err.message}`
   };
 
-  return resp ? resp.status(SERVER_ERROR).send(message) : displayConnections.sendMessage(displayId, message);
+  const httpStatus = err.message === "NOEXIST" ? OK : SERVER_ERROR;
+
+  return resp ? resp.status(httpStatus).send(message) : displayConnections.sendMessage(displayId, message);
 }
 
