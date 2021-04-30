@@ -44,7 +44,7 @@ module.exports = {
       })
     })
     .catch((err)=>{
-      watchError(err, folderPath, displayId);
+      watchError(err, folderPath, displayId, resp);
     });
   }
 };
