@@ -15,7 +15,7 @@ module.exports = function(err = {}, filePath, displayId, resp) { // eslint-disab
     msg: `There was an error processing WATCH:${err.message}`
   };
 
-  const httpStatus = err.message === "NOEXIST" ? OK : SERVER_ERROR;
+  const httpStatus = ["NOEXIST", "EMPTYFOLDER"].includes(err.message) ? OK : SERVER_ERROR;
 
   return resp ? resp.status(httpStatus).send(message) : displayConnections.sendMessage(displayId, message);
 }
